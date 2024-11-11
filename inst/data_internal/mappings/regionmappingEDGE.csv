@@ -1,0 +1,250 @@
+X;CountryCode;RegionCode;RegionCodeEUR;RegionCodeEUR_ETP
+Aruba;ABW;NCD;NCD;NCD
+Afghanistan;AFG;OAS;OAS;OAS
+Angola;AGO;AFR;AFR;AFR
+Anguilla;AIA;NCD;NCD;NCD
+Aland Islands;ALA;EUR;FIN;FIN
+Albania;ALB;NCD;NCD;NCD
+Andorra;AND;NCD;NCD;NCD
+United Arab Emirates;ARE;MIE;MIE;MIE
+Argentina;ARG;NCD;NCD;NCD
+Armenia;ARM;MIE;MIE;MIE
+American Samoa;ASM;OAS;OAS;OAS
+Antarctica;ATA;NCD;NCD;NCD
+French Southern Territories;ATF;OAS;OAS;OAS
+Antigua and Barbuda;ATG;NCD;NCD;NCD
+Australia;AUS;OCD;OCD;OCD
+Austria;AUT;EUR;AUT;AUT
+Azerbaijan;AZE;MIE;MIE;MIE
+Burundi;BDI;AFR;AFR;AFR
+Belgium;BEL;EUR;BEL;BEL
+Benin;BEN;AFR;AFR;AFR
+Bonaire, Sint Eustatius and Saba;BES;NCD;NCD;NCD
+Burkina Faso;BFA;AFR;AFR;AFR
+Bangladesh;BGD;OAS;OAS;OAS
+Bulgaria;BGR;EUR;BGR;BGR
+Bahrain;BHR;MIE;MIE;MIE
+Bahamas;BHS;NCD;NCD;NCD
+Bosnia and Herzegovina;BIH;NCD;NCD;NCD
+Saint Barthelemy;BLM;NCD;NCD;NCD
+Belarus;BLR;NCD;NCD;NCD
+Belize;BLZ;NCD;NCD;NCD
+Bermuda;BMU;NCD;NCD;NCD
+Bolivia, Plurinational State of;BOL;NCD;NCD;NCD
+Brazil;BRA;NCD;NCD;BRA
+Barbados;BRB;NCD;NCD;NCD
+Brunei Darussalam;BRN;OAS;OAS;OAS
+Bhutan;BTN;OAS;OAS;OAS
+Bouvet Island;BVT;NCD;NCD;NCD
+Botswana;BWA;AFR;AFR;AFR
+Central African Republic;CAF;AFR;AFR;AFR
+Canada;CAN;OCD;OCD;OCD
+Cocos (Keeling) Islands;CCK;OAS;OAS;OAS
+Switzerland;CHE;OCD;OCD;OCD
+Chile;CHL;NCD;NCD;NCD
+China;CHN;CHN;CHN;CHN
+Cote d Ivoire;CIV;AFR;AFR;AFR
+Cameroon;CMR;AFR;AFR;AFR
+Congo, the Democratic Republic of the;COD;AFR;AFR;AFR
+Congo;COG;AFR;AFR;AFR
+Cook Islands;COK;OAS;OAS;OAS
+Colombia;COL;NCD;NCD;NCD
+Comoros;COM;AFR;AFR;AFR
+Cape Verde;CPV;AFR;AFR;AFR
+Costa Rica;CRI;NCD;NCD;NCD
+Cuba;CUB;NCD;NCD;NCD
+Curacao;CUW;NCD;NCD;NCD
+Christmas Island;CXR;OAS;OAS;OAS
+Cayman Islands;CYM;NCD;NCD;NCD
+Cyprus;CYP;EUR;CYP;CYP
+Czech Republic;CZE;EUR;CZE;CZE
+Germany;DEU;EUR;DEU;DEU
+Djibouti;DJI;AFR;AFR;AFR
+Dominica;DMA;NCD;NCD;NCD
+Denmark;DNK;EUR;DNK;DNK
+Dominican Republic;DOM;NCD;NCD;NCD
+Algeria;DZA;AFR;AFR;AFR
+Ecuador;ECU;NCD;NCD;NCD
+Egypt;EGY;AFR;AFR;AFR
+Eritrea;ERI;AFR;AFR;AFR
+Western Sahara;ESH;AFR;AFR;AFR
+Spain;ESP;EUR;ESP;ESP
+Estonia;EST;EUR;EST;EST
+Ethiopia;ETH;AFR;AFR;AFR
+Finland;FIN;EUR;FIN;FIN
+Fiji;FJI;OAS;OAS;OAS
+Falkland Islands (Malvinas);FLK;OCD;OCD;OCD
+France;FRA;EUR;FRA;FRA
+Faroe Islands;FRO;EUR;DNK;DNK
+Micronesia, Federated States of;FSM;OAS;OAS;OAS
+Gabon;GAB;AFR;AFR;AFR
+United Kingdom;GBR;EUR;GBR;GBR
+Georgia;GEO;MIE;MIE;MIE
+Guernsey;GGY;OCD;OCD;OCD
+Ghana;GHA;AFR;AFR;AFR
+Gibraltar;GIB;EUR;GBR;GBR
+Guinea;GIN;AFR;AFR;AFR
+Guadeloupe;GLP;OCD;OCD;OCD
+Gambia;GMB;AFR;AFR;AFR
+Guinea-Bissau;GNB;AFR;AFR;AFR
+Equatorial Guinea;GNQ;AFR;AFR;AFR
+Greece;GRC;EUR;GRC;GRC
+Grenada;GRD;NCD;NCD;NCD
+Greenland;GRL;EUR;DNK;DNK
+Guatemala;GTM;NCD;NCD;NCD
+French Guiana;GUF;OCD;OCD;OCD
+Guam;GUM;OAS;OAS;OAS
+Guyana;GUY;NCD;NCD;NCD
+Hong Kong;HKG;CHN;CHN;CHN
+Heard Island and McDonald Islands;HMD;OCD;OCD;OCD
+Honduras;HND;NCD;NCD;NCD
+Croatia;HRV;EUR;HRV;HRV
+Haiti;HTI;NCD;NCD;NCD
+Hungary;HUN;EUR;HUN;HUN
+Indonesia;IDN;OAS;OAS;OAS
+Isle of Man;IMN;EUR;GBR;GBR
+India;IND;IND;IND;IND
+British Indian Ocean Territory;IOT;OAS;OAS;OAS
+Ireland;IRL;EUR;IRL;IRL
+Iran, Islamic Republic of;IRN;MIE;MIE;MIE
+Iraq;IRQ;MIE;MIE;MIE
+Iceland;ISL;OCD;OCD;OCD
+Israel;ISR;MIE;MIE;MIE
+Italy;ITA;EUR;ITA;ITA
+Jamaica;JAM;NCD;NCD;NCD
+Jersey;JEY;EUR;GBR;GBR
+Jordan;JOR;MIE;MIE;MIE
+Japan;JPN;JPN;JPN;JPN
+Kazakhstan;KAZ;MIE;MIE;MIE
+Kenya;KEN;AFR;AFR;AFR
+Kyrgyzstan;KGZ;MIE;MIE;MIE
+Cambodia;KHM;OAS;OAS;OAS
+Kiribati;KIR;OAS;OAS;OAS
+Saint Kitts and Nevis;KNA;NCD;NCD;NCD
+Korea, Republic of;KOR;OAS;OAS;OAS
+Kuwait;KWT;MIE;MIE;MIE
+Lao People's Democratic Republic;LAO;OAS;OAS;OAS
+Lebanon;LBN;MIE;MIE;MIE
+Liberia;LBR;AFR;AFR;AFR
+Libya;LBY;AFR;AFR;AFR
+Saint Lucia;LCA;NCD;NCD;NCD
+Liechtenstein;LIE;NCD;NCD;NCD
+Sri Lanka;LKA;OAS;OAS;OAS
+Lesotho;LSO;AFR;AFR;AFR
+Lithuania;LTU;EUR;LTU;LTU
+Luxembourg;LUX;EUR;LUX;LUX
+Latvia;LVA;EUR;LVA;LVA
+Macao;MAC;CHN;CHN;CHN
+Saint Martin (French part);MAF;OCD;OCD;OCD
+Morocco;MAR;AFR;AFR;AFR
+Monaco;MCO;NCD;NCD;NCD
+Moldova, Republic of;MDA;NCD;NCD;NCD
+Madagascar;MDG;AFR;AFR;AFR
+Maldives;MDV;OAS;OAS;OAS
+Mexico;MEX;OCD;OCD;MEX
+Marshall Islands;MHL;OAS;OAS;OAS
+Macedonia, the former Yugoslav Republic of;MKD;NCD;NCD;NCD
+Mali;MLI;AFR;AFR;AFR
+Malta;MLT;EUR;MLT;MLT
+Myanmar;MMR;OAS;OAS;OAS
+Montenegro;MNE;NCD;NCD;NCD
+Mongolia;MNG;OAS;OAS;OAS
+Northern Mariana Islands;MNP;OAS;OAS;OAS
+Mozambique;MOZ;AFR;AFR;AFR
+Mauritania;MRT;AFR;AFR;AFR
+Montserrat;MSR;NCD;NCD;NCD
+Martinique;MTQ;OCD;OCD;OCD
+Mauritius;MUS;AFR;AFR;AFR
+Malawi;MWI;AFR;AFR;AFR
+Malaysia;MYS;OAS;OAS;OAS
+Mayotte;MYT;AFR;AFR;AFR
+Namibia;NAM;AFR;AFR;AFR
+New Caledonia;NCL;OAS;OAS;OAS
+Niger;NER;AFR;AFR;AFR
+Norfolk Island;NFK;OAS;OAS;OAS
+Nigeria;NGA;AFR;AFR;AFR
+Nicaragua;NIC;NCD;NCD;NCD
+Niue;NIU;OAS;OAS;OAS
+Netherlands;NLD;EUR;NLD;NLD
+Norway;NOR;OCD;OCD;OCD
+Nepal;NPL;OAS;OAS;OAS
+Nauru;NRU;NCD;NCD;NCD
+New Zealand;NZL;OCD;OCD;OCD
+Oman;OMN;MIE;MIE;MIE
+Pakistan;PAK;OAS;OAS;OAS
+Panama;PAN;NCD;NCD;NCD
+Pitcairn;PCN;OAS;OAS;OAS
+Peru;PER;NCD;NCD;NCD
+Philippines;PHL;OAS;OAS;OAS
+Palau;PLW;OAS;OAS;OAS
+Papua New Guinea;PNG;OAS;OAS;OAS
+Poland;POL;EUR;POL;POL
+Puerto Rico;PRI;USA;USA;USA
+Korea, Democratic People's Republic of;PRK;OAS;OAS;OAS
+Portugal;PRT;EUR;PRT;PRT
+Paraguay;PRY;NCD;NCD;NCD
+Palestine, State of;PSE;MIE;MIE;MIE
+French Polynesia;PYF;OAS;OAS;OAS
+Qatar;QAT;MIE;MIE;MIE
+Reunion;REU;AFR;AFR;AFR
+Romania;ROU;EUR;ROU;ROU
+Russian Federation;RUS;RUS;RUS;RUS
+Rwanda;RWA;AFR;AFR;AFR
+Saudi Arabia;SAU;MIE;MIE;MIE
+Sudan;SDN;AFR;AFR;AFR
+Senegal;SEN;AFR;AFR;AFR
+Singapore;SGP;OAS;OAS;OAS
+South Georgia and the South Sandwich Islands;SGS;OCD;OCD;OCD
+Saint Helena, Ascension and Tristan da Cunha;SHN;AFR;AFR;AFR
+Svalbard and Jan Mayen;SJM;NCD;NCD;NCD
+Solomon Islands;SLB;OAS;OAS;OAS
+Sierra Leone;SLE;AFR;AFR;AFR
+El Salvador;SLV;NCD;NCD;NCD
+San Marino;SMR;NCD;NCD;NCD
+Somalia;SOM;AFR;AFR;AFR
+Saint Pierre and Miquelon;SPM;OCD;OCD;OCD
+Serbia;SRB;NCD;NCD;NCD
+South Sudan;SSD;AFR;AFR;AFR
+Sao Tome and Principe;STP;AFR;AFR;AFR
+Suriname;SUR;NCD;NCD;NCD
+Slovakia;SVK;EUR;SVK;SVK
+Slovenia;SVN;EUR;SVN;SVN
+Sweden;SWE;EUR;SWE;SWE
+Swaziland;SWZ;AFR;AFR;AFR
+Sint Maarten (Dutch part);SXM;OCD;OCD;OCD
+Seychelles;SYC;AFR;AFR;AFR
+Syrian Arab Republic;SYR;MIE;MIE;MIE
+Turks and Caicos Islands;TCA;NCD;NCD;NCD
+Chad;TCD;AFR;AFR;AFR
+Togo;TGO;AFR;AFR;AFR
+Thailand;THA;OAS;OAS;OAS
+Tajikistan;TJK;MIE;MIE;MIE
+Tokelau;TKL;OAS;OAS;OAS
+Turkmenistan;TKM;MIE;MIE;MIE
+Timor-Leste;TLS;OAS;OAS;OAS
+Tonga;TON;OAS;OAS;OAS
+Trinidad and Tobago;TTO;NCD;NCD;NCD
+Tunisia;TUN;AFR;AFR;AFR
+Turkey;TUR;OCD;OCD;OCD
+Tuvalu;TUV;OAS;OAS;OAS
+Taiwan, Province of China;TWN;OAS;OAS;OAS
+Tanzania, United Republic of;TZA;AFR;AFR;AFR
+Uganda;UGA;AFR;AFR;AFR
+Ukraine;UKR;NCD;NCD;NCD
+United States Minor Outlying Islands;UMI;OAS;OAS;OAS
+Uruguay;URY;NCD;NCD;NCD
+United States;USA;USA;USA;USA
+Uzbekistan;UZB;MIE;MIE;MIE
+Holy See (Vatican City State);VAT;NCD;NCD;NCD
+Saint Vincent and the Grenadines;VCT;NCD;NCD;NCD
+Venezuela, Bolivarian Republic of;VEN;NCD;NCD;NCD
+Virgin Islands, British;VGB;OCD;OCD;OCD
+Virgin Islands, U.S.;VIR;OCD;OCD;OCD
+Viet Nam;VNM;OAS;OAS;OAS
+Vanuatu;VUT;OAS;OAS;OAS
+Wallis and Futuna;WLF;OAS;OAS;OAS
+Samoa;WSM;OAS;OAS;OAS
+Yemen;YEM;MIE;MIE;MIE
+South Africa;ZAF;NCD;NCD;ZAF
+Zambia;ZMB;AFR;AFR;AFR
+Zimbabwe;ZWE;AFR;AFR;AFR

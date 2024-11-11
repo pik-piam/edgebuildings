@@ -1,0 +1,10 @@
+ValidationKey: '620217'
+AutocreateReadme: yes
+AcceptedWarnings:
+- 'Warning: package ''.*'' was built under R version'
+- 'Warning: namespace ''.*'' is not available and has been replaced'
+AcceptedNotes:
+- Non-standard files/directories found at top level
+- Importing from so many packages makes the package vulnerable
+allowLinterWarnings: yes
+enforceVersionUpdate: no

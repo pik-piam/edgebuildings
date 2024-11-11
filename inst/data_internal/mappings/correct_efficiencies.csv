@@ -1,0 +1,5 @@
+parameter,space_cooling.elec,water_heating.elec,space_heating.elec
+Asym,3.10,1.5,1.5
+R0,0.50,,
+lrc,-10.12663,,
+phi3,NA,,

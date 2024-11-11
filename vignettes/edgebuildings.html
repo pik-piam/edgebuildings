@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Antoine Levesque, Pascal Führlich" />
+
+<meta name="date" content="2024-10-11" />
+
+<title>EDGE Buildings</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">EDGE Buildings</h1>
+<h4 class="author">Antoine Levesque, Pascal Führlich</h4>
+<h4 class="date">2024-10-11</h4>
+
+
+
+<div id="energy-demand-generator-edge" class="section level1">
+<h1>Energy Demand GEnerator (EDGE)</h1>
+<div id="what-is-edge" class="section level2">
+<h2>What is EDGE?</h2>
+<p>The Energy Demand GEnerator projects energy demand for buildings both
+at the useful final energy level. It covers the global demand and five
+energy services– space heating, space cooling,appliances and lighting
+(treated together) water heating and cooking. In a nutshell, it computes
+the useful energy intensity of each service in different regions, taking
+into account climate conditions as well as floor space demand. It then
+projects energy demand based on the assumption that, as developing
+countries grow economically, they will catch up the energy service
+demand of developed countries. Further assumptions are made for the
+level beyond the current level of economic development (saturation or
+lower growth).</p>
+</div>
+<div id="documentation" class="section level2">
+<h2>Documentation</h2>
+<p>The model documentation as well as the equation documentation can be
+found in paper “How much energy will buildings consume in 2100? A global
+perspective within a scenario framework” by Antoine Levesque, Robert C.
+Pietzcker, Lavinia Baumstark, Simon De Stercke, Arnulf Grübler and
+Gunnar Luderer.</p>
+</div>
+<div id="how-to-use-the-model" class="section level2">
+<h2>How to use the model</h2>
+<div id="tldr" class="section level3">
+<h3>TLDR</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>() <span class="co"># install dependencies into ../renv-libraries</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install</span>(<span class="at">dependencies =</span> <span class="cn">FALSE</span>) <span class="co"># install edgebuildings</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>targets<span class="sc">::</span><span class="fu">tar_make</span>() <span class="co"># run all available calculations, generate all files</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>targets<span class="sc">::</span><span class="fu">tar_visnetwork</span>() <span class="co"># get overview, show status, check if everything worked</span></span></code></pre></div>
+</div>
+<div id="setup" class="section level3">
+<h3>Setup</h3>
+<p>Install dependencies using <a href="https://rstudio.github.io/renv/">renv</a>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>()</span></code></pre></div>
+<p>The dependencies are installed in an isolated package library that is
+used exclusively for EDGE Buildings. The path to this package library
+can be set in the <code>.Renviron</code> file, it defaults to
+<code>../renv-libraries</code>.</p>
+</div>
+<div id="running" class="section level3">
+<h3>Running</h3>
+<p>EDGE Buildings is using <a href="https://docs.ropensci.org/targets/">targets</a> for running
+calculations and caching. Note that <code>targets</code> functions must
+be run in this project’s root directory. The available
+calculations/targets are defined in <code>_targets.R</code>. Here’s an
+interactive visualization. You can zoom in to read the labels and drag
+everything around.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>targets<span class="sc">::</span><span class="fu">tar_visnetwork</span>()</span></code></pre></div>
+<p>Each node in this graph is called a <code>target</code> and
+represents a function, a calculation or a file. In order to run a
+calculation or generate a file use
+<code>targets::tar_make(&lt;target&gt;)</code>. For example, to generate
+all files that are used as input in REMIND:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>targets<span class="sc">::</span><span class="fu">tar_make</span>(<span class="st">&quot;remindInputData&quot;</span>)</span></code></pre></div>
+<p>To run all available and outdated calculations run
+<code>targets::tar_make()</code>. The <code>targets</code> package will
+automatically mark targets as “outdated” if an upstream target becomes
+outdated or if an underlying function or file changes. With
+<code>targets::tar_make</code> only outdated targets are re-calculated,
+up-to-date targets are instead loaded from cache.</p>
+</div>
+<div id="structure-of-the-model" class="section level3">
+<h3>Structure of the model</h3>
+<p>The file computing the energy intensities as well as making the
+projections is scripts/buildings_projections.R. This script calls the
+getData function to load the necessary data for the computation. Most of
+the functions in the functions folder prepare intermediary data for the
+projections. They may as well call functions preparing intermediary data
+from the raw data. For instance, the buildings_projections.R script call
+“FloorspaceBuild”, the floorspace projections for residential,
+commercial and buildings floorspace demand. “FloorspaceBuild”, in turn,
+calls “FloorspaceResidential” which makes the residential floorspace
+projections, and “ShareFloorCommercial” which determines the share of
+commercial area. Residential floorspace projections are based on
+floorspace data (“Floorspace” &lt;- “Daioglou”, “FloorspaceEURIND”).</p>
+<p>The data_internal folder stores the scenarios assumptions, the plot
+aesthetics as well as the mappings.</p>
+<p>The external data consists of two parts: first, the data that is
+called for via the madrat libraries. These libraries require the data to
+be organised in a specific way coherent with their functions. Second,
+the data that is not called via these libraries and whose path is called
+explicitly in the EDGE code. Both folders are not part of the EDGE
+model.</p>
+</div>
+<div id="configuration" class="section level3">
+<h3>Configuration</h3>
+<p>In the config() function, set the madrat data folder path by changing
+the argument mfolder. In the config() function, set the madrat regional
+mapping path (from mfolder) by changing the argument rmapping. In the
+config() function, set the external data folder path by changing the
+argument external_data.</p>
+<p>Start the main.R file to load all the libraries and options necessary
+for the model to run correctly.</p>
+</div>
+<div id="getdata" class="section level3">
+<h3>getData</h3>
+<p>getData is a central function of the model as all data processing
+functions are called through it. The name of all data processing
+functions takes the form getNNN(), with NNN, the specific name of the
+function. Once they are called through getData(“NNN”), a cache file is
+produced and stored in the cache folder (created by main.R if not
+existent). This cache allows reducing the model time run by avoiding the
+whole function to be run on a second call. Simply the cache file is
+called. If the user wishes to run the function as a default when getData
+is called, the getData argument fromCache should be set to FALSE. After
+a function has been changed, and if fromCache is set to TRUE, the cache
+file should be deleted for the data processing function to be called
+from getData(NNN).</p>
+</div>
+</div>
+<div id="license" class="section level2">
+<h2>License</h2>
+<p>GNU AGPLv3, see LICENSE.md</p>
+</div>
+<div id="how-to-contribute" class="section level2">
+<h2>How to contribute</h2>
+<p>We are interested in working with you! Just contact us through <a href="https://github.com/pik-piam/edgeBuildings.git">GitHub</a> or by
+mail (<a href="mailto:robin.hasse@pik-potsdam.de" class="email">robin.hasse@pik-potsdam.de</a>) if you have found and/or
+fixed a bug, developed a new model feature, have ideas for further model
+development, suggestions for improvements or anything else. We are open
+to any kind of contribution. Our aim is to develop an open, transparent
+and meaningful model. Join us doing so!</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

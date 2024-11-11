@@ -1,0 +1,124 @@
+---
+title: "EDGE Buildings"
+author: "Antoine Levesque, Pascal Führlich"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EDGE Buildings}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_knit$set(root.dir = rprojroot::find_package_root_file())
+```
+
+
+# Energy Demand GEnerator (EDGE)
+
+## What is EDGE?
+The Energy Demand GEnerator projects energy demand for buildings both at the
+useful final energy level. It covers the global demand and five energy services--
+space heating, space cooling,appliances and lighting (treated together) water heating
+and cooking. In a nutshell, it computes the useful energy intensity of each service
+in different regions, taking into account climate conditions as well as floor space
+demand. It then projects energy demand based on the assumption that, as developing
+countries grow economically, they will catch up the energy service demand of
+developed countries. Further assumptions are made for the level beyond
+the current level of economic development (saturation or lower growth).
+
+
+## Documentation
+The model documentation as well as the equation documentation can be found in
+paper "How much energy will buildings consume in 2100? A global perspective within
+a scenario framework" by Antoine Levesque, Robert C. Pietzcker, Lavinia Baumstark,
+Simon De Stercke, Arnulf Grübler and Gunnar Luderer.
+
+## How to use the model
+
+### TLDR
+```{r, eval = FALSE}
+renv::restore() # install dependencies into ../renv-libraries
+devtools::install(dependencies = FALSE) # install edgebuildings
+targets::tar_make() # run all available calculations, generate all files
+targets::tar_visnetwork() # get overview, show status, check if everything worked
+```
+
+### Setup
+Install dependencies using [renv](https://rstudio.github.io/renv/):
+```{r, eval = FALSE}
+renv::restore()
+```
+The dependencies are installed in an isolated package library that is used exclusively for EDGE Buildings. The path to
+this package library can be set in the `.Renviron` file, it defaults to `../renv-libraries`.
+
+### Running
+EDGE Buildings is using [targets](https://docs.ropensci.org/targets/) for running calculations and caching. Note that
+`targets` functions must be run in this project's root directory. The available calculations/targets are defined in
+`_targets.R`. Here's an interactive visualization. You can zoom in to read the labels and drag everything around.
+```{r, eval = FALSE}
+targets::tar_visnetwork()
+```
+Each node in this graph is called a `target` and represents a function, a calculation or a file. In order to run a
+calculation or generate a file use `targets::tar_make(<target>)`. For example, to generate all files that are used as
+input in REMIND:
+```{r, eval = FALSE}
+targets::tar_make("remindInputData")
+```
+To run all available and outdated calculations run `targets::tar_make()`. The `targets` package will automatically mark
+targets as "outdated" if an upstream target becomes outdated or if an underlying function or file changes. With
+`targets::tar_make` only outdated targets are re-calculated, up-to-date targets are instead loaded from cache.
+
+### Structure of the model
+The file computing the energy intensities as well as making the projections is
+scripts/buildings_projections.R. This script calls the getData function to load
+the necessary data for the computation. Most of the functions in the functions folder
+prepare intermediary data for the projections. They may as well call functions preparing
+intermediary data from the raw data.
+For instance, the buildings_projections.R script call "FloorspaceBuild", the floorspace
+projections for residential, commercial and buildings floorspace demand. "FloorspaceBuild",
+in turn, calls "FloorspaceResidential" which makes the residential floorspace projections,
+and "ShareFloorCommercial" which determines the share of commercial area. Residential 
+floorspace projections are based on floorspace data ("Floorspace" <- "Daioglou", "FloorspaceEURIND").
+
+The data_internal folder stores the scenarios assumptions, the plot aesthetics as well
+as the mappings.
+
+The external data consists of two parts: first, the data that is called for via the madrat libraries.
+These libraries require the data to be organised in a specific way 
+coherent with their functions. Second, the data that is not called via these libraries and whose
+path is called explicitly in the EDGE code. Both folders are not part of the EDGE model.
+
+### Configuration
+In the config() function, set the madrat data folder path by changing
+the argument mfolder. 
+In the config() function, set the madrat regional mapping path (from mfolder)
+by changing the argument rmapping. 
+In the config() function, set the external data folder path by changing
+the argument external_data. 
+
+Start the main.R file to load all the libraries and options necessary for the model
+to run correctly.
+
+### getData
+getData is a central function of the model as all data processing functions are called
+through it. The name of all data processing functions takes the form getNNN(), with NNN,
+the specific name of the function. Once they are called through getData("NNN"), a cache file
+is produced and stored in the cache folder (created by main.R if not existent). This cache
+allows reducing the model time run by avoiding the whole function to be run on a second call.
+Simply the cache file is called. If the user wishes to run the function as a default when
+getData is called, the getData argument fromCache should be set to FALSE. After a function
+has been changed, and if fromCache is set to TRUE, the cache file should be deleted for the
+data processing function to be called from getData(NNN).
+
+## License
+GNU AGPLv3, see LICENSE.md
+
+## How to contribute
+We are interested in working with you! Just contact us through
+[GitHub](https://github.com/pik-piam/edgeBuildings.git) or by mail
+(robin.hasse@pik-potsdam.de) if you have found and/or fixed a bug, developed a new
+model feature, have ideas for further model development, suggestions for
+improvements or anything else. We are open to any kind of contribution. Our aim
+is to develop an open, transparent and meaningful model. Join us doing so!
