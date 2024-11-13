@@ -20,6 +20,7 @@
 #'   removeColNa factor.data.frame
 #' @importFrom dplyr select filter mutate left_join group_by ungroup bind_rows
 #'   arrange %>% .data
+#' @importFrom stats complete.cases
 #' @importFrom tidyr spread gather
 
 getFloorspaceBuild <- function(config,
@@ -86,7 +87,8 @@ getFloorspaceBuild <- function(config,
 
   # revalue regions
   comSharesIEA <- revalue.levels(comSharesIEA, region = mapReval)
-  comSharesIEA <- na.omit(comSharesIEA)
+  # comSharesIEA <- na.omit(comSharesIEA)
+  comSharesIEA <- comSharesIEA[complete.cases(comSharesIEA[, c("region", "period", "share")]), ]
 
 
 
@@ -105,7 +107,7 @@ getFloorspaceBuild <- function(config,
            comSharesHat = .data[["commercial"]] / .data[["residential"]]) %>%
 
     # correct commercial share with historical values
-    left_join(comSharesIEA, by = c("period", "region")) %>%
+    left_join(comSharesIEA, by = c("period", "region", "unit")) %>%
     mutate(shareCommWished = .data[["shareComm"]] * .data[["share"]] / .data[["comSharesHat"]]) %>%
 
     # calculate deviation from historical data

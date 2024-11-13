@@ -32,9 +32,13 @@ runEdgeBuildings <- function(config = "configEDGEscens.csv",
   ## find config ====
 
   if (!file.exists(config)) {
-    config <- getSystemFile("config/configEDGEscens.csv",
+    config <- getSystemFile("config", config,
                             package = "edgebuildings",
                             mustWork = TRUE)
+    if (!file.exists(config)) {
+      stop("You passed an invalid config: ", config,
+           " is not a valid path and not a config file provided with the package.")
+    }
   }
   message("using this config file: ", config)
 

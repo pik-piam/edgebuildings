@@ -33,23 +33,23 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
   # convert to numeric if possible
   tryAsNumeric <- function(x) {
     switch(as.character(length(x)),
-      "0" = {
-        xNumeric <- NULL
-      },
-      "1" = {
-        xNumeric <- suppressWarnings(as.numeric(x))
-        xNumeric <- if (is.na(xNumeric)) x else xNumeric
-      },      {
-        xNumeric <- lapply(x, function(xIter) {
-          if (is.character(xIter)) {
-            xNumericIter <- suppressWarnings(as.numeric(xIter))
-            xNumericIter <- if (is.na(xNumericIter)) xIter else xNumericIter
-          } else {
-            xNumericIter <- xIter
-          }
-          return(xNumericIter)
-        })
-      }
+           "0" = {
+             xNumeric <- NULL
+           },
+           "1" = {
+             xNumeric <- suppressWarnings(as.numeric(x))
+             xNumeric <- if (is.na(xNumeric)) x else xNumeric
+           },      {
+             xNumeric <- lapply(x, function(xIter) {
+               if (is.character(xIter)) {
+                 xNumericIter <- suppressWarnings(as.numeric(xIter))
+                 xNumericIter <- if (is.na(xNumericIter)) xIter else xNumericIter
+               } else {
+                 xNumericIter <- xIter
+               }
+               return(xNumericIter)
+             })
+           }
     )
     return(xNumeric)
   }
@@ -139,7 +139,7 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
     regionGroups <- read.csv2(regiongroups, na.strings = c("", "NA"), sep = ";")
   } else {
     regionGroups <- file.path("config", regiongroups) %>%
-    read.csv2(na.strings = c("", "NA"), sep = ";")
+      read.csv2(na.strings = c("", "NA"), sep = ";")
   }
 
   ## check files ====
@@ -223,8 +223,10 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
 
   # parameters with regional values are filled with data frames that contain
   # the value for each region
-  fullConfig[scenNames, ] <- mapply(regionalValues, fullConfig[scenNames, ], # nolint
-                                    defaultValues) %>%
+  tmp2 <- mapply(regionalValues, fullConfig[scenNames, ], # nolint
+                 defaultValues)
+  # TODO: Fix the bug here: Not working for single scenario config, as internal regional data frames are not preserved in that case
+  fullConfig[scenNames, ] <- tmp2 %>%
     as.data.frame()
 
 

@@ -55,18 +55,18 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   ## scenarios ====
 
   data <- switch(as.character(length(path)),
-    `0` = {
-      stop("You need to provide at least one path.")
-    },
-    `1` = {
-      readProjections(path) %>%
-        mutate(version = NA)
-    },
-      do.call(rbind, lapply(names(path), function(v) {
-        readProjections(path[[v]]) %>%
-          mutate(version = v)
-      }))
-    )
+                 `0` = {
+                   stop("You need to provide at least one path.")
+                 },
+                 `1` = {
+                   readProjections(path) %>%
+                     mutate(version = NA)
+                 },
+                 do.call(rbind, lapply(names(path), function(v) {
+                   readProjections(path[[v]]) %>%
+                     mutate(version = v)
+                 }))
+  )
 
   data$scenario <- factor(data$scenario,
                           sort(unique(data$scenario)))
@@ -258,7 +258,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
           axis.text.y = element_blank(),
           strip.background = element_blank())
   print(p)
-  
+
   i <- i + 1
 
 
@@ -423,7 +423,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   i <- i + length(.regions(pData))
 
 
- ## energy mixes ====
+  ## energy mixes ====
 
   bookmarks <- .addBookmark(bookmarks, "Energy mixes", i, 1)
 
@@ -448,7 +448,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
         pData %>%
           filter(.data[["region"]] == r,
                  .data[["variable"]] %in% switch(by, Carrier = carriers, Use = uses)) %>%
-        ggplot() +
+          ggplot() +
           geom_col(aes(.data[["period"]], .data[["value"]],
                        fill = .data[["variable"]])) +
           facet_grid(.data[["scenario"]]~.data[["version"]]) +

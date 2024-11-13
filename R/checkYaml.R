@@ -7,7 +7,7 @@
 
 
 checkYaml <- function() {
-  
+
   # PARAMETERS------------------------------------------------------------------
 
   edgeFolder <- "EDGE-Buildings"

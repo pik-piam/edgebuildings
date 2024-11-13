@@ -5,7 +5,7 @@
 
 buildRegionalMapping <- function() {
   # mapping paths
-  
+
   edgeMap    <- piamutils::getSystemFile("data_internal/mappings/regionmappingEDGE.csv", package = "edgebuildings")
   ieaCommMap <- piamutils::getSystemFile("data_internal/mappings/commercial_floorspace_regmap.csv", package = "edgebuildings")
   pfuMap     <- piamutils::getSystemFile("data_internal/mappings/pfu_regionmapping.csv", package = "edgebuildings")

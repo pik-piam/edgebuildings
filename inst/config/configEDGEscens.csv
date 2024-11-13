@@ -8,8 +8,6 @@ uvalueScen,,SSP1,SSP2,SSP3,SSP4,SSP5
 gdppopScen,,gdppop_SSP1,gdppop_SSP2,gdppop_SSP3,gdppop_SSP4,gdppop_SSP5
 hddcddScen,,SSP1,SSP2,SSP3,SSP4,SSP5
 rcpScen,,noCC,noCC,noCC,noCC,noCC
-tlimHist_HDD,historical set point temperature for space heating in degC,14,14,14,14,14
-tlimHist_CDD,historical set point temperature for space cooling in degC,20,20,20,20,20
 tlimTarget_HDD,set point temperature target for space heating in degC,13,14,14,14,16
 tlimTarget_CDD,set point temperature target for space cooling in degC,23,20,20,19,19
 speed_HDD,year in which HDD limit temperature target will be reached,2070,2070,2070,2070,2070
@@ -23,11 +21,13 @@ econCoef_water_heating_pop_X_Asym,not sure what the does but same logic as above
 econCoef_space_cooling_m2_CDD_Uval_X_Asym,,1,1,1,1,1
 econCoef_uvalues_X_min,"RC less good insulation, MC strong regulation leading to higher insulation",0.35,0.7,0.85,"0.75,lowIncome:0.85",0.75
 econCoef_biotrad,,2,1,0.25,"1,lowIncome:0.25,highIncome:1.5",1.5
-econCoef_space_heating.elec_X_Asym,"RC a little less efficient, MC more efficient",4.2,"3,Europe:4",1.71875,"2.6,lowIncome:1.71875,highIncome:3.4",4.75
+econCoef_space_heating.elecHP_eff_X_Asym,"RC a little less efficient, MC more efficient",5,5,3.875,"5,lowIncome:3.875,highIncome:5",6
+econCoef_space_heating.elecHP_share_X_Asym,"RC a little less efficient, MC more efficient",0.8,"0.5,Europe:0.75",0.25,"0.4,lowIncome:0.25,highIncome:0.6",0.75
 econCoef_space_heating.elec_X_lrc,"RC a little less efficient, MC more efficient",-10.46310334,"-10.1266311,Europe:-10",-9.61580548,"-10.1266311,lowIncome:-9.61580548",-10.46310334
 econCoef_space_cooling.elec_X_Asym,"RC a little less efficient, MC more efficient",8,5,3.875,"5,lowIncome:3.875",8
 econCoef_space_cooling.elec_X_lrc,,-10.30895266,-10.30895266,-10.1266311,"-10.30895266,lowIncome:-10.1266311",-10.30895266
-econCoef_water_heating.elec_X_Asym,,4.2,3,1.71875,"2.6,lowIncome:1.71875,highIncome:3.4",4.75
+econCoef_water_heating.elecHP_eff_X_Asym,,5,5,3.875,"5,lowIncome:3.875,highIncome:5",6
+econCoef_water_heating.elecHP_share_X_Asym,,0.8,0.5,0.25,"0.4,lowIncome:0.25,highIncome:0.6",0.75
 econCoef_water_heating.elec_X_lrc,,-10.30895266,-10.30895266,-10.1266311,"-10.30895266,lowIncome:-10.1266311",-10.30895266
 econCoef_appliances_light.elec_X_Asym,,0.9,0.9,0.75,"0.82,lowIncome:0.75",0.9
 feShare_space_heating_natgas,,15,"35,Europe:32",40,"35,lowIncome:40,highIncome:75",75

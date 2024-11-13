@@ -106,7 +106,8 @@ getShareFloorCommercial <- function(config,
     left_join(gdppopIEA, by = c("region", "period"))
 
   floor <- floor0 %>%
-    mutate(share = .data[["Services"]] / .data[["Residential"]]) %>%
+    mutate(share = .data[["Services"]] / .data[["Residential"]],
+           unit = NA) %>% #TODO: Should be 1
     select(-"Residential", -"Services")
 
   # build the output for raw_pop
@@ -146,12 +147,13 @@ getShareFloorCommercial <- function(config,
 
   # OUTPUT----------------------------------------------------------------------
 
+  # TODO: Is there a particular reason why this returns a quitte object for two subtypes and a data frame for the third one?
   return(switch(subtype,
-    "EDGE" = floorPred %>%
-      as.data.frame() %>%
-      as.quitte() %>%
-      missingToNA(),
-    "IEA" = as.data.frame(floor %>% dplyr::select(-"scenario", -"gdppop")),
-    "raw_pop" = as.data.frame(floorRawPop)
+                "EDGE" = floorPred %>%
+                  as.data.frame() %>%
+                  as.quitte() %>%
+                  missingToNA(),
+                "IEA" = as.data.frame(floor %>% dplyr::select(-"scenario", -"gdppop")),
+                "raw_pop" = as.data.frame(floorRawPop)
   ))
 }

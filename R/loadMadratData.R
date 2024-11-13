@@ -22,7 +22,7 @@ loadMadratData <- function(inputdataRevision,
 
 
   # fixed regional resolution
-  regionmap <- toolGetMapping("regionmappingISO-EDGE_EUR_ETP.csv", "regional")
+  regionmap <- toolGetMapping("regionmappingISO-EDGE_EUR_ETP.csv", "regional", where = "mredgebuildings")
 
   # LOAD TGZ FILES--------------------------------------------------------------
 

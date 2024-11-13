@@ -85,7 +85,7 @@ calc_addRatio <- function(data, newNames, numerators, denominators,
   # call calc_addVariable_
 
   res <- calc_addVariable_(data, .dots,  only.new = only.new,
-                          variable = variable, value = value)
+                           variable = variable, value = value)
 
   return(res)
 }
@@ -149,7 +149,6 @@ calc_addSum <- function(data, newNames, vars2sumprod = NULL, factor = NULL,
 #' @author Antoine Levesque
 #'
 #' @importFrom quitte calc_addVariable_
-
 calc_addSumProd <- function(data, newNames, vars2sumprod, collapse_sign,
                             factor = NULL, units = NA, na.rm = FALSE,
                             completeMissing = TRUE, only.new = FALSE,

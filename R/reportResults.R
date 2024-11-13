@@ -45,7 +45,7 @@ reportResults <- function(path, reporting) {
       stop("The mapping file ", cfg[["mapping"]],
            " is missing the following columns: ",
            paste(missingCols, collapse = ", "))
-  }}
+    }}
 
 
   ## EDGE-B results ====
@@ -110,13 +110,37 @@ reportResults <- function(path, reporting) {
   ## map variables ====
 
   if (!is.null(mapping)) {
-     data <- mapping %>%
+    data <- mapping %>%
       select("edgeVariable", variable = "reportingVariable", "weight") %>%
       left_join(data, by = c(edgeVariable = "variable")) %>%
       group_by(across(all_of(
         setdiff(colnames(data), c("value", "edgeVariable", "weight"))))) %>%
       summarise(value = signif(sum(.data[["weight"]] * .data[["value"]]), 4),
                 .groups = "drop")
+
+    if (any(is.na(c(data[["region"]], data[["period"]])))) {
+      warning("Region and/or period column contains NA values. ",
+              "This will lead to errors when converting the data to magclass objects.")
+    }
+  }
+
+
+  ## remove not needed columns ====
+
+  if (!is.null(cfg[["removeCol"]])) {
+    lapply(cfg[["removeCol"]], function(col) {
+      if (!all(is.na(data[[col]]))) {
+        warning("The column ", col, " to be removed contains non-NA data.")
+      }
+    })
+    data <- select(data, !any_of(cfg[["removeCol"]]))
+
+  }
+
+  ## remove undesired regions ====
+
+  if (!is.null(cfg[["excludeRegion"]])) {
+    data <- filter(data, !.data[["region"]] %in% cfg[["excludeRegion"]])
   }
 
 

@@ -19,7 +19,7 @@ buildingsProjections(
   scenAssumpSpeed,
   scenAssumpCorrect,
   outputDir = "output",
-  hpCorrection = FALSE,
+  hpCorrection = TRUE,
   lifestyle = NULL,
   variableSpeed = NULL,
   ariadneFix = FALSE
