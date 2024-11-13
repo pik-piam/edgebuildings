@@ -77,11 +77,11 @@ calcLambda <- function(startYear,
 #' efficiencies towards long-term assumption for a specific scenario.
 #'
 #' @param scenAssumpSpeed years of full regional convergence for each scenario
+#' @param startPolicyYear year from which to start convergence
 #' @param varySpeed scale speed period of transition from 2015 onward
 #'        (e.g. full convergence in 2075 and \code{varySpeed = 2} leads to
 #'        full convergence in 2045)
 #' @param startYearVector year from which to start time series (yearly steps)
-#' @param startPolicyYear year from which to start convergence
 #'
 #' @return data.frame with region-wise convergence shares
 #'
@@ -92,9 +92,9 @@ calcLambda <- function(startYear,
 #' @importFrom data.table :=
 
 compLambdaScen <- function(scenAssumpSpeed,
+                           startPolicyYear,
                            varySpeed = 1,
-                           startYearVector = 2005,
-                           startPolicyYear = 2020) {
+                           startYearVector = 2005) {
   # Internal Functions ---------------------------------------------------------
 
   compEvolutionShares <- function(type, reg) {

@@ -192,6 +192,8 @@ buildingsProjections <- function(config,
   df         <- history2SSPs(df,         reverse = TRUE, endOfHistory = endOfHistory)
   feueEff    <- history2SSPs(feueEff,    reverse = TRUE, endOfHistory = endOfHistory)
   feSharesEC <- history2SSPs(feSharesEC, reverse = TRUE, endOfHistory = endOfHistory)
+  lambda <- history2SSPs(lambda, reverse = TRUE, endOfHistory = endOfHistory)
+  lambdaDelta <- history2SSPs(lambdaDelta, reverse = TRUE, endOfHistory = endOfHistory)
 
 
   # match periods with lambda
@@ -238,6 +240,8 @@ buildingsProjections <- function(config,
 
   #--- Make Projections
   print("Start projections")
+
+  browser()
 
   df <- makeProjections(df,
                         formul = as.formula("space_heating_m2_Uval ~ 0 + HDD"),
@@ -296,18 +300,18 @@ buildingsProjections <- function(config,
   df <- df %>%
     adjustHeatingAdoption(config, lambda, lambdaDelta)
 
-
-  df <- df %>%
+  dfTmp <- df %>%
     # define enduse variables from projected variables
     calc_addVariable_(list( # nolint start
       "space_heating"    = c("space_heating_m2_Uval/1e6 * buildings * uvalue", NA),
       "appliances_light" = c("appliances_light_elas* pop/1e3", NA),
       "water_heating"    = c("water_heating_pop  / 1e3 * pop", NA),
       "cooking"          = c("cooking_pop  / 1e3 * pop", NA),
-      "space_cooling"    = c("space_cooling_m2_CDD_Uval/1e6 * (buildings*uvalue*CDD*coefCDD)", NA))) %>%
+      "space_cooling"    = c("space_cooling_m2_CDD_Uval/1e6 * (buildings*uvalue*CDD*coefCDD)", NA)))
     # nolint end
 
     # filter unwanted entries
+  df <- dfTmp %>%
     anti_join(df, by = c("scenario", "period", "region", "variable")) %>%
     rbind(df) %>%
 
@@ -476,7 +480,8 @@ buildingsProjections <- function(config,
       splitElec,
       df = df,
       feueEff = feueEff,
-      scenAssump = scenAssump
+      scenAssump = scenAssump,
+      endOfHistory = endOfHistory
     ))
 
     # add split electric space heating to results
@@ -635,6 +640,7 @@ addEURagg <- function(df, extVars, intVars, floorVars, regionmap) {
 #' @param feueEff historical and future FE->UE conversion efficiencies
 #' @param enduseChar character, enduse for which electric FE demand should be split
 #' @param scenAssump carrier/enduse-specific scenario assumptions
+#' @param endOfHistory Last historic time period
 #'
 #' @returns data frame containing split fe and ue
 #'
@@ -643,13 +649,13 @@ addEURagg <- function(df, extVars, intVars, floorVars, regionmap) {
 #' @importFrom quitte calc_addVariable_
 #' @importFrom tidyr gather spread
 #'
-splitElec <- function(df, feueEff, enduseChar, scenAssump) {
+splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
   effRHasym  <- 1.0 # assumed by AL but IDEES finds rather 0.8 - 0.9
 
   hpEffHist <- 3
 
   # exponential function approaching Asym, constant before start year
-  expAsym <- function(valStart, valAsym, t, tStart = 2020, tau = 50) {
+  expAsym <- function(valStart, valAsym, t, tStart, tau = 50) {
     valStart + (valAsym - valStart) * (1 - exp(-pmax(0, t - tStart) / tau))
   }
 
@@ -678,23 +684,26 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump) {
       effRH = pmin(expAsym(.data[["effRHstart"]],
                            effRHasym,
                            .data[["period"]],
+                           endOfHistory,
                            tau = 25),
                    .data[["efficiency"]]),
       effHP = expAsym(hpEffHist,
                       .data[[paste0(enduseChar, ".elecHP_eff_X_Asym")]],
-                      .data[["period"]]),
+                      .data[["period"]],
+                      endOfHistory),
       shareHP = (.data[["efficiency"]] - .data[["effRH"]]) /
         (.data[["effHP"]] - .data[["effRH"]])
     ) %>%
     group_by(across("region")) %>%
-    mutate(shareHPstart = .data[["shareHP"]][.data[["period"]] == 2020]) %>%
+    mutate(shareHPstart = .data[["shareHP"]][.data[["period"]] == endOfHistory]) %>%
     ungroup()
   hp <- hp %>%
     mutate(
-      shareHP = ifelse(.data[["period"]] > 2020,
+      shareHP = ifelse(.data[["period"]] > endOfHistory,
                        expAsym(.data[["shareHPstart"]],
                                .data[[paste0(enduseChar, ".elecHP_share_X_Asym")]],
-                               .data[["period"]]),
+                               .data[["period"]],
+                               endOfHistory),
                        .data[["shareHP"]]),
       factor = ifelse(
         .data[["shareHP"]] != 0,

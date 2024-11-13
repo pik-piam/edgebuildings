@@ -42,6 +42,10 @@ getFloorspaceResidential <- function(config,
   # upper floorspace limit
   scenAssumpCap <- config[scen, "floorspaceCap"]
 
+  # upper temporal threshold of historic data
+  endOfHistory <- config[scen, "endOfHistory"] %>%
+    unlist()
+
 
 
   # READ-IN DATA----------------------------------------------------------------
@@ -97,7 +101,7 @@ getFloorspaceResidential <- function(config,
 
 
   # create the lambda vector
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960)
+  lambda <- compLambdaScen(scenAssumpSpeed, endOfHistory, startYearVector = 1960)
 
 
 
@@ -115,7 +119,7 @@ getFloorspaceResidential <- function(config,
   modelData <- filter(fullData, !is.na(.data[["m2cap"]]))
 
   # Extract last year with historic data available
-  lastYearWithData <- max(modelData[["period"]]) # This only works if data availability is the same for all regions
+  endOfData <- max(modelData[["period"]]) # This only works if data availability is the same for all regions
 
   # create the estimate object from the regression
   estimate <- lm("log(m2cap) ~  log(gdppop) + log(density)", data = modelData)
@@ -138,15 +142,15 @@ getFloorspaceResidential <- function(config,
   )
 
   # Add the delta of the last time period with data to fullData
-  fullData <- addDelta(fullData, lastYearWithData)
+  fullData <- addDelta(fullData, endOfData)
 
   # make the prediction with the convergence of lambda towards 0 in 2200 in a logit fashion
   projectionData <- predictFullDelta(fullData, coefLogGdp, coefLogDensity, intercept,
-                                     scenAssump, lambda, lastYearWithData)
+                                     scenAssump, lambda, endOfData, endOfHistory)
 
   # cap floorspace projections if required by scenario assumptions
   if (!is.null(scenAssumpCap) && is.data.frame(scenAssumpCap)) {
-    projectionData <- capFloorProjections(projectionData, scenAssumpCap, lambda, lastYearWithData)
+    projectionData <- capFloorProjections(projectionData, scenAssumpCap, lambda, endOfHistory)
   }
 
   # calculate full aggregated floorspace
@@ -169,15 +173,15 @@ getFloorspaceResidential <- function(config,
 #' for the last time period with floorspace data.
 #'
 #' @param data data frame containing historic and estimated floorspace data
-#' @param lastYearWithData numeric, time period from which to compute the delta value
+#' @param endOfData numeric, time period from which to compute the delta value
 #'
 #' @importFrom dplyr %>% .data across all_of group_by mutate ungroup
 #'
-addDelta <- function(data, lastYearWithData) {
+addDelta <- function(data, endOfData) {
   data %>%
     group_by(across(all_of(c("region")))) %>%
-    mutate(delta = (log(.data[["m2cap"]][.data[["period"]] == lastYearWithData])
-                    - log(.data[["m2caphat"]][.data[["period"]] == lastYearWithData]))) %>%
+    mutate(delta = (log(.data[["m2cap"]][.data[["period"]] == endOfData])
+                    - log(.data[["m2caphat"]][.data[["period"]] == endOfData]))) %>%
     ungroup()
 }
 
@@ -200,7 +204,9 @@ addDelta <- function(data, lastYearWithData) {
 #' @param interceptEstimate logarithmic intercept parameter
 #' @param scenAssump parameter scenario assumptions
 #' @param lambda temporal convergence factors
-#' @param endOfHistory upper temporal boundary of historical data
+#' @param endOfData upper temporal boundary of available historical data
+#' @param endOfHistory last historic time period, i.e. before scenario assumptions take effect
+#'   TODO: Can be removed as soon as lambda is fixed!
 #'
 #' @importFrom dplyr %>% .data filter lag left_join mutate select arrange group_by
 #'   ungroup across all_of
@@ -212,14 +218,14 @@ predictFullDelta <- function(fullData,
                              interceptEstimate,
                              scenAssump,
                              lambda,
-                             endOfHistory) {
+                             endOfData) {
 
   # Apply scenario assumptions: Modify the logarithmic income elasticity gradually
   fullData <- fullData %>%
     filter(.data[["period"]] %in% getPeriods(lambda)) %>%
     left_join(scenAssump, by = c("region", "scenario")) %>%
     left_join(lambda, by = c("region", "period", "scenario")) %>%
-    mutate(coefLogGdp = ifelse(.data[["period"]] == endOfHistory, # Temporary: Can be removed once lambda is fixed to be 0 in endOfHistory
+    mutate(coefLogGdp = ifelse(.data[["period"]] == endOfHistory, # Temporary: Can be removed once lambda is fixed to be 0 in endOfData
                                coefLogGdpEstimate,
                                .data[["fullconv"]] * (coefLogGdpEstimate * .data[["floorspace"]])
                                + (1 - .data[["fullconv"]]) * coefLogGdpEstimate),
@@ -228,7 +234,7 @@ predictFullDelta <- function(fullData,
     select(-"floorspace", -"lambda", -"fullconv")
 
   modelData <- fullData %>%
-    filter(.data[["period"]] <= endOfHistory) %>%
+    filter(.data[["period"]] <= endOfData) %>%
     mutate(m2hat = .data[["m2cap"]])
 
   # Compute the floorspace projection from the regression model, the initial deviation delta
@@ -236,14 +242,14 @@ predictFullDelta <- function(fullData,
   projectionData <- fullData %>%
     arrange(.data[["period"]]) %>%
     group_by(across(all_of("region"))) %>%
-    filter(.data[["period"]] >= endOfHistory) %>% # Need last historic time step and all after that
+    filter(.data[["period"]] >= endOfData) %>% # Need last historic time step and all after that
     mutate(coefLogGdpDiff = c(-diff(.data[["coefLogGdp"]]), NA),
            growthCorr = lag(cumsum(.data[["coefLogGdpDiff"]] * log(.data[["gdppop"]]))),
            m2hat = exp(.data[["growthCorr"]] + .data[["delta"]]
                        + .data[["intercept"]] + log(.data[["gdppop"]]) * .data[["coefLogGdp"]]
                        + log(.data[["density"]]) * .data[["coefLogDensity"]])) %>%
     ungroup() %>%
-    filter(.data[["period"]] > endOfHistory) %>%
+    filter(.data[["period"]] > endOfData) %>%
     select(-"coefLogGdpDiff", -"growthCorr")
 
   # Combine projections with historic data

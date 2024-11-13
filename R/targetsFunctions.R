@@ -30,7 +30,7 @@ sepScenAssSpeed <- function(df) {
 
 # separate history from scenario data
 sepHistScen <- function(df,
-                        endOfHistory = 2020,
+                        endOfHistory,
                         scen = NULL,
                         reverse = FALSE) {
   # set scenario

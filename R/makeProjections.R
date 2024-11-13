@@ -67,6 +67,9 @@ makeProjections <- function(df,
     transformVariableScen <- transformVariableScen[1]
   }
 
+  if (is.null(endOfHistory)) {
+    endOfHistory <- max(unique(filter(df, .data[["scenario"]] == "history")[["period"]]))
+  }
 
 
   # PROCESS DATA----------------------------------------------------------------
@@ -246,7 +249,7 @@ makeProjections <- function(df,
       tidyr::fill(.data[[lhs]], .direction = "down") %>%
       mutate(
         previousScenario = lag(.data[["projectionScen"]]),
-        growthRate = ifelse(.data[["period"]] <= 2020,
+        growthRate = ifelse(.data[["period"]] <= endOfHistory,
                             1,
                             c(0, .data[["projectionScen"]] / .data[["previousScenario"]])),
         growthRate = cumprod(.data[["growthRate"]]),

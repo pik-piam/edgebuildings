@@ -257,7 +257,7 @@ getShareECprojections <- function(config,
            )) %>%
     group_by(across(all_of(c("scenario", "period", "region", "enduse")))) %>%
     mutate(across(all_of(c("obj_share", "shareEndHist")), ~ .x *
-                    ifelse(.data[["variable"]] %in% useCarrierRescale,
+                    ifelse(.data[["variable"]] %in% useCarrierRescale | sum(.x[!.data[["variable"]] %in% useCarrierRescale]) == 0,
                            1,
                            (1 - sum(.x[.data[["variable"]] %in% useCarrierRescale])) /
                              sum(.x[!.data[["variable"]] %in% useCarrierRescale])))) %>%

@@ -100,7 +100,7 @@ getUvalues <- function(config,
 
 
   # calculate temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = periodBegin)
+  lambda <- compLambdaScen(scenAssumpSpeed, endOfHistory, startYearVector = periodBegin)
 
 
 
