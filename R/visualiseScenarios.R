@@ -54,18 +54,19 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   ## scenarios ====
 
-  data <- switch(as.character(length(path)),
-                 `0` = {
-                   stop("You need to provide at least one path.")
-                 },
-                 `1` = {
-                   readProjections(path) %>%
-                     mutate(version = NA)
-                 },
-                 do.call(rbind, lapply(names(path), function(v) {
-                   readProjections(path[[v]]) %>%
-                     mutate(version = v)
-                 }))
+  data <- switch(
+    as.character(length(path)),
+    `0` = {
+      stop("You need to provide at least one path.")
+    },
+    `1` = {
+      readProjections(path) %>%
+        mutate(version = NA)
+    },
+    do.call(rbind, lapply(names(path), function(v) {
+      readProjections(path[[v]]) %>%
+        mutate(version = v)
+    }))
   )
 
   data$scenario <- factor(data$scenario,

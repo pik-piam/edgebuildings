@@ -521,8 +521,7 @@ disaggregateEnergy <- function(data, eff, shares, enduses) {
     group_by(across(all_of(c("scenario", "region", "period", "enduse")))) %>%
     mutate(weightFE = .data[["share"]] / sum(.data[["efficiency"]] * .data[["share"]], na.rm = TRUE),
            weightUE = .data[["weightFE"]] * .data[["efficiency"]]) %>%
-    ungroup()
-  weights <- weights %>%
+    ungroup() %>%
     dplyr::select(-"share", -"efficiency")
 
   # Compute the UE and FE levels for each (end use, energy carrier)
@@ -617,7 +616,7 @@ addEURagg <- function(df, extVars, intVars, floorVars, regionmap) {
 #' @param enduseChar character, enduse for which electric FE demand should be split
 #' @param scenAssump carrier/enduse-specific scenario assumptions
 #'
-#' @return data frame containing split fe and ue
+#' @returns data frame containing split fe and ue
 #'
 #' @importFrom dplyr %>% .data across filter full_join group_by left_join
 #'   mutate reframe rename_with select ungroup
@@ -708,7 +707,7 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump) {
     )
 
   # compute global sum
-  hp <- hp %>%
+  hp %>%
     group_by(across(c("model", "scenario", "period", "variable", "unit"))) %>%
     reframe(
       value = sum(.data[["value"]]),

@@ -142,13 +142,10 @@ buildScenInput <- function(config,
 
     scenAssump <- tmp %>%
       mutate_all(as.numeric) %>%
-      mutate(space_heating.elec_X_Asym = 1 - .data[["space_heating.elecHP_share_X_Asym"]]
+      mutate(space_heating.elec_X_Asym = (1 - .data[["space_heating.elecHP_share_X_Asym"]]) * 1
              + .data[["space_heating.elecHP_share_X_Asym"]] * .data[["space_heating.elecHP_eff_X_Asym"]],
-             water_heating.elec_X_Asym = 1 - .data[["water_heating.elecHP_share_X_Asym"]]
+             water_heating.elec_X_Asym = (1 - .data[["water_heating.elecHP_share_X_Asym"]]) * 1
              + .data[["water_heating.elecHP_share_X_Asym"]] * .data[["water_heating.elecHP_eff_X_Asym"]]) %>%
-      # mutate(across(contains("heating.elecHP_eff"), # Not functional, but maybe this can work somehow? Maybe use pivot? Or map2? (https://stackoverflow.com/questions/78953190/is-there-a-multiple-columns-as-input-version-of-dplyrs-across-function)
-      #               ~ 1 - .data[[gsub("eff", "share", {.col})]] + .data[[gsub("eff","share", {.col})]] * .x,
-      #               .names = gsub("HP_eff", "new", {.col})))
       mutate(region = regions,
              scenario = scen) %>%
       select("scenario", "region", colnames(tmp), "space_heating.elec_X_Asym", "water_heating.elec_X_Asym")

@@ -87,7 +87,6 @@ getFloorspaceBuild <- function(config,
 
   # revalue regions
   comSharesIEA <- revalue.levels(comSharesIEA, region = mapReval)
-  # comSharesIEA <- na.omit(comSharesIEA)
   comSharesIEA <- comSharesIEA[complete.cases(comSharesIEA[, c("region", "period", "share")]), ]
 
 
