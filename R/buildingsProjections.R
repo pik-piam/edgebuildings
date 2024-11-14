@@ -461,6 +461,16 @@ buildingsProjections <- function(config,
 
     # add split electric space heating to results
     df <- rbind(df, hp)
+
+    df <- calc_addSum(df, list(
+      "elecHP|fe" = grep("elecHP\\|fe", getVars(df), value = TRUE),
+      "elecRH|fe" = grep("elecRH\\|fe", getVars(df), value = TRUE)
+    ))
+
+    df <- calc_addSum(df, list(
+      "elecHP|ue" = grep("elecHP\\|ue", getVars(df), value = TRUE),
+      "elecRH|ue" = grep("elecRH\\|ue", getVars(df), value = TRUE)
+    ))
   }
 
 
