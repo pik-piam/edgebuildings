@@ -1,4 +1,4 @@
-ValidationKey: '641280'
+ValidationKey: '641312'
 AutocreateReadme: yes
 AcceptedWarnings:
 - 'Warning: package ''.*'' was built under R version'
@@ -6,6 +6,7 @@ AcceptedWarnings:
 AcceptedNotes:
 - Non-standard files/directories found at top level
 - Importing from so many packages makes the package vulnerable
+- Namespace in Imports field not imported from\: .devtools.
 allowLinterWarnings: yes
 enforceVersionUpdate: no
 skipCoverage: no

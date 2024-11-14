@@ -4,12 +4,14 @@
 \alias{splitElec}
 \title{Split heat pump and resistive electric fe and ue}
 \usage{
-splitElec(df, enduse, scenAssump)
+splitElec(df, feueEff, enduseChar, scenAssump)
 }
 \arguments{
 \item{df}{data frame containing share and efficiency data}
 
-\item{enduse}{character, enduse for which electric FE demand should be split}
+\item{feueEff}{historical and future FE->UE conversion efficiencies}
+
+\item{enduseChar}{character, enduse for which electric FE demand should be split}
 
 \item{scenAssump}{carrier/enduse-specific scenario assumptions}
 }
