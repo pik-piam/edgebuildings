@@ -73,7 +73,6 @@ getFloorspaceResidential <- function(config,
   # upper floorspace limit
   scenAssumpCap <- config[scen, "floorspaceCap"]
 
-
   # upper temporal threshold of historic data
   endOfHistory <- config[scen, "endOfHistory"] %>%
     unlist()

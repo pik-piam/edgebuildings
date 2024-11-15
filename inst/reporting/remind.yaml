@@ -1,3 +1,5 @@
 fileName: EDGE_buildings.csv
 mapping: remind.csv
 mergeHistory: yes
+removeCol: [model, unit]
+excludeRegion: [GLO]

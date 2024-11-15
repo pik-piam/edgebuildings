@@ -260,7 +260,7 @@ makeProjections <- function(df,
                  .data[["projReg"]] * (1 - .data[["fullconv"]])) %>%
         select(-"lambda", -"fullconv")
 
-    return(tmpScen)
+      return(tmpScen)
     }))
     return(list(tmpScen = tmpScen))
   })

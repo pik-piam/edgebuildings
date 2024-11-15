@@ -89,12 +89,17 @@ getShareECprojections <- function(config,
                           "space_heating.coal",
                           "cooking.coal")
 
-  # non-decreasing shares
+  # tuples of carrier and end use that are inert:
+  # Their shares cannot decrease and growth is constraint in case of very low historic values
   # TODO: make this selection dynamic #nolint
-  nonDecreasing <- c(
-    "space_heating_heat",
-    "water_heating_heat"
+  useCarrierInert <- c(
+    "space_heating.heat",
+    "water_heating.heat",
+    "space_cooling.heat"
   )
+
+  # Threshold until which inert tuples are considered to have very low historic values
+  thresInert <- config[scen, "thresInert"]
 
   # multiple of gdppop needed to reach for gdp-driven convergence (w.r.t. EOH)
   fullConvergenceLevel <- 40
@@ -219,15 +224,18 @@ getShareECprojections <- function(config,
   pfuConverge <- pfuConverge %>%
     right_join(scenAssumpFEShares, by = c("region", "scenario", "variable")) %>%
     mutate(enduse = gsub(".[a-z]*$", "", .data[["variable"]]),
-           obj_share = ifelse(.data[["variable"]] %in% nonDecreasing,
-                              pmax(.data[["obj_share"]], .data[["shareEndHist"]]),
-                              .data[["obj_share"]])) %>%
+           obj_share = ifelse(
+             .data[["variable"]] %in% useCarrierInert,
+             pmax(.data[["obj_share"]]* ifelse(.data[["shareEndHist"]] <= thresInert, 0.5, 1),
+                  .data[["shareEndHist"]]),
+             .data[["obj_share"]]
+           )) %>%
     group_by(across(all_of(c("scenario", "period", "region", "enduse")))) %>%
-    mutate(obj_share = .data[["obj_share"]] *
-             ifelse(.data[["variable"]] %in% nonDecreasing,
-                    1,
-                    (1 - sum(.data[["obj_share"]][.data[["variable"]] %in% nonDecreasing])) /
-                      sum(.data[["obj_share"]][!.data[["variable"]] %in% nonDecreasing]))) %>%
+    mutate(across(all_of(c("obj_share", "shareEndHist")), ~ .x *
+                    ifelse(.data[["variable"]] %in% useCarrierInert,
+                           1,
+                           (1 - sum(.x[.data[["variable"]] %in% useCarrierInert])) /
+                             sum(.x[!.data[["variable"]] %in% useCarrierInert])))) %>%
     mutate(lambdaEff = pmin(1, pmax(lambda[as.character(.data[["period"]])],
                                     (.data[["gdpRatio"]] - 1) /
                                       (fullConvergenceLevel - 1))),
@@ -312,7 +320,7 @@ getShareECprojections <- function(config,
 #' @param endOfHistory upper temporal boundary of historical data
 #'
 #' @return projected EC shares
-#' 
+#'
 #' @importFrom utils tail
 #' @importFrom dplyr %>% .data filter rename select group_by arrange mutate
 #' @importFrom tidyr pivot_wider gather

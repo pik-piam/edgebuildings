@@ -55,11 +55,13 @@ buildScenInput <- function(config,
                       "space_cooling_m2_CDD_Uval_X_Asym",
                       "uvalues_X_min",
                       "biotrad",
-                      "space_heating.elec_X_Asym",
+                      "space_heating.elecHP_eff_X_Asym",
+                      "space_heating.elecHP_share_X_Asym",
                       "space_heating.elec_X_lrc",
                       "space_cooling.elec_X_Asym",
                       "space_cooling.elec_X_lrc",
-                      "water_heating.elec_X_Asym",
+                      "water_heating.elecHP_eff_X_Asym",
+                      "water_heating.elecHP_share_X_Asym",
                       "water_heating.elec_X_lrc",
                       "appliances_light.elec_X_Asym")
 
@@ -117,6 +119,7 @@ buildScenInput <- function(config,
     }
 
     # disaggregate value to regional level
+    # TODO: Make sure here that regions really match?
     if (!is.null(regionmap)) {
       tmp <- do.call("cbind", lapply(colnames(tmp), function(var) {
         # check if single value or list
@@ -139,9 +142,13 @@ buildScenInput <- function(config,
 
     scenAssump <- tmp %>%
       mutate_all(as.numeric) %>%
+      mutate(space_heating.elec_X_Asym = (1 - .data[["space_heating.elecHP_share_X_Asym"]]) * 1
+             + .data[["space_heating.elecHP_share_X_Asym"]] * .data[["space_heating.elecHP_eff_X_Asym"]],
+             water_heating.elec_X_Asym = (1 - .data[["water_heating.elecHP_share_X_Asym"]]) * 1
+             + .data[["water_heating.elecHP_share_X_Asym"]] * .data[["water_heating.elecHP_eff_X_Asym"]]) %>%
       mutate(region = regions,
              scenario = scen) %>%
-      select("scenario", "region", colnames(tmp))
+      select("scenario", "region", colnames(tmp), "space_heating.elec_X_Asym", "water_heating.elec_X_Asym")
 
     return(scenAssump)
 
