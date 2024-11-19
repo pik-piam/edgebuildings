@@ -1,60 +1,60 @@
-parameter,valueComment,SDP,SDP_EI,SDP_MC,SDP_RC,SSP1,SSP2,SSP2EU,SSP2_lowEn,SSP3,SSP4,SSP5
-popScen,,pop_SDP,pop_SDP_EI,pop_SDP_MC,pop_SDP_RC,pop_SSP1,pop_SSP2,pop_SSP2EU,pop_SSP2EU,pop_SSP3,pop_SSP4,pop_SSP5
-gdpScen,,gdp_SDP,gdp_SDP_EI,gdp_SDP_MC,gdp_SDP_RC,gdp_SSP1,gdp_SSP2,gdp_SSP2EU,gdp_SSP2EU,gdp_SSP3,gdp_SSP4,gdp_SSP5
-urbanisationScen,,pop_SDP,pop_SDP_EI,pop_SDP_MC,pop_SDP_RC,pop_SSP1,pop_SSP2,pop_SSP2EU,pop_SSP2EU,pop_SSP3,pop_SSP4,pop_SSP5
-densityScen,,density_SDP,density_SDP_EI,density_SDP_MC,density_SDP_RC,density_SSP1,density_SSP2,density_SSP2EU,density_SSP2EU,density_SSP3,density_SSP4,density_SSP5
-floorScen,,SSP1,SSP1,SSP1,SSP1,SSP1,SSP2,SSP2,SSP2,SSP3,SSP4,SSP5
-uvalueScen,,SSP1,SSP1,SSP1,SSP1,SSP1,SSP2,SSP2,SSP2,SSP3,SSP4,SSP5
-gdppopScen,,gdppop_SDP,gdppop_SDP_EI,gdppop_SDP_MC,gdppop_SDP_RC,gdppop_SSP1,gdppop_SSP2,gdppop_SSP2EU,gdppop_SSP2EU,gdppop_SSP3,gdppop_SSP4,gdppop_SSP5
-hddcddScen,,SSP1,SSP1,SSP1,SSP1,SSP1,SSP2,SSP2,SSP2,SSP3,SSP4,SSP5
-rcpScen,,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC
-tlimTarget_HDD,set point temperature target for space heating in degC,12,12,12,12,12,14,14,12,14,15,15
-tlimTarget_CDD,set point temperature target for space cooling in degC,22,22,23,25,22,20,20,22,20,19,19
-speed_HDD,year in which HDD limit temperature target will be reached,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100
-speed_CDD,year in which CDD limit temperature target will be reached,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100
-econCoef_floorspace,RC people are happy with less space,0.3,0.3,0.25,0.2,0.3,0.7,0.7,0.3,0.8,"0.7,lowIncome:0.8",1
-econCoef_space_heating_m2_Uval_X_HDD,,1,1,1,1,1,1,1,1,1,1,1
-econCoef_appliances_light_pop_X_gdppop,"RC people are happy with less light, MC stricter efficiency rules",0.8,0.8,0.7,0.6,0.8,1,1,0.8,1,"1,highIncome:1.3",1.3
-econCoef_appliances_light_elas_FACTOR,"RC people are happy with less light, MC stricter efficiency rules",0.7,0.7,0.6,0.5,0.7,1,1,0.7,1.1,"1,lowIncome:1.1,highIncome:1.15",1.3
-econCoef_cooking_pop_X_(Intercept),not sure what the does but same logic as above,0.7,0.7,0.6,0.5,0.7,1,1,0.7,1.25,1,1.3
-econCoef_water_heating_pop_X_Asym,not sure what the does but same logic as above,0.2,0.2,0.15,0.05,0.3,0.6,0.6,0.3,1,"1,highIncome:1.3",1.3
-econCoef_space_cooling_m2_CDD_Uval_X_Asym,,1,1,1,1,1,1,1,1,1,1,1
-econCoef_uvalues_X_min,"RC less good insulation, MC strong regulation leading to higher insulation",0.25,0.25,0.15,0.35,0.35,0.7,0.7,0.35,0.85,"0.75,lowIncome:0.85",0.75
-econCoef_biotrad,,2,2,2,2,2,1,1,2,0.25,"1,lowIncome:0.25,highIncome:1.5",1.5
-econCoef_space_heating.elecHP_eff_X_Asym,"RC a little less efficient, MC more efficient",5,5,6,5,5,5,5,5,3.875,"5,lowIncome:3.875,highIncome:5",6
-econCoef_space_heating.elecHP_share_X_Asym,"RC a little less efficient, MC more efficient",0.8,0.8,0.9,0.75,0.8,"0.5,Europe:0.75","0.5,Europe:0.75",0.5,0.25,"0.4,lowIncome:0.25,highIncome:0.6",0.75
-econCoef_space_heating.elec_X_lrc,"RC a little less efficient, MC more efficient",-10.46310334,-10.46310334,-10.46310334,-10.46310334,-10.46310334,"-10.1266311,Europe:-10","-10.1266311,Europe:-10",-10.1266311,-9.61580548,"-10.1266311,lowIncome:-9.61580548",-10.46310334
-econCoef_space_cooling.elec_X_Asym,"RC a little less efficient, MC more efficient",8,8,10,7,8,5,5,5,3.875,"5,lowIncome:3.875",8
-econCoef_space_cooling.elec_X_lrc,,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.1266311,"-10.30895266,lowIncome:-10.1266311",-10.30895266
-econCoef_water_heating.elecHP_eff_X_Asym,,5,5,6,5,5,5,5,5,3.875,"5,lowIncome:3.875,highIncome:5",6
-econCoef_water_heating.elecHP_share_X_Asym,,0.8,0.8,0.9,0.75,0.8,0.5,0.5,0.5,0.25,"0.4,lowIncome:0.25,highIncome:0.6",0.75
-econCoef_water_heating.elec_X_lrc,,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.1266311,"-10.30895266,lowIncome:-10.1266311",-10.30895266
-econCoef_appliances_light.elec_X_Asym,,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.75,"0.82,lowIncome:0.75",0.9
-feShare_space_heating_natgas,,15,15,5,15,15,"35,Europe:32","35,Europe:32",15,40,"35,lowIncome:40,highIncome:75",75
-feShare_space_heating_elec,"EI and RC high, MC close to technical potential",40,40,60,40,40,"40,Europe:37","40,Europe:37",40,15,"40,lowIncome:15,highIncome:17",17
-feShare_space_heating_heat,,35,30,25,35,35,"15,Europe:25","15,Europe:25",35,15,"15,highIncome:3",3
-feShare_space_heating_petrol,,5,5,5,5,5,"5,Europe:2","5,Europe:2",5,15,"5,lowIncome:15,highIncome:2",2
-feShare_space_heating_biomod,RC more biomass,5,10,5,5,5,"5,Europe:4","5,Europe:4",5,15,"5,lowIncome:15,highIncome:3",3
-feShare_water_heating_natgas,,15,15,5,15,15,"35,Europe:32","35,Europe:32",15,40,"35,lowIncome:40,highIncome:75",75
-feShare_water_heating_elec,"EI and RC high, MC close to technical potential",40,40,60,40,40,"40,Europe:37","40,Europe:37",40,15,"40,lowIncome:15,highIncome:17",17
-feShare_water_heating_heat,,35,30,25,35,35,"15,Europe:25","15,Europe:25",35,15,"15,highIncome:3",3
-feShare_water_heating_petrol,,5,5,5,5,5,"5,Europe:2","5,Europe:2",5,15,"5,lowIncome:15,highIncome:2",2
-feShare_water_heating_biomod,RC more biomass,5,10,5,5,5,"5,Europe:4","5,Europe:4",5,15,"5,lowIncome:15,highIncome:3",3
-feShare_cooking_natgas,,15,15,5,15,15,"45,Europe:46","45,Europe:46",15,65,"45,lowIncome:65,highIncome:78",78
-feShare_cooking_elec,"EI and RC high, MC close to technical potential",80,85,95,85,80,"50,Europe:52","50,Europe:52",80,15,"50,lowIncome:15,highIncome:15",15
-feShare_cooking_heat,,0,0,0,0,0,0,0,0,0,0,0
-feShare_cooking_petrol,0 petrol in all of scenarios,5,0,0,0,5,"5,Europe:2","5,Europe:2",5,20,"5,lowIncome:20,highIncome:2",2
-feShare_cooking_biomod,,0,0,0,0,0,0,0,0,0,0,0
-feShare_appliances_light_elec,,100,100,100,100,100,100,100,100,100,100,100
-feShare_appliances_light_natgas,,0,0,0,0,0,0,0,0,0,0,0
-feShare_appliances_light_biomod,,0,0,0,0,0,0,0,0,0,0,0
-feShare_space_cooling_elec,,70,70,70,70,70,90,90,70,95,"90,highIncome:95",95
-feShare_space_cooling_natgas,,0,0,0,0,0,0,0,0,0,0,0
-feShare_space_cooling_heat,,30,30,30,30,30,10,10,30,5,"10,highIncome:5",5
-feShare_space_cooling_biomod,,0,0,0,0,0,0,0,0,0,0,0
-speed,,2200,2200,2200,2200,2200,2300,2300,2200,2400,"2400,lowIncome:2500,highIncome:2300",2200
-speed_fullconv,,2070,2070,2070,2070,2070,2070,2070,,2070,2070,2070
-floorspaceCap,,60,75,50,40,NA,NA,NA,NA,NA,NA,NA
-incomeThresholdEC,account for lower GDP/cap in RC and tighter regulation in MC,10000,12000,11000,10000,30000,30000,30000,30000,30000,30000,30000
-gdpBoost,,"0,lowIncome:0.35,mediumIncome:0.2","0,lowIncome:0.35,mediumIncome:0.2","0,lowIncome:0.35,mediumIncome:0.2","0,lowIncome:0.35,mediumIncome:0.2",0,0,0,0,0,0,0
-interpolate,,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE
+parameter,valueComment,SDP,SDP_EI,SDP_MC,SDP_RC,SSP1,SSP2,SSP2EU,SSP2EU_NAV_all,SSP2_lowEn,SSP3,SSP4,SSP5
+popScen,,pop_SDP,pop_SDP_EI,pop_SDP_MC,pop_SDP_RC,pop_SSP1,pop_SSP2,pop_SSP2EU,pop_SSP2EU,pop_SSP2EU,pop_SSP3,pop_SSP4,pop_SSP5
+gdpScen,,gdp_SDP,gdp_SDP_EI,gdp_SDP_MC,gdp_SDP_RC,gdp_SSP1,gdp_SSP2,gdp_SSP2EU,gdp_SSP2EU,gdp_SSP2EU,gdp_SSP3,gdp_SSP4,gdp_SSP5
+urbanisationScen,,pop_SDP,pop_SDP_EI,pop_SDP_MC,pop_SDP_RC,pop_SSP1,pop_SSP2,pop_SSP2EU,pop_SSP2EU,pop_SSP2EU,pop_SSP3,pop_SSP4,pop_SSP5
+densityScen,,density_SDP,density_SDP_EI,density_SDP_MC,density_SDP_RC,density_SSP1,density_SSP2,density_SSP2EU,density_SSP2EU,density_SSP2EU,density_SSP3,density_SSP4,density_SSP5
+floorScen,,SSP1,SSP1,SSP1,SSP1,SSP1,SSP2,SSP2,SSP2,SSP2,SSP3,SSP4,SSP5
+uvalueScen,,SSP1,SSP1,SSP1,SSP1,SSP1,SSP2,SSP2,SSP2,SSP2,SSP3,SSP4,SSP5
+gdppopScen,,gdppop_SDP,gdppop_SDP_EI,gdppop_SDP_MC,gdppop_SDP_RC,gdppop_SSP1,gdppop_SSP2,gdppop_SSP2EU,gdppop_SSP2EU,gdppop_SSP2EU,gdppop_SSP3,gdppop_SSP4,gdppop_SSP5
+hddcddScen,,SSP1,SSP1,SSP1,SSP1,SSP1,SSP2,SSP2,SSP2,SSP2,SSP3,SSP4,SSP5
+rcpScen,,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC,noCC
+tlimTarget_HDD,set point temperature target for space heating in degC,12,12,12,12,12,14,14,12,12,14,15,15
+tlimTarget_CDD,set point temperature target for space cooling in degC,22,22,23,25,22,20,20,22,22,20,19,19
+speed_HDD,year in which HDD limit temperature target will be reached,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100
+speed_CDD,year in which CDD limit temperature target will be reached,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100,2100
+econCoef_floorspace,RC people are happy with less space,0.3,0.3,0.25,0.2,0.3,0.7,0.7,0.4,0.3,0.8,"0.7,lowIncome:0.8",1
+econCoef_space_heating_m2_Uval_X_HDD,,1,1,1,1,1,1,1,1,1,1,1,1
+econCoef_appliances_light_pop_X_gdppop,"RC people are happy with less light, MC stricter efficiency rules",0.8,0.8,0.7,0.6,0.8,1,1,1,0.8,1,"1,highIncome:1.3",1.3
+econCoef_appliances_light_elas_FACTOR,"RC people are happy with less light, MC stricter efficiency rules",0.7,0.7,0.6,0.5,0.7,1,1,1,0.7,1.1,"1,lowIncome:1.1,highIncome:1.15",1.3
+econCoef_cooking_pop_X_(Intercept),not sure what the does but same logic as above,0.7,0.7,0.6,0.5,0.7,1,1,1,0.7,1.25,1,1.3
+econCoef_water_heating_pop_X_Asym,not sure what the does but same logic as above,0.2,0.2,0.15,0.05,0.3,0.6,0.6,0.6,0.3,1,"1,highIncome:1.3",1.3
+econCoef_space_cooling_m2_CDD_Uval_X_Asym,,1,1,1,1,1,1,1,1,1,1,1,1
+econCoef_uvalues_X_min,"RC less good insulation, MC strong regulation leading to higher insulation",0.25,0.25,0.15,0.35,0.35,0.7,0.7,0.4,0.35,0.85,"0.75,lowIncome:0.85",0.75
+econCoef_biotrad,,2,2,2,2,2,1,1,1,2,0.25,"1,lowIncome:0.25,highIncome:1.5",1.5
+econCoef_space_heating.elecHP_eff_X_Asym,"RC a little less efficient, MC more efficient",5,5,6,5,5,5,5,6,5,3.875,"5,lowIncome:3.875,highIncome:5",6
+econCoef_space_heating.elecHP_share_X_Asym,"RC a little less efficient, MC more efficient",0.8,0.8,0.9,0.75,0.8,"0.5,Europe:0.75","0.5,Europe:0.75","0.5,Europe:0.75",0.5,0.25,"0.4,lowIncome:0.25,highIncome:0.6",0.75
+econCoef_space_heating.elec_X_lrc,"RC a little less efficient, MC more efficient",-10.46310334,-10.46310334,-10.46310334,-10.46310334,-10.46310334,"-10.1266311,Europe:-10","-10.1266311,Europe:-10","-10.1266311,Europe:-10",-10.1266311,-9.61580548,"-10.1266311,lowIncome:-9.61580548",-10.46310334
+econCoef_space_cooling.elec_X_Asym,"RC a little less efficient, MC more efficient",8,8,10,7,8,5,5,6.5,5,3.875,"5,lowIncome:3.875",8
+econCoef_space_cooling.elec_X_lrc,,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.1266311,"-10.30895266,lowIncome:-10.1266311",-10.30895266
+econCoef_water_heating.elecHP_eff_X_Asym,,5,5,6,5,5,5,5,5,5,3.875,"5,lowIncome:3.875,highIncome:5",6
+econCoef_water_heating.elecHP_share_X_Asym,,0.8,0.8,0.9,0.75,0.8,0.5,0.5,0.5,0.5,0.25,"0.4,lowIncome:0.25,highIncome:0.6",0.75
+econCoef_water_heating.elec_X_lrc,,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.30895266,-10.1266311,"-10.30895266,lowIncome:-10.1266311",-10.30895266
+econCoef_appliances_light.elec_X_Asym,,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.9,0.75,"0.82,lowIncome:0.75",0.9
+feShare_space_heating_natgas,,15,15,5,15,15,"35,Europe:32","35,Europe:32",15,15,40,"35,lowIncome:40,highIncome:75",75
+feShare_space_heating_elec,"EI and RC high, MC close to technical potential",40,40,60,40,40,"40,Europe:37","40,Europe:37",75,40,15,"40,lowIncome:15,highIncome:17",17
+feShare_space_heating_heat,,35,30,25,35,35,"15,Europe:25","15,Europe:25",6.25,35,15,"15,highIncome:3",3
+feShare_space_heating_petrol,,5,5,5,5,5,"5,Europe:2","5,Europe:2",1.875,5,15,"5,lowIncome:15,highIncome:2",2
+feShare_space_heating_biomod,RC more biomass,5,10,5,5,5,"5,Europe:4","5,Europe:4",1.875,5,15,"5,lowIncome:15,highIncome:3",3
+feShare_water_heating_natgas,,15,15,5,15,15,"35,Europe:32","35,Europe:32",15,15,40,"35,lowIncome:40,highIncome:75",75
+feShare_water_heating_elec,"EI and RC high, MC close to technical potential",40,40,60,40,40,"40,Europe:37","40,Europe:37",75,40,15,"40,lowIncome:15,highIncome:17",17
+feShare_water_heating_heat,,35,30,25,35,35,"15,Europe:25","15,Europe:25",6.25,35,15,"15,highIncome:3",3
+feShare_water_heating_petrol,,5,5,5,5,5,"5,Europe:2","5,Europe:2",1.875,5,15,"5,lowIncome:15,highIncome:2",2
+feShare_water_heating_biomod,RC more biomass,5,10,5,5,5,"5,Europe:4","5,Europe:4",1.875,5,15,"5,lowIncome:15,highIncome:3",3
+feShare_cooking_natgas,,15,15,5,15,15,"45,Europe:46","45,Europe:46",45,15,65,"45,lowIncome:65,highIncome:78",78
+feShare_cooking_elec,"EI and RC high, MC close to technical potential",80,85,95,85,80,"50,Europe:52","50,Europe:52",50,80,15,"50,lowIncome:15,highIncome:15",15
+feShare_cooking_heat,,0,0,0,0,0,0,0,0,0,0,0,0
+feShare_cooking_petrol,0 petrol in all of scenarios,5,0,0,0,5,"5,Europe:2","5,Europe:2",5,5,20,"5,lowIncome:20,highIncome:2",2
+feShare_cooking_biomod,,0,0,0,0,0,0,0,0,0,0,0,0
+feShare_appliances_light_elec,,100,100,100,100,100,100,100,100,100,100,100,100
+feShare_appliances_light_natgas,,0,0,0,0,0,0,0,0,0,0,0,0
+feShare_appliances_light_biomod,,0,0,0,0,0,0,0,0,0,0,0,0
+feShare_space_cooling_elec,,70,70,70,70,70,90,90,90,70,95,"90,highIncome:95",95
+feShare_space_cooling_natgas,,0,0,0,0,0,0,0,0,0,0,0,0
+feShare_space_cooling_heat,,30,30,30,30,30,10,10,10,30,5,"10,highIncome:5",5
+feShare_space_cooling_biomod,,0,0,0,0,0,0,0,0,0,0,0,0
+speed,,2200,2200,2200,2200,2200,2300,2300,2100,2200,2400,"2400,lowIncome:2500,highIncome:2300",2200
+speed_fullconv,,2070,2070,2070,2070,2070,2070,2070,2070,,2070,2070,2070
+floorspaceCap,,60,75,50,40,NA,NA,NA,40,NA,NA,NA,NA
+incomeThresholdEC,account for lower GDP/cap in RC and tighter regulation in MC,10000,12000,11000,10000,30000,30000,30000,30000,30000,30000,30000,30000
+gdpBoost,,"0,lowIncome:0.35,mediumIncome:0.2","0,lowIncome:0.35,mediumIncome:0.2","0,lowIncome:0.35,mediumIncome:0.2","0,lowIncome:0.35,mediumIncome:0.2",0,0,0,0,0,0,0,0
+interpolate,,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE
