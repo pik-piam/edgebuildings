@@ -12,6 +12,7 @@
 #'
 #' @param config scenario-wise parameter configuration
 #' @param pfu data.frame final and useful energy data
+#' @param hddcdd historical and future HDD's/CDD's
 #' @param gdp data.frame gdp data
 #' @param gdppop data.frame gdp per capita
 #' @param scenAssumpFEShares data.frame scenario-specific FE sare assumptions
@@ -46,6 +47,7 @@
 
 getShareECprojections <- function(config,
                                   pfu,
+                                  hddcdd,
                                   gdp,
                                   gdppop,
                                   scenAssumpFEShares,
@@ -98,8 +100,20 @@ getShareECprojections <- function(config,
     "space_cooling.heat"
   )
 
+  # tuples of carrier and end use that involve district heat
+  # Their target shares is kept constant in regions with low HDD
+  useCarrierDH <- c(
+    "space_heating.heat",
+    "water_heating.heat"
+  )
+
+  useCarrierRescale <- union(useCarrierInert, useCarrierDH)
+
   # Threshold until which inert tuples are considered to have very low historic values
-  thresInert <- config[scen, "thresInert"]
+  thresInert <- config[[scen, "thresInert"]]
+
+  # Threshold of hdd until which district heating does not grow in share
+  thresDh <- config[[scen, "thresDh"]]
 
   # multiple of gdppop needed to reach for gdp-driven convergence (w.r.t. EOH)
   fullConvergenceLevel <- 40
@@ -140,6 +154,13 @@ getShareECprojections <- function(config,
     filter(.data[["period"]] %in% years) %>%
     sepHistScen(endOfHistory = endOfHistory) %>%
     mutate(unit = NA)
+
+  # hdd
+  hdd <- hddcdd %>%
+    filter(.data[["variable"]] == "HDD", .data[["scenario"]] == config[, "hddcddScen"],
+           .data[["period"]] == endOfHistory) %>%
+    select(-"variable", -"period", -"scenario") %>%
+    rename(hdd = "value")
 
 
   # gdppop threshold for EC share convergence
@@ -217,10 +238,11 @@ getShareECprojections <- function(config,
     mutate(gdpRatio = .data[["gdp"]] /
              .data[["gdp"]][.data[["period"]] == endOfHistory]) %>%
     group_by(across(all_of(c("region", "variable")))) %>%
-    mutate(shareEndHist = .data[["value"]][.data[["period"]] == endOfHistory])
+    mutate(shareEndHist = .data[["value"]][.data[["period"]] == endOfHistory]) %>%
+    ungroup()
 
 
-  # apply scenario assumptions
+  # add target shares from scenario assumptions, make adjustments
   pfuConverge <- pfuConverge %>%
     right_join(scenAssumpFEShares, by = c("region", "scenario", "variable")) %>%
     mutate(enduse = gsub(".[a-z]*$", "", .data[["variable"]]),
@@ -230,17 +252,26 @@ getShareECprojections <- function(config,
                   .data[["shareEndHist"]]),
              .data[["obj_share"]]
            )) %>%
+    left_join(hdd, by = "region") %>%
+    mutate(obj_share = ifelse(
+             .data[["variable"]] %in% useCarrierDH & .data[["hdd"]] < thresDh,
+             .data[["shareEndHist"]],
+             .data[["obj_share"]]
+           )) %>%
     group_by(across(all_of(c("scenario", "period", "region", "enduse")))) %>%
     mutate(across(all_of(c("obj_share", "shareEndHist")), ~ .x *
-                    ifelse(.data[["variable"]] %in% useCarrierInert,
+                    ifelse(.data[["variable"]] %in% useCarrierRescale,
                            1,
-                           (1 - sum(.x[.data[["variable"]] %in% useCarrierInert])) /
-                             sum(.x[!.data[["variable"]] %in% useCarrierInert])))) %>%
+                           (1 - sum(.x[.data[["variable"]] %in% useCarrierRescale])) /
+                             sum(.x[!.data[["variable"]] %in% useCarrierRescale])))) %>%
+
+    # Compute projections of carrier shares
     mutate(lambdaEff = pmin(1, pmax(lambda[as.character(.data[["period"]])],
                                     (.data[["gdpRatio"]] - 1) /
                                       (fullConvergenceLevel - 1))),
            value = .data[["lambdaEff"]] * .data[["obj_share"]] +
              (1 - .data[["lambdaEff"]]) * .data[["shareEndHist"]]) %>%
+    ungroup() %>%
     select("region", "period", "scenario", "unit", "variable", "value") %>%
     rbind(pfuConverge %>%
             filter(.data[["variable"]] == "gdp" |

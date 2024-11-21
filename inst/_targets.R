@@ -491,6 +491,7 @@ list(
     {
       getShareECprojections(config = config,
                             pfu = pfu,
+                            hddcdd = hddcdd,
                             gdp = gdp,
                             gdppop = gdppop,
                             scenAssumpFEShares = scenAssumpFEshares,
