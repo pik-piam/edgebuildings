@@ -120,26 +120,26 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
 
   # config
   if (file.exists(config)) {
-    userConfig <- read.csv2(config, check.names = FALSE, na.strings = c("", "NA"), sep = ",")
+    userConfig <- read.csv2(config, check.names = FALSE, na.strings = c("", "NA"))
   } else {
     userConfig <- file.path("config", config) %>%
-      read.csv2(check.names = FALSE, na.strings = c("", "NA"), sep = ",")
+      read.csv2(check.names = FALSE, na.strings = c("", "NA"))
   }
 
   # default
   if (file.exists(default)) {
-    defaultConfig <- read.csv2(default, na.strings = c("", "NA"), sep = ",")
+    defaultConfig <- read.csv2(default, na.strings = c("", "NA"))
   } else {
     defaultConfig <- file.path("config", default) %>%
-      read.csv2(na.strings = c("", "NA"), sep = ",")
+      read.csv2(na.strings = c("", "NA"))
   }
 
   # region groups
   if (file.exists(regiongroups)) {
-    regionGroups <- read.csv2(regiongroups, na.strings = c("", "NA"), sep = ";")
+    regionGroups <- read.csv2(regiongroups, na.strings = c("", "NA"))
   } else {
     regionGroups <- file.path("config", regiongroups) %>%
-      read.csv2(na.strings = c("", "NA"), sep = ";")
+      read.csv2(na.strings = c("", "NA"))
   }
 
   ## check files ====
