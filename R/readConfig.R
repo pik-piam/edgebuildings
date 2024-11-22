@@ -76,7 +76,6 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
     regional <- grepl(":|,", values)
 
     values[regional] <- as.vector(lapply(values[regional], function(val) {
-
       regVals <- unlist(strsplit(val, ","))
 
       # default value for all regions outside of specified region groups
@@ -103,7 +102,7 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
             lstVal[reg]
         } else if (reg %in% regions) {
           # individual regions
-          df[reg, "value"] <- lstVal[reg]
+          df[reg == df$region, "value"] <- lstVal[reg]
         }
       }
 

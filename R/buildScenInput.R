@@ -7,73 +7,33 @@
 #' @param config data.frame name of scenario config df
 #' @param subtype EDGE-B input type
 #' @param regionmap regional mapping
-#' @param regionalTargetDimension regional resolution
 #' @param singleScen single scenario only
 #' @param valueOnly returns list of values with regions as row names
 #'
 #' @returns data.frame with specified input data
 #'
-#' @author Hagen Tockhorn
+#' @author Hagen Tockhorn, Robin Hasse
 #'
-#' @importFrom dplyr select mutate_all mutate rename filter matches
-#' @importFrom tidyr pivot_wider
-#' @importFrom data.table :=
-
+#' @importFrom dplyr select mutate rename
+#' @importFrom tidyr pivot_longer
 
 buildScenInput <- function(config,
-                           subtype,
+                           subtype = c("scen_assump",
+                                       "scen_assump_speed",
+                                       "fe_shares",
+                                       "mapping"),
                            regionmap,
-                           regionalTargetDimension = "EDGE_EUR_ETP",
                            singleScen = TRUE,
                            valueOnly = FALSE) {
 
-  if (is.null(regionmap) || is.null(regionalTargetDimension)) {
-    stop("regionmap and regionalTargetDimension cannot be NULL.")
-  }
+
+  subtype <- match.arg(subtype)
 
   regions <- unique(regionmap[["EDGE_EUR_ETP"]])
 
 
 
-  # PARAMETERS------------------------------------------------------------------
-
-
-
-  inputFormat <- c("scen_assump",
-                   "scen_assump_speed",
-                   "scen_assump_corr",
-                   "fe_shares",
-                   "mapping")
-
-  # former scen_assump columns (might be changed later)
-  scenAssumpCols <- c("floorspace",
-                      "space_heating_m2_Uval_X_HDD",
-                      "appliances_light_pop_X_gdppop",
-                      "appliances_light_elas_FACTOR",
-                      "cooking_pop_X_.Intercept.",
-                      "water_heating_pop_X_Asym",
-                      "space_cooling_m2_CDD_Uval_X_Asym",
-                      "uvalues_X_min",
-                      "biotrad",
-                      "space_heating.elecHP_eff_X_Asym",
-                      "space_heating.elecHP_share_X_Asym",
-                      "space_heating.elec_X_lrc",
-                      "space_cooling.elec_X_Asym",
-                      "space_cooling.elec_X_lrc",
-                      "water_heating.elecHP_eff_X_Asym",
-                      "water_heating.elecHP_share_X_Asym",
-                      "water_heating.elec_X_lrc",
-                      "appliances_light.elec_X_Asym")
-
-  # relevant scen_assump_corr variables
-  scenCorrVars <- c("space_heating.elec",
-                    "space_cooling.elec",
-                    "water_heating.elec",
-                    "appliances_light.elec")
-
-
-
-  # Initial Checks--------------------------------------------------------------
+  # INITIAL CHECKS -------------------------------------------------------------
 
   if (is.data.frame(config)) {
     if (nrow(config) == 0) {
@@ -91,157 +51,43 @@ buildScenInput <- function(config,
     }
   }
 
-  if (!(subtype %in% inputFormat)) {
-    stop("Invalid subtype given.")
-  }
 
 
   # PROCESS DATA----------------------------------------------------------------
 
-  # general scenario parameter assumptions
   if (subtype == "scen_assump") {
 
-    scen <- row.names(config) %>%
-      unique() %>%
-      unlist()
+    ## general scenario parameter assumptions ====
 
-    tmp <- config %>%
-      select(colnames(config)[grepl("econCoef", colnames(config))])
+    scenAssump <- .expandToRegions(config, regions, prefix = "econCoef_") %>%
+      .deriveElecHeatingAssump()
 
-    colnames(tmp) <- gsub("econCoef_", "", colnames(tmp))
-    colnames(tmp) <- gsub("[()]", ".", colnames(tmp))
 
-    row.names(tmp) <- seq_len(nrow(tmp))
+  } else if (subtype == "scen_assump_speed") {
 
-    # check if all columns match with requirements
-    if (!(identical(colnames(tmp), scenAssumpCols))) {
-      stop("The config file does not contain all required parameters for scen_assump.")
-    }
+    ## temporal convergence assumptions ====
 
-    # disaggregate value to regional level
-    # TODO: Make sure here that regions really match?
-    if (!is.null(regionmap)) {
-      tmp <- do.call("cbind", lapply(colnames(tmp), function(var) {
-        # check if single value or list
-        if (length(unlist(tmp[[var]])) > 1) {
-          data <- tmp[[var]] %>%
-            as.data.frame() %>%
-            filter(.data[["region"]] != "EUR") %>%
-            select(-"region")
-        } else {
-          data <- data.frame(value  = rep(unlist(tmp[[var]]),
-                                          length(regions)))
-        }
-
-        data <- data %>%
-          rename(!!var := "value")
-
-        return(data)
-      }))
-    }
-
-    scenAssump <- tmp %>%
-      mutate_all(as.numeric) %>%
-      mutate(space_heating.elec_X_Asym = (1 - .data[["space_heating.elecHP_share_X_Asym"]]) * 1
-             + .data[["space_heating.elecHP_share_X_Asym"]] * .data[["space_heating.elecHP_eff_X_Asym"]],
-             water_heating.elec_X_Asym = (1 - .data[["water_heating.elecHP_share_X_Asym"]]) * 1
-             + .data[["water_heating.elecHP_share_X_Asym"]] * .data[["water_heating.elecHP_eff_X_Asym"]]) %>%
-      mutate(region = regions,
-             scenario = scen) %>%
-      select("scenario", "region", colnames(tmp), "space_heating.elec_X_Asym", "water_heating.elec_X_Asym")
-
-    return(scenAssump)
-
-  }
-
-  # temporal convergence assumptions
-  else if (subtype == "scen_assump_speed") { # nolint
-
-    scen <- row.names(config)
-
-    tmp <- config %>%
-      select("speed", "speed_fullconv")
-
-    row.names(tmp) <- seq_len(nrow(config))
-
-    # assign assumptions on regional resolution
-    tmpReg <- do.call(
-      "rbind", lapply(
-        colnames(tmp), function(var) {
-          data <- tmp %>%
-            select(var)
-
-          # check if single value or list
-          if (length(unlist(data[[var]])) > 1) {
-            data <- data[[var]] %>%
-              as.data.frame()
-          } else {
-            data <- data.frame(region = regions,
-                               value  = unlist(data[[var]]))
-          }
-
-          data <- data %>%
-            mutate(variable = var,
-                   scenario = scen)
-        }
-      )
-    )
-
-    scenAssumpSpeed <- tmpReg %>%
-      pivot_wider(names_from = "variable", values_from = "value") %>%
+    .expandToRegions(config, regions, switches = c("speed", "speed_fullconv")) %>%
       rename(lambda = "speed",
-             fullconv = "speed_fullconv") %>%
-      mutate(lambda = as.numeric(.data[["lambda"]]),
-             fullconv = as.numeric(.data[["fullconv"]])) %>%
-      select("scenario", "region", "lambda", "fullconv") %>%
-      filter(.data[["region"]] != "EUR")
+             fullconv = "speed_fullconv")
 
-    return(scenAssumpSpeed)
 
-  }
+  } else if (subtype == "fe_shares") {
 
-  # final energy shares
-  else if (subtype == "fe_shares") { # nolint
-    tmp <- config %>%
-      select(colnames(config)[grepl("feShare_", colnames(config))]) %>%
-      select(-matches("speed|ariadneFix"))
+    ## final energy shares ====
 
-    scen <- unique(row.names(config))
+  .expandToRegions(config, regions, prefix = "feShare_") %>%
+    pivot_longer(-c("scenario", "region"),
+                 names_to = "variable", values_to = "obj_share") %>%
+    mutate(variable = sub("^(.+)_([a-z]+)$", "\\1.\\2", .data[["variable"]]),
+           obj_share = .data[["obj_share"]] / 100)
 
-    row.names(tmp) <- seq_len(nrow(config))
-    colnames(tmp)  <- gsub("feShare_", "", colnames(tmp))
-    colnames(tmp)  <- sub("_(?=[^_]*$)", ".", colnames(tmp), perl=TRUE)
 
-    # assign assumptions on regional resolution
-    scenAssumpFEshares <- do.call(
-      "rbind", lapply(
-        colnames(tmp), function(var) {
-          data <- tmp %>% select(var)
+  } else if (subtype == "mapping") {
+    ## transform value / list into regional resolution ====
 
-          # check if single value or list
-          if (length(unlist(data[[var]])) > 1) {
-            data <- data[[var]] %>%
-              as.data.frame()
-          } else {
-            data <- data.frame(region = regions,
-                               value  = unlist(data[[var]]))
-          }
+    # TODO: move this to another function and make it a target
 
-          data <- data %>%
-            mutate(variable = var,
-                   scenario = scen)
-        }
-      )
-    ) %>%
-      select("region", "scenario", "variable", "value") %>%
-      rename("obj_share" = "value") %>%
-      mutate(obj_share = unlist(.data[["obj_share"]]) / 100)
-
-    return(scenAssumpFEshares)
-  }
-
-  # transform value / list into regional resolution
-  else if (subtype == "mapping") { # nolint
     # note: can only take care of single value or list of values
     if (length(unlist(config)) > 1) {
       valueMap <- config %>%
@@ -259,33 +105,111 @@ buildScenInput <- function(config,
 
     return(valueMap)
   }
+}
 
-  # not sure yet if necessary
-  else if (subtype == "scen_assump_corr") { # nolint
-    fitPars <- c("Asym", "R0", "lrc", "phi3")
 
-    # build dataframe
-    scenAssumpCorr <-
-      do.call("rbind", lapply(scenCorrVars, function(var) {
-        do.call("rbind", lapply(fitPars, function(p) {
-          configID <- paste0("econCoef_", var, "_X_", p)
 
-          if (configID %in% colnames(config)) {
-            tmp <- data.frame(parameter = p,
-                              variable  = var,
-                              value     = unlist(config[[configID]]))
-          } else {
-            tmp <- data.frame(parameter = p,
-                              variable  = var,
-                              value     = NA)
-          }
-          return(tmp)
-        }))
-      }))
+#' Unpack scenAssump entry to regional data.frame
+#'
+#' @param x scenAssump value, either a data.frame or scalar number
+#' @param regions character vector of all regions
+#' @returns data.frame with region and value column
 
-    scenAssumpCorr <- spread(scenAssumpCorr, key = "variable", value = "value")
-
-    return(scenAssumpCorr)
+.unpackDf <- function(x, regions) {
+  if (is.data.frame(x)) {
+    return(x[x[["region"]] %in% regions, ])
   }
+  data.frame(region = regions, value = x)
+}
 
+
+
+#' Turn row names into scenario column
+#'
+#' @param x data.frame with row names
+#' @returns data.frame with additional scenario column
+
+.scenCol <- function(x) {
+  x[["scenario"]] <- rownames(x)
+  return(x)
+}
+
+
+
+#' Remove prefix from character column
+#'
+#' @param x data.frame
+#' @param prefix character, starting pattern to be removed
+#' @param col character, column name
+#' @returns data.frame where prefix has been removed from col
+
+.removePrefix <- function(x, prefix, col){
+  if (!is.null(prefix)) {
+    x[[col]] <- sub(paste0("^", prefix), "", x[[col]])
+  }
+  return(x)
+}
+
+
+
+#' select switches and remove prefix
+#'
+#' @param x data.frame
+#' @param switches character vector of switch names (without prefix)
+#' @param prefix common switch prefix that will be removed
+#' @returns data.frame with selected switches without prefix
+
+.filterSwitches <- function(x, switches, prefix) {
+  if (!is.null(switches)) {
+    x <- .removePrefix(x, prefix, "name")
+    x[x[["name"]] %in% switches, ]
+  } else if (!is.null(prefix)) {
+    x <- x[grepl(paste0("^", prefix), x[["name"]]), ]
+    .removePrefix(x, prefix, "name")
+  } else {
+    stop("either switches or prefix has to be different from NULL")
+  }
+}
+
+
+#' Convert config to data frame with values for each region
+#'
+#' @param config data.frame with one line per scenario and switches as columns
+#' @param regions character vector of all regions
+#' @param switches character vector of switch names (without prefix)
+#' @param prefix common switch prefix that will be removed
+#' @returns data.frame with switch values for each scenario and region
+#'
+#' @importFrom dplyr %>% .data mutate filter group_by across everything reframe
+#'   ungroup
+#' @importFrom tidyr pivot_longer pivot_wider
+
+.expandToRegions <- function(config, regions, switches = NULL, prefix = NULL) {
+
+  config %>%
+    .scenCol() %>%
+    pivot_longer(-"scenario") %>%
+    mutate(name = gsub("[()]", ".", .data[["name"]])) %>%
+    .filterSwitches(switches, prefix) %>%
+    group_by(across(everything())) %>%
+    reframe(.unpackDf(.data[["value"]][[1]], regions)) %>%
+    ungroup() %>%
+    pivot_wider()
+}
+
+
+
+#' Calculate electric heating Asym from share and efficiency Asym
+#'
+#' @param x data.frame with switches
+#' @returns data.frame with additional electric heating Asym
+
+.deriveElecHeatingAssump <- function(x) {
+  x[["space_heating.elec_X_Asym"]] <-
+    (1 - x[["space_heating.elecHP_share_X_Asym"]]) * 1 +
+    x[["space_heating.elecHP_share_X_Asym"]] * x[["space_heating.elecHP_eff_X_Asym"]]
+  x[["water_heating.elec_X_Asym"]] <-
+    (1 - x[["water_heating.elecHP_share_X_Asym"]]) * 1 +
+    x[["water_heating.elecHP_share_X_Asym"]] * x[["water_heating.elecHP_eff_X_Asym"]]
+  return(x)
 }

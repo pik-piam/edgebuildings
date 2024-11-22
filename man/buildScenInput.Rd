@@ -6,9 +6,9 @@
 \usage{
 buildScenInput(
   config,
-  subtype,
+  subtype = c("scen_assump", "scen_assump_speed", "scen_assump_corr", "fe_shares",
+    "mapping"),
   regionmap,
-  regionalTargetDimension = "EDGE_EUR_ETP",
   singleScen = TRUE,
   valueOnly = FALSE
 )
@@ -19,8 +19,6 @@ buildScenInput(
 \item{subtype}{EDGE-B input type}
 
 \item{regionmap}{regional mapping}
-
-\item{regionalTargetDimension}{regional resolution}
 
 \item{singleScen}{single scenario only}
 
@@ -35,5 +33,5 @@ creates specified data frames as input for EDGE-B functions.
 NOTE: This function is developed for a single scenario input.
 }
 \author{
-Hagen Tockhorn
+Hagen Tockhorn, Robin Hasse
 }

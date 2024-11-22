@@ -59,7 +59,7 @@ makeProjections <- function(df,
 
   # extract the scenario assumption value
   pickValue <- function(df, scen, reg, enduseCol) {
-    df[df$scenario == scen & df$region == reg, enduseCol]
+    df[df$scenario == scen & df$region == reg, enduseCol][[1]]
   }
 
   extractList <- function(x, item) {
