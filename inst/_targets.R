@@ -196,8 +196,7 @@ list(
     {
       buildScenInput(config,
                      subtype = "scen_assump_speed",
-                     regionmap = regionmap,
-                     regionalTargetDimension = "EDGE_EUR_ETP")
+                     regionmap = regionmap)
     },
     pattern = map(config),
     iteration = "vector"
@@ -209,8 +208,7 @@ list(
     {
       buildScenInput(config,
                      subtype = "fe_shares",
-                     regionmap = regionmap,
-                     regionalTargetDimension = "EDGE_EUR_ETP")
+                     regionmap = regionmap)
     },
     pattern = map(config),
     iteration = "vector"
