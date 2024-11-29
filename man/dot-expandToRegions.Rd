@@ -16,7 +16,7 @@
 \item{prefix}{common switch prefix that will be removed}
 }
 \value{
-data.frame witch switch values for each scenario and region
+data.frame with switch values for each scenario and region
 }
 \description{
 Convert config to data frame with values for each region
