@@ -6,8 +6,7 @@
 \usage{
 buildScenInput(
   config,
-  subtype = c("scen_assump", "scen_assump_speed", "scen_assump_corr", "fe_shares",
-    "mapping"),
+  subtype = c("scen_assump", "scen_assump_speed", "fe_shares", "mapping"),
   regionmap,
   singleScen = TRUE,
   valueOnly = FALSE
