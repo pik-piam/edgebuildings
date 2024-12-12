@@ -46,6 +46,7 @@ Imports:
   purrr,
   quitte,
   RColorBrewer,
+  rlang,
   stats,
   stringr,
   targets,
