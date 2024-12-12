@@ -169,6 +169,7 @@ makeProjections <- function(config,
 
       data.frame(region = reg,
                  deltaSlope = coef(deltaFit)[2],
+                 deltaSlopeRel = coef(deltaFit)[["period"]] / coef(deltaFit)[["(Intercept)"]] * 100,
                  deltaLast = tail(predict(deltaFit), n = 1L),
                  refYear = max(regHistoricalDelta$period))
     }))
@@ -184,7 +185,7 @@ makeProjections <- function(config,
                                                  decayRate <- -log(epsilon) / (targetYear - .data[["refYear"]])
                                                  .data[["deltaLast"]] +
                                                    (.data[["deltaSlope"]] / decayRate) *
-                                                   (1 - exp(-decayRate * (.data[["period"]] - .data[["refYear"]])))
+                                                     (1 - exp(-decayRate * (.data[["period"]] - .data[["refYear"]])))
                                                },
                                                .data[["deltaLast"]]),
                                        .data[["deltaLast"]] + .data[["deltaSlope"]] *
