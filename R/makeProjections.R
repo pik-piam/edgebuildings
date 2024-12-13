@@ -159,6 +159,9 @@ makeProjections <- function(config,
 
   if (lhs == "space_heating_m2_Uval" && length(rhs) == 1 && rhs == "HDD") {
 
+    # NOTE: delta in this context refers to the scaling parameter between floor space
+    #       and u-value corrected space heating UE demand and HDD.
+
     # Calculate historical trends of HDD-normalized values
     heatingTrends <- do.call(rbind, lapply(getRegs(historicalData), function(reg) {
       regHistoricalDelta <- historicalData %>%
@@ -167,11 +170,11 @@ makeProjections <- function(config,
 
       deltaFit <- lm(delta ~ period, data = regHistoricalDelta)
 
-      data.frame(region = reg,
-                 deltaSlope = coef(deltaFit)[2],
+      data.frame(region        = reg,
+                 deltaSlope    = coef(deltaFit)[2],
                  deltaSlopeRel = coef(deltaFit)[["period"]] / coef(deltaFit)[["(Intercept)"]] * 100,
-                 deltaLast = tail(predict(deltaFit), n = 1L),
-                 refYear = max(regHistoricalDelta$period))
+                 deltaLast     = tail(predict(deltaFit), n = 1L),
+                 refYear       = max(regHistoricalDelta$period))
     }))
 
     row.names(heatingTrends) <- NULL
@@ -180,7 +183,7 @@ makeProjections <- function(config,
     deltaProjection <- projectionData %>%
       left_join(heatingTrends, by = "region") %>%
       mutate(deltaProjection = if_else(.data[["period"]] > endOfHistory,
-                                       if_else(.data[["deltaSlope"]] > 1e-3,
+                                       if_else(abs(.data[["deltaSlope"]]) > 1e-3,
                                                {
                                                  decayRate <- -log(epsilon) / (targetYear - .data[["refYear"]])
                                                  .data[["deltaLast"]] +
@@ -192,12 +195,13 @@ makeProjections <- function(config,
                                          (.data[["period"]] - .data[["refYear"]]))) %>%
       select("region", "period", "deltaProjection")
 
-    # Override projectionReg with asymptotic calculations
+    # Project future demand w/ regional estimates
     projectionData <- projectionData %>%
       left_join(deltaProjection, by = c("region", "period")) %>%
       mutate(projectionReg = .data[["deltaProjection"]] * .data[["HDD"]]) %>%
       select(-matches("^(deltaSlope|deltaLast|tLast)$"))
 
+    # Project historical demand w/ regional estimates
     historicalData <- historicalData %>%
       left_join(deltaProjection, by = c("region", "period")) %>%
       mutate(predictionReg = .data[["deltaProjection"]] * .data[["HDD"]],
@@ -206,7 +210,7 @@ makeProjections <- function(config,
   }
 
 
-  #--- Standard predictions
+  #--- Standard predictions w/ global estimate and scenario assumptions
 
   # Only calculate projectionReg here if it's not the space heating case
   if (!(lhs == "space_heating_m2_Uval" && length(rhs) == 1 && rhs == "HDD")) {
@@ -309,6 +313,8 @@ makeProjections <- function(config,
 
 
   #--- Calculate regional deltas
+
+  # NOTE: delta in this context refers to the difference between projected and observed historical data.
 
   # Set up delta calculation based on convergence type with option for giving prefix to variable
   if (convReg == "absolute") {
@@ -461,6 +467,8 @@ makeProjections <- function(config,
       ) %>%
       ungroup()
   }
+
+
 
   # OUTPUT----------------------------------------------------------------------
 
