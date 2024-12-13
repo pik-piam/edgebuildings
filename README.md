@@ -1,8 +1,8 @@
 # Model for the projection of global energy demand in the buildings sector
 
-R package **edgebuildings**, version **0.3.6**
+R package **edgebuildings**, version **0.3.7**
 
-[![CRAN status](https://www.r-pkg.org/badges/version/edgebuildings)](https://cran.r-project.org/package=edgebuildings)  [![R build status](https://github.com/ricardarosemann/edgebuildings/workflows/check/badge.svg)](https://github.com/ricardarosemann/edgebuildings/actions) [![codecov](https://codecov.io/gh/ricardarosemann/edgebuildings/branch/master/graph/badge.svg)](https://app.codecov.io/gh/ricardarosemann/edgebuildings) [![r-universe](https://pik-piam.r-universe.dev/badges/edgebuildings)](https://pik-piam.r-universe.dev/builds)
+[![CRAN status](https://www.r-pkg.org/badges/version/edgebuildings)](https://cran.r-project.org/package=edgebuildings)  [![R build status](https://github.com/hagento/edgebuildings/workflows/check/badge.svg)](https://github.com/hagento/edgebuildings/actions) [![codecov](https://codecov.io/gh/hagento/edgebuildings/branch/master/graph/badge.svg)](https://app.codecov.io/gh/hagento/edgebuildings) [![r-universe](https://pik-piam.r-universe.dev/badges/edgebuildings)](https://pik-piam.r-universe.dev/builds)
 
 ## Purpose and Functionality
 
@@ -55,7 +55,7 @@ In case of questions / problems please contact Robin Hasse <robin.hasse@pik-pots
 
 To cite package **edgebuildings** in publications use:
 
-Levesque A, Hasse R, Tockhorn H, Rosemann R, Führlich P (2024). _edgebuildings: Model for the projection of global energy demand in the buildings sector_. R package version 0.3.6.
+Levesque A, Hasse R, Tockhorn H, Rosemann R, Führlich P (2024). _edgebuildings: Model for the projection of global energy demand in the buildings sector_. R package version 0.3.7.
 
 A BibTeX entry for LaTeX users is
 
@@ -64,6 +64,6 @@ A BibTeX entry for LaTeX users is
   title = {edgebuildings: Model for the projection of global energy demand in the buildings sector},
   author = {Antoine Levesque and Robin Hasse and Hagen Tockhorn and Ricarda Rosemann and Pascal Führlich},
   year = {2024},
-  note = {R package version 0.3.6},
+  note = {R package version 0.3.7},
 }
 ```

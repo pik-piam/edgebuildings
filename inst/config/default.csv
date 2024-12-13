@@ -68,3 +68,5 @@ periodBegin;lower temporal boundary;NA;1990
 endOfHistory;lower temporal boundary of scenario data;NA;2020
 thresInert;Inert technologies can only reach half the target shares if their current FE share is below this threshold;NA;0.02
 thresDh;District space and water heating cannot gain shares if current HDD are below this threshold;;1000
+deltaDecayRate;Factor defining the fraction of initial growth rate of delta for space heating projections at deltaTargetYear;NA;0.05
+deltaTargetYear;Year by which delta converges to a fraction of its initial growth rate for space heating projections;NA;2040

@@ -2,15 +2,17 @@
 % Please edit documentation in R/makeProjections.R
 \name{makeProjections}
 \alias{makeProjections}
-\title{Project future from historic data with linear and non-linear regressions}
+\title{Project future values from historical data using linear and non-linear regressions}
 \usage{
 makeProjections(
+  config,
   df,
   formul,
   scenAssumpEcon,
   lambda,
   lambdaDelta,
   scenAssumpCorrect,
+  scen,
   maxReg = NULL,
   outliers = NULL,
   apply0toNeg = TRUE,
@@ -25,57 +27,50 @@ makeProjections(
 )
 }
 \arguments{
-\item{df}{data.frame with required variables}
+\item{config}{\code{data.frame} Configuration containing scenario parameters like deltaDecayRate and deltaTargetYear}
 
-\item{formul}{character, projection formula}
+\item{df}{\code{data.frame} Input data containing the historical data}
 
-\item{scenAssumpEcon}{data.frame with projection parameters}
+\item{formul}{\code{formula} Projection model formula}
 
-\item{lambda}{data.frame with values that go from zero to 1 over time
-describing the transition towards the projection scenario}
+\item{scenAssumpEcon}{\code{data.frame} Economic scenario assumptions for projections}
 
-\item{lambdaDelta}{data.frame with values that go from zero to 1 over time
-describing the transition towards the projection scenario for delta targets}
+\item{lambda}{\code{data.frame} Convergence factors (0 to 1) over time for scenario transitions}
 
-\item{scenAssumpCorrect}{data.frame with scenario corrections}
+\item{lambdaDelta}{\code{data.frame} Convergence factors (0 to 1) over time for delta targets}
 
-\item{maxReg}{maximum value}
+\item{scenAssumpCorrect}{\code{data.frame} Scenario-specific corrections}
 
-\item{outliers}{character vector with regions not to be considered in
-regression}
+\item{scen}{\code{character} Current scenario name}
 
-\item{apply0toNeg}{logical, if \code{TRUE}, negative values are replaced with
-zero}
+\item{maxReg}{\code{numeric} Maximum allowed value for projections (optional)}
 
-\item{transformVariable}{variable transformation}
+\item{outliers}{\code{character} Vector of region names to exclude from regression (optional)}
 
-\item{transformVariableScen}{scenario variable transformation}
+\item{apply0toNeg}{\code{logical} Replace negative projections with zero (default TRUE)}
 
-\item{applyScenFactor}{logical, if \code{TRUE} a given scaling factor is
-applied}
+\item{transformVariable}{\code{character} Variable transformation to apply (optional)}
 
-\item{convReg}{character, describing what deltas are considered:
-\itemize{
-\item \code{"absolute"}: absolute deviations from prediction
-\item \code{"relative"}: relative deviations from prediction
-}}
+\item{transformVariableScen}{\code{character} Scenario-specific variable transformation (optional)}
 
-\item{avoidLowValues}{logical, if \code{TRUE} projection values are clipped
-to avoid that they fall below the start value (for increasing projections)
-or final value (for decreasing projections)}
+\item{applyScenFactor}{\code{logical} Apply scenario scaling factor (default FALSE)}
 
-\item{endOfHistory}{upper temporal boundary of historical data}
+\item{convReg}{\code{character} Convergence type: "absolute" for value differences or "proportion" for ratios}
 
-\item{scenAssumpRegion}{regional convergence assumptions}
+\item{avoidLowValues}{\code{logical} Prevent projections falling below initial/final values (default FALSE)}
 
-\item{interpolate}{logical}
+\item{endOfHistory}{\code{numeric} Last year of historical data (default 2020)}
+
+\item{scenAssumpRegion}{\code{data.frame} Regional convergence assumptions (optional)}
+
+\item{interpolate}{\code{logical} Use all historical points vs only latest (default TRUE)}
 }
 \value{
-data.frame with added projection
+\code{data.frame} Combined input data and calculated projections
 }
 \description{
-Project future from historic data with linear and non-linear regressions
+Project future values from historical data using linear and non-linear regressions
 }
 \author{
-Antoine Levesque
+Antoine Levesque, Hagen Tockhorn
 }
