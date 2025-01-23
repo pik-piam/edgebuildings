@@ -1,0 +1,60 @@
+parameter;valueComment;SSP1;SSP2;SSP1_lowEn;SSP2IndiaHigh
+popScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
+gdpScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
+urbanisationScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
+densityScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
+floorScen;;SSP1;SSP2;SSP1;SSP2
+uvalueScen;;SSP1;SSP2;SSP1;SSP2
+gdppopScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
+hddcddScen;;SSP1;SSP2;SSP1;SSP2
+rcpScen;;noCC;noCC;noCC;noCC
+tlimTarget_HDD;set point temperature target for space heating in degC;12;14;12;14
+tlimTarget_CDD;set point temperature target for space cooling in degC;22;20;23;20
+speed_HDD;year in which HDD limit temperature target will be reached;2100;2100;2100;2100
+speed_CDD;year in which CDD limit temperature target will be reached;2100;2100;2100;2100
+econCoef_floorspace;RC people are happy with less space;0.3;0.7;0.25;0.7
+econCoef_space_heating_m2_Uval_X_HDD;;1;1;1;1
+econCoef_appliances_light_pop_X_gdppop;RC people are happy with less light, MC stricter efficiency rules;0.8;1;0.7;1
+econCoef_appliances_light_elas_FACTOR;RC people are happy with less light, MC stricter efficiency rules;0.7,CHN:1.1;1,CHN:1.7;0.6,CHN:1;1,CHN:1.7
+econCoef_cooking_pop_X_(Intercept);not sure what the does but same logic as above;0.7;1;0.6;1
+econCoef_water_heating_pop_X_Asym;not sure what the does but same logic as above;0.3;0.6;0.15;0.6
+econCoef_space_cooling_m2_CDD_Uval_X_Asym;;1;1;1;1
+econCoef_uvalues_X_min;RC less good insulation, MC strong regulation leading to higher insulation;0.35;0.7;0.15;0.7
+econCoef_biotrad;;2;1;2;1
+econCoef_space_heating.elecHP_eff_X_Asym;RC a little less efficient, MC more efficient;5;5;6;5
+econCoef_space_heating.elecHP_share_X_Asym;RC a little less efficient, MC more efficient;0.8;0.5,Europe:0.75;0.9;0.5,Europe:0.75
+econCoef_space_heating.elec_X_lrc;RC a little less efficient, MC more efficient;-10.67122;-10.33475,Europe:-10.20812;-10.67122;-10.33475,Europe:-10.20812
+econCoef_space_cooling.elec_X_Asym;RC a little less efficient, MC more efficient;8;5;10;5
+econCoef_space_cooling.elec_X_lrc;;-10.51707;-10.51707;-10.51707;-10.51707
+econCoef_water_heating.elecHP_eff_X_Asym;;5;5;6;5
+econCoef_water_heating.elecHP_share_X_Asym;;0.8;0.5;0.9;0.5
+econCoef_water_heating.elec_X_lrc;;-10.51707;-10.51707;-10.51707;-10.51707
+econCoef_appliances_light.elec_X_Asym;;0.9;0.9;0.9;0.9
+feShare_space_heating_natgas;;15;35,Europe:32;5;35,Europe:32
+feShare_space_heating_elec;EI and RC high, MC close to technical potential;40;40,Europe:37;60;40,Europe:37
+feShare_space_heating_heat;;35;15,Europe:25;25;15,Europe:25
+feShare_space_heating_petrol;;5;5,Europe:2;5;5,Europe:2
+feShare_space_heating_biomod;RC more biomass;5;5,Europe:4;5;5,Europe:4
+feShare_water_heating_natgas;;15;35,Europe:32;5;35,Europe:32
+feShare_water_heating_elec;EI and RC high, MC close to technical potential;40;40,Europe:37;60;40,Europe:37
+feShare_water_heating_heat;;35;15,Europe:25;25;15,Europe:25
+feShare_water_heating_petrol;;5;5,Europe:2;5;5,Europe:2
+feShare_water_heating_biomod;RC more biomass;5;5,Europe:4;5;5,Europe:4
+feShare_cooking_natgas;;15;45,Europe:46;5;45,Europe:46
+feShare_cooking_elec;EI and RC high, MC close to technical potential;80;50,Europe:52;95;50,Europe:52
+feShare_cooking_heat;;0;0;0;0
+feShare_cooking_petrol;0 petrol in all of scenarios;5;5,Europe:2;0;5,Europe:2
+feShare_cooking_biomod;;0;0;0;0
+feShare_appliances_light_elec;;100;100;100;100
+feShare_appliances_light_natgas;;0;0;0;0
+feShare_appliances_light_biomod;;0;0;0;0
+feShare_space_cooling_elec;;100;100;100;100
+feShare_space_cooling_natgas;;0;0;0;0
+feShare_space_cooling_heat;;0;0;0;0
+feShare_space_cooling_biomod;;0;0;0;0
+speed;;2200;2300;2200;2300
+speed_fullconv;;2070;2070;2070;2070
+floorspaceCap;;NA;NA;50;NA
+incomeThresholdEC;account for lower GDP/cap in RC and tighter regulation in MC;24628;24628;13545;24628
+gdpBoost;;0;0;0,lowIncome:0.35,mediumIncome:0.2;0
+interpolate;;TRUE;TRUE;TRUE;TRUE
