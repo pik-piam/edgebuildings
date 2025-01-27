@@ -56,7 +56,7 @@ getFloorspaceResidential <- function(config,
     df <- df %>%
       group_by(across(all_of(c("region")))) %>%
       mutate(ord   = min_rank(desc(.data[["period"]])),
-             delta = .data[["m2cap"]][.data[["ord"]] == 1] - .data[["m2caphat"]][.data[["ord"]] == 1],
+             delta = log(.data[["m2cap"]][.data[["ord"]] == 1]) - log(.data[["m2caphat"]][.data[["ord"]] == 1]),
              gdppopDelta = .data$gdppop[.data[["ord"]] == 1]) %>%
       select(-"ord") %>%
       ungroup()
@@ -311,40 +311,22 @@ predictFullDelta <- function(df,
                           NA)) %>%
     arrange(.data[["period"]])
 
-  # create lags of different variables
-  dataLag <- histReplaced %>%
+  projectionData <- histReplaced %>%
     group_by(across(all_of("region"))) %>%
-    mutate(gdppopLag  = lag(.data[["gdppop"]]),
-           densityLag = lag(.data[["density"]]),
-           m2hatLag   = lag(.data[["m2hat"]])) %>%
-    ungroup()
+    filter(.data[["period"]] >= endOfHistory) %>% # Need last historic time step and all after that
+    mutate(coefLogGdpDiff = c(-diff(.data[["coefLogGdp"]]), NA),
+           tempCorr = lag(cumsum(.data[["coefLogGdpDiff"]] * log(.data[["gdppop"]]))),
+           m2hat = exp(.data[["tempCorr"]] + .data[["delta"]]
+                       + .data[["intercept"]] + log(.data[["gdppop"]]) * .data[["coefLogGdp"]]
+                       + log(.data[["density"]]) * .data[["coefLogDensity"]])) %>%
+    ungroup() %>%
+    filter(.data[["period"]] > endOfHistory)
 
-  # get scenario periods
-  scenYears <- getPeriods(filter(dataLag, .data[["period"]] > endOfHistory))
-
-  # the loop introduces the scenario assumptions
-  # This is done in a loop since the change to the previous year is used now,
-  # instead of the logarithimic function
-  for (y in scenYears) {
-    yAhead  <- scenYears[which(scenYears == y) + 1]
-    dataLag <- dataLag %>%
-      filter(.data[["period"]] == y) %>%
-      mutate(m2hat = exp(log(.data$m2hatLag) +
-                           .data[["coefLogGdp"]] * log(.data[["gdppop"]] / .data[["gdppopLag"]]) +
-                           .data[["coefLogDensity"]] * log(.data[["density"]] / .data[["densityLag"]]))) %>%
-      overwrite(dataLag, except = c("m2hat"))
-
-    # update the value of m2hatLag for the next period
-    if (y != max(scenYears)) {
-      dataLag <- dataLag %>%
-        filter(.data[["period"]] %in% c(y, yAhead)) %>%
-        group_by(across(all_of(c("region", "scenario")))) %>%
-        mutate(m2hatLag = lag(.data[["m2hat"]])) %>%
-        filter(.data[["period"]] == yAhead) %>%
-        ungroup() %>%
-        overwrite(dataLag, except = "m2hatLag")
-    }
-  }
+  fullData <- rbind(
+    histReplaced %>%
+      filter(.data[["period"]] <= endOfHistory),
+    projectionData
+  )
 
   # calculate global values
   m2hatGLO <- function(df) {
@@ -363,10 +345,10 @@ predictFullDelta <- function(df,
     return(df)
   }
 
-  tmpGlob <- m2hatGLO(dataLag)
+  tmpGlob <- m2hatGLO(fullData)
 
   # the regional delta decreases (in absolute value) with time
-  tmp <- dataLag %>%
+  tmp <- fullData %>%
     left_join(tmpGlob, by = c("period", "scenario")) %>%
     left_join(lambda,  by = c("region", "period", "scenario")) %>%
     mutate(lambda    = ifelse(.data[["period"]] > endOfHistory,
