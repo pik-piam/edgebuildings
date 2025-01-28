@@ -17,19 +17,13 @@
 #' @returns data.frame historic and scenario-specific projected residential
 #' floorspace in million m2 and floorspace per capita in m2/cap on regional level
 #'
-#' @author Antoine Levesque, Hagen Tockhorn
+#' @author Antoine Levesque, Hagen Tockhorn, Ricarda Rosemann
 #'
-#' @importFrom quitte character.data.frame replace_column overwrite getScenarios
-#' getPeriods removeColNa
-#' @importFrom dplyr anti_join select select_ filter mutate one_of left_join
-#'   group_by min_rank desc arrange lag ungroup bind_rows across all_of %>%
-#'   .data
-#' @importFrom tidyr spread gather
-#' @importFrom dplyr left_join group_by mutate select ungroup rename filter %>%
-#'   .data bind_rows
-#' @importFrom purrr is_null
+#' @importFrom quitte as.quitte
+#' @importFrom dplyr anti_join select filter mutate bind_rows %>% .data rename
+#' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom stats coef lm
-
+#'
 getFloorspaceResidential <- function(config,
                                      floorspacePast,
                                      gdppop,
@@ -47,10 +41,6 @@ getFloorspaceResidential <- function(config,
 
   # upper floorspace limit
   scenAssumpCap <- config[scen, "floorspaceCap"]
-
-  # upper temporal threshold of historic data
-  endOfHistory <- config[scen, "endOfHistory"] %>%
-    unlist()
 
 
 
@@ -113,10 +103,6 @@ getFloorspaceResidential <- function(config,
 
   # PROCESS DATA----------------------------------------------------------------
 
-  # global population density
-  densityGLO <- globDensity(surface, density)
-
-
   # introduce all the necessary information in fullData for the regression
   fullData <- bind_rows(floorspacePast, gdppop, density, pop) %>%
     pivot_wider(names_from = "variable", values_from = "value") %>%
@@ -156,11 +142,11 @@ getFloorspaceResidential <- function(config,
 
   # make the prediction with the convergence of lambda towards 0 in 2200 in a logit fashion
   projectionData <- predictFullDelta(fullData, coefLogGdp, coefLogDensity, intercept,
-                             scenAssump, lambda, densityGLO, lastYearWithData)
+                                     scenAssump, lambda, lastYearWithData)
 
   # cap floorspace projections if required by scenario assumptions
-  if (!is_null(scenAssumpCap) && is.data.frame(scenAssumpCap)) {
-    projectionData <- capFloorProjections(projectionData, scenAssumpCap, lambda, endOfHistory)
+  if (!is.null(scenAssumpCap) && is.data.frame(scenAssumpCap)) {
+    projectionData <- capFloorProjections(projectionData, scenAssumpCap, lambda, lastYearWithData)
   }
 
   # calculate full aggregated floorspace
@@ -176,17 +162,8 @@ getFloorspaceResidential <- function(config,
 }
 
 
+
 # INTERNAL FUNCTIONS -----------------------------------------------------------
-
-# calculate global population density
-globDensity <- function(surface, density) {
-  left_join(density %>% spread("variable", "value"),
-            surface %>% spread("variable", "value"),
-            by = "region") %>%
-    gather(key = "variable", value = "value", one_of("density", "surface")) %>%
-    calcGlob("density", weights = "surface")
-}
-
 
 #' Calculate the difference between expected and calculated log(m2cap)
 #' for the last time period with floorspace data.
@@ -199,8 +176,8 @@ globDensity <- function(surface, density) {
 addDelta <- function(data, lastYearWithData) {
   data %>%
     group_by(across(all_of(c("region")))) %>%
-    mutate(delta = log(.data[["m2cap"]][.data[["period"]] == lastYearWithData])
-                   - log(.data[["m2caphat"]][.data[["period"]] == lastYearWithData])) %>%
+    mutate(delta = (log(.data[["m2cap"]][.data[["period"]] == lastYearWithData])
+                    - log(.data[["m2caphat"]][.data[["period"]] == lastYearWithData]))) %>%
     ungroup()
 }
 
@@ -218,17 +195,16 @@ addDelta <- function(data, lastYearWithData) {
 #' elasticity only acts on income growth, i.e. this accounts for the original iterative approach.
 #'
 #' @param fullData full dataset containing predicted floorspace values
-#' @param coefLogGdpEst logarithmic income elasticity parameter
-#' @param coefLogDensityEst logarithmic pop density elasticity parameter
-#' @param interceptEst logarithmic intercept parameter
+#' @param coefLogGdpEstimate logarithmic income elasticity parameter
+#' @param coefLogDensityEstimate logarithmic pop density elasticity parameter
+#' @param interceptEstimate logarithmic intercept parameter
 #' @param scenAssump parameter scenario assumptions
 #' @param lambda temporal convergence factors
-#' @param densityGlobal global population density
 #' @param endOfHistory upper temporal boundary of historical data
 #'
-#' @importFrom dplyr filter left_join mutate select arrange group_by ungroup across all_of
-#' @importFrom quitte getPeriods overwrite as.quitte removeColNa
-#' @importFrom tidyr gather
+#' @importFrom dplyr %>% .data filter lag left_join mutate select arrange group_by
+#'   ungroup across all_of
+#' @importFrom quitte getPeriods
 #'
 predictFullDelta <- function(fullData,
                              coefLogGdpEstimate,
@@ -236,7 +212,6 @@ predictFullDelta <- function(fullData,
                              interceptEstimate,
                              scenAssump,
                              lambda,
-                             densityGlobal,
                              endOfHistory) {
 
   # Apply scenario assumptions: Modify the logarithmic income elasticity gradually
@@ -272,61 +247,38 @@ predictFullDelta <- function(fullData,
     select(-"coefLogGdpDiff", -"growthCorr")
 
   # Combine projections with historic data
-  projectionData <- rbind(modelData, projectionData)
+  rbind(modelData, projectionData) %>%
 
-  # calculate global values
-  m2hatGLO <- function(df) {
-    df <- df %>%
-      select("scenario", "region", "period", "gdppop", "m2hat", "pop", "coefLogGdp", "coefLogDensity") %>%
-      gather("variable", "value", one_of("gdppop", "m2hat", "pop", "coefLogGdp", "coefLogDensity")) %>%
-      as.quitte() %>%
-      missingToNA() %>%
-      calcGlob(c("gdppop", "m2hat", "coefLogGdp", "coefLogDensity"), weights = "pop") %>%
-      rbind(densityGlobal) %>%
-      spread("variable", "value") %>%
-      mutate(alpha = log(.data[["m2hat"]]) - .data[["coefLogDensity"]] * log(.data[["density"]]) -
-               .data[["coefLogGdp"]] * log(.data[["gdppop"]])) %>%
-      select("period", "scenario", "alpha") %>%
-      removeColNa()
-    return(df)
-  }
-
-  tmpGlob <- m2hatGLO(projectionData)
-
-  # the regional delta decreases (in absolute value) with time
-  tmp <- projectionData %>%
-    left_join(tmpGlob, by = c("period", "scenario")) %>%
-    left_join(lambda,  by = c("region", "period", "scenario")) %>%
-    mutate(lambda    = ifelse(.data[["period"]] > endOfHistory,
-                              .data[["lambda"]],
-                              .data[["fullconv"]]),
-           m2hatGlo  = exp(.data[["alpha"]] + .data[["coefLogDensity"]] * log(.data[["density"]]) +
-                             .data[["coefLogGdp"]] * log(.data[["gdppop"]])),
-           deltaGlo  = .data[["m2hat"]] - .data[["m2hatGlo"]],
-           deltaGlo  = .data[["deltaGlo"]] * (1 - .data[["lambda"]]),
-           m2hatConv = .data[["m2hatGlo"]] + .data[["deltaGlo"]]) %>%
+    # Gradually decrease the region-specific deviation delta from the regression model:
+    # Instead of delta we now apply (1-lambda) * delta.
+    left_join(lambda, by = c("region", "period", "scenario")) %>%
+    mutate(lambda = ifelse(.data[["period"]] == endOfHistory, .data[["fullconv"]], .data[["lambda"]])) %>% # temporary until lambda is fixed
+    mutate(m2hatConv = .data[["m2hat"]] / exp(.data[["lambda"]] * .data[["delta"]])) %>%
     select("model", "scenario", "region", "unit", "period", "pop", "gdppop", "m2hatConv")
-
-  return(tmp)
 }
 
 
 #' Correct floorspace projections with upper floorspace limit
 #'
-#' @param df data.frame containing projected floorspace data
+#' If already the last time point with historic data exceeds the cap, the floorspace
+#' demand is gradually decreased towards the cap.
+#'
+#' Otherwise the minimum of the projected floorspace demand and the cap is taken.
+#'
+#' @param projectionData data.frame containing projected floorspace data
 #' @param capFloor country-wise upper floorspace boundary
 #' @param lambda temporal convergence shares
 #' @param endOfHistory upper temporal boundary of historical data
 #'
 #' @importFrom dplyr filter left_join group_by mutate select across all_of
 
-capFloorProjections <- function(df, capFloor, lambda, endOfHistory) {
+capFloorProjections <- function(projectionData, capFloor, lambda, endOfHistory) {
   # historical data
-  tmpHist <-  df %>%
+  histData <-  projectionData %>%
     filter(.data[["period"]] <= endOfHistory)
 
   # scenario / projected data
-  tmpScen <- df %>%
+  projectionData %>%
     left_join(capFloor, by = "region") %>%
     left_join(lambda, by = c("region", "period", "scenario")) %>%
     group_by(across(all_of("region"))) %>%
@@ -338,14 +290,13 @@ capFloorProjections <- function(df, capFloor, lambda, endOfHistory) {
     filter(.data[["period"]] > endOfHistory) %>%
 
     # project delta and capped floorspace values
-    mutate(deltaFin =  .data[["deltaHist"]] *
-             (1 - .data[["lambda"]]),
+    mutate(deltaFin =  .data[["deltaHist"]] * (1 - .data[["lambda"]]),
            m2hatConv = ifelse(.data[["deltaHist"]] == 0,
+                              # Historic floorspace does not exceed the cap
                               pmin(.data[["capFloor"]], .data[["m2hatConv"]]),
+                              # Historic floorspace already exceeds the cap
                               .data[["capFloor"]] + .data[["deltaFin"]])) %>%
     select(-"deltaHist", -"deltaFin", -"capFloor", -"fullconv", -"lambda") %>%
-    ungroup()
-
-  tmp <- rbind(tmpHist, tmpScen)
-  return(tmp)
+    ungroup() %>%
+    rbind(histData)
 }

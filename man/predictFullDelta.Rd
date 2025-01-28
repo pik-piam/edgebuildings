@@ -5,41 +5,37 @@
 \title{Calculate full residential floorspace prediction}
 \usage{
 predictFullDelta(
-  df,
-  coefLogGdpEst,
-  coefLogDensityEst,
-  interceptEst,
+  fullData,
+  coefLogGdpEstimate,
+  coefLogDensityEstimate,
+  interceptEstimate,
   scenAssump,
   lambda,
-  densityGlobal,
   endOfHistory
 )
 }
 \arguments{
-\item{df}{full dataset containing predicted floorspace values}
+\item{fullData}{full dataset containing predicted floorspace values}
 
-\item{coefLogGdpEst}{logarithmic income elasticity parameter}
+\item{coefLogGdpEstimate}{logarithmic income elasticity parameter}
 
-\item{coefLogDensityEst}{logarithmic pop density elasticity parameter}
+\item{coefLogDensityEstimate}{logarithmic pop density elasticity parameter}
 
-\item{interceptEst}{logarithmic intercept parameter}
+\item{interceptEstimate}{logarithmic intercept parameter}
 
 \item{scenAssump}{parameter scenario assumptions}
 
 \item{lambda}{temporal convergence factors}
 
-\item{densityGlobal}{global population density}
-
 \item{endOfHistory}{upper temporal boundary of historical data}
 }
 \description{
-First, missing historic data is filled in with delta-corrected values derived
-from regression parameters. Partly, these are replaced with correction/target
-values from \code{scenAssump} and the converged w.r.t. to a target period.
-}
-\details{
 As the income elasticity will evolve over time according to scenario assumptions,
 the elasticity at a certain point in time will only influence the incremental
-floor space demand. Therefore a stepwise calculation of future floor space demand
-is used which is based on the value in the previous time step.
+floor space demand. This implies a stepwise calculation of future floor space demand
+based on the value in the previous time step. The resulting iterative formula can be
+rearranged to an equivalent explicit formulation of the following form:
+Regression Model + Delta + growth correction term,
+where the latter corrects the regression model for the fact that the changed income
+elasticity only acts on income growth, i.e. this accounts for the original iterative approach.
 }

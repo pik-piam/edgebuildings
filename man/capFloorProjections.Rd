@@ -4,10 +4,10 @@
 \alias{capFloorProjections}
 \title{Correct floorspace projections with upper floorspace limit}
 \usage{
-capFloorProjections(df, capFloor, lambda, endOfHistory)
+capFloorProjections(projectionData, capFloor, lambda, endOfHistory)
 }
 \arguments{
-\item{df}{data.frame containing projected floorspace data}
+\item{projectionData}{data.frame containing projected floorspace data}
 
 \item{capFloor}{country-wise upper floorspace boundary}
 
@@ -16,5 +16,9 @@ capFloorProjections(df, capFloor, lambda, endOfHistory)
 \item{endOfHistory}{upper temporal boundary of historical data}
 }
 \description{
-Correct floorspace projections with upper floorspace limit
+If already the last time point with historic data exceeds the cap, the floorspace
+demand is gradually decreased towards the cap.
+}
+\details{
+Otherwise the minimum of the projected floorspace demand and the cap is taken.
 }

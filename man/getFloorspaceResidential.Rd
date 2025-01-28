@@ -45,5 +45,5 @@ projections and population projections and projects residential floorspace
 demand at country level.
 }
 \author{
-Antoine Levesque, Hagen Tockhorn
+Antoine Levesque, Hagen Tockhorn, Ricarda Rosemann
 }

@@ -33,7 +33,7 @@
 #'   reframe filter anti_join across all_of %>% .data
 #' @importFrom tidyr gather unite
 #' @importFrom quitte interpolate_missing_periods removeColNa aggregate_map calc_addVariable
-#'   calc_addVariable_ getVars
+#'   calc_addVariable_ getVars character.data.frame
 #' @importFrom stats as.formula na.omit approx
 #' @importFrom utils write.csv
 
@@ -550,7 +550,7 @@ disaggregateEnergy <- function(data, eff, shares, enduses) {
     mutate(fe = .data[["value"]] * .data[["weightFE"]],
            ue = .data[["value"]] * .data[["weightUE"]]) %>%
     dplyr::select(-"weightFE", -"weightUE", -"value", -"unit") %>%
-    gather("unit", "value", one_of("fe", "ue"))
+    gather("unit", "value", all_of(c("fe", "ue")))
 
   # Compute the aggregate FE level for the whole end use and add the Energy Type (FE or UE) in the variable name
   feAgg <- feue %>%
