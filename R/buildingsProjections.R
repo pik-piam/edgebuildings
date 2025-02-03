@@ -233,40 +233,40 @@ buildingsProjections <- function(config,
                   "space_cooling_m2_CDD_Uval")
 
   # change lambda according to lifestyle scenario assumptions
-  lambdaDifferentiated <- lapply(setNames(enduseVars, enduseVars), function(x) lambda)
+  lambdaDifferentiated <- lapply(setNames(nm = enduseVars), function(x) lambda)
 
 
   #--- Make Projections
   print("Start projections")
 
-  df <- makeProjections(config, df, as.formula("space_heating_m2_Uval ~ 0 + HDD"),
+  df <- makeProjections(df, config, as.formula("space_heating_m2_Uval ~ 0 + HDD"),
                         scenAssump, lambdaDifferentiated["space_heating_m2_Uval"][[1]],
-                        scenAssumpCorrect, scen, convReg = "proportion",
+                        scenAssumpCorrect, convReg = "proportion",
                         outliers = c("RUS", "FIN"),
                         scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
 
-  df <- makeProjections(config, df, as.formula("appliances_light_elas ~ I(gdppop^(-1/2))"),
+  df <- makeProjections(df, config, as.formula("appliances_light_elas ~ I(gdppop^(-1/2))"),
                         scenAssump, lambdaDifferentiated["appliances_light_elas_FACTOR"][[1]],
-                        scenAssumpCorrect, scen, apply0toNeg = FALSE,
+                        scenAssumpCorrect, apply0toNeg = FALSE,
                         transformVariableScen = c("exp(VAR +  0.3*log(gdppop)) *1e3",
                                                   unit = "Appliances and Light Demand [GJ/cap]"),
                         applyScenFactor = TRUE,
                         scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
 
-  df <- makeProjections(config, df, as.formula("water_heating_pop ~ SSlogis(gdppop, Asym,phi2,phi3)"),
+  df <- makeProjections(df, config, as.formula("water_heating_pop ~ SSlogis(gdppop, Asym,phi2,phi3)"),
                         scenAssump, lambdaDifferentiated["water_heating_pop"][[1]],
-                        scenAssumpCorrect, scen, maxReg = 7,
+                        scenAssumpCorrect, maxReg = 7,
                         outliers = c("RUS", eurCountries), avoidLowValues = TRUE,
                         scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
 
-  df <- makeProjections(config, df, as.formula("cooking_pop ~ 1"),
+  df <- makeProjections(df, config, as.formula("cooking_pop ~ 1"),
                         scenAssump, lambdaDifferentiated["cooking_pop"][[1]],
-                        scenAssumpCorrect, scen, outliers = eurCountries,
+                        scenAssumpCorrect, outliers = eurCountries,
                         scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
 
-  df <- makeProjections(config, df, as.formula("space_cooling_m2_CDD_Uval ~ SSlogis(gdppop, Asym,phi2,phi3)"),
+  df <- makeProjections(df, config, as.formula("space_cooling_m2_CDD_Uval ~ SSlogis(gdppop, Asym,phi2,phi3)"),
                         scenAssump, lambdaDifferentiated["space_cooling_m2_CDD_Uval"][[1]],
-                        scenAssumpCorrect, scen,
+                        scenAssumpCorrect,
                         outliers = c("RUS", "EUR", "OCD", setdiff(eurCountries, c("ESP", "PRT", "GRC", "ITA"))),
                         avoidLowValues = TRUE,
                         scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)

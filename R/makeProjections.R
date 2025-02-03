@@ -1,13 +1,12 @@
 #' Project future values from historical data using linear and non-linear regressions
 #'
-#' @param config \code{data.frame} Configuration containing scenario parameters like deltaDecayRate and deltaTargetYear
 #' @param df \code{data.frame} Input data containing the historical data
+#' @param config \code{data.frame} Configuration containing scenario parameters like deltaDecayRate and deltaTargetYear
 #' @param formul \code{formula} Projection model formula
 #' @param scenAssumpEcon \code{data.frame} Economic scenario assumptions for projections
 #' @param lambda \code{data.frame} Convergence factors (0 to 1) over time for scenario transitions
 #' @param lambdaDelta \code{data.frame} Convergence factors (0 to 1) over time for delta targets
 #' @param scenAssumpCorrect \code{data.frame} Scenario-specific corrections
-#' @param scen \code{character} Current scenario name
 #' @param maxReg \code{numeric} Maximum allowed value for projections (optional)
 #' @param outliers \code{character} Vector of region names to exclude from regression (optional)
 #' @param apply0toNeg \code{logical} Replace negative projections with zero (default TRUE)
@@ -26,18 +25,18 @@
 #'
 #' @importFrom quitte mutate_text
 #' @importFrom dplyr rename_ select if_else case_when
+#' @importFrom tidyselect any_of
 #' @importFrom stats lm nls coef
 #' @importFrom rlang parse_expr sym
 
 
-makeProjections <- function(config,
-                            df,
+makeProjections <- function(df,
+                            config,
                             formul,
                             scenAssumpEcon,
                             lambda,
                             lambdaDelta,
                             scenAssumpCorrect,
-                            scen,
                             maxReg = NULL,
                             outliers = NULL,
                             apply0toNeg = TRUE,
@@ -70,13 +69,16 @@ makeProjections <- function(config,
   }
 
 
-  compDeltaFinal <- function(prefix = "") {
-    return(paste0("deltaFinal", prefix, " = deltaTarget * lambda + delta", prefix, " * (1 - lambda)"))
+  compDeltaFinal <- function(suffix = "") {
+    return(paste0("deltaFinal", suffix, " = deltaTarget * lambda + delta", suffix, " * (1 - lambda)"))
   }
 
 
 
   # PARAMETERS------------------------------------------------------------------
+
+  # scenario
+  scen <- row.names(config) %>% unique()
 
   cols <- colnames(df)
   lhs  <- all.vars(formul[[2]])
@@ -88,7 +90,7 @@ makeProjections <- function(config,
 
 
   # space_heating delta decay rate
-  epsilon <- config[scen, "deltaDecayRate"] %>%
+  decayRate <- config[scen, "deltaDecayRate"] %>%
     unlist %>%
     as.numeric()
 
@@ -164,49 +166,50 @@ makeProjections <- function(config,
 
     # Calculate historical trends of HDD-normalized values
     heatingTrends <- do.call(rbind, lapply(getRegs(historicalData), function(reg) {
-      regHistoricalDelta <- historicalData %>%
+      histAdoptionRates <- historicalData %>%
         filter(.data[["region"]] == reg) %>%
-        mutate(delta = !!sym(lhs) / .data[["HDD"]])
+        arrange(period) %>%
+        mutate(adoptionRate = !!sym(lhs) / .data[["HDD"]])
 
-      deltaFit <- lm(delta ~ period, data = regHistoricalDelta)
+      fit <- lm(adoptionRate ~ period, data = histAdoptionRates)
 
       data.frame(region        = reg,
-                 deltaSlope    = coef(deltaFit)[2],
-                 deltaSlopeRel = coef(deltaFit)[["period"]] / coef(deltaFit)[["(Intercept)"]] * 100,
-                 deltaLast     = tail(predict(deltaFit), n = 1L),
-                 refYear       = max(regHistoricalDelta$period))
+                 absSlope      = coef(fit)[2],
+                 relSlope      = coef(fit)[["period"]] / coef(fit)[["(Intercept)"]] * 100,
+                 lastHistValue     = tail(predict(fit), n = 1L),
+                 refYear       = max(histAdoptionRates$period))
     }))
 
     row.names(heatingTrends) <- NULL
 
     # Calculate regional delta projections from model assumptions
-    deltaProjection <- projectionData %>%
+    projAdoptionRate <- projectionData %>%
       left_join(heatingTrends, by = "region") %>%
-      mutate(deltaProjection = if_else(.data[["period"]] > endOfHistory,
-                                       if_else(abs(.data[["deltaSlope"]]) > 1e-3,
+      mutate(projAdoptionRate = if_else(.data[["period"]] > endOfHistory,
+                                       if_else(abs(.data[["absSlope"]]) > 1e-3,
                                                {
-                                                 decayRate <- -log(epsilon) / (targetYear - .data[["refYear"]])
-                                                 .data[["deltaLast"]] +
-                                                   (.data[["deltaSlope"]] / decayRate) *
-                                                     (1 - exp(-decayRate * (.data[["period"]] - .data[["refYear"]])))
+                                                 decayFactor <- -log(decayRate) / (targetYear - .data[["refYear"]])
+                                                 .data[["lastHistValue"]] +
+                                                   (.data[["absSlope"]] / decayFactor) *
+                                                     (1 - exp(-decayFactor * (.data[["period"]] - .data[["refYear"]])))
                                                },
-                                               .data[["deltaLast"]]),
-                                       .data[["deltaLast"]] + .data[["deltaSlope"]] *
+                                               .data[["lastHistValue"]]),
+                                       .data[["lastHistValue"]] + .data[["absSlope"]] *
                                          (.data[["period"]] - .data[["refYear"]]))) %>%
-      select("region", "period", "deltaProjection")
+      select("region", "period", "projAdoptionRate")
 
     # Project future demand w/ regional estimates
     projectionData <- projectionData %>%
-      left_join(deltaProjection, by = c("region", "period")) %>%
-      mutate(projectionReg = .data[["deltaProjection"]] * .data[["HDD"]]) %>%
-      select(-matches("^(deltaSlope|deltaLast|tLast)$"))
+      left_join(projAdoptionRate, by = c("region", "period")) %>%
+      mutate(projectionReg = .data[["projAdoptionRate"]] * .data[["HDD"]]) %>%
+      select(-any_of(c("absSlope", "lastHistValue", "tLast")))
 
     # Project historical demand w/ regional estimates
     historicalData <- historicalData %>%
-      left_join(deltaProjection, by = c("region", "period")) %>%
-      mutate(predictionReg = .data[["deltaProjection"]] * .data[["HDD"]],
+      left_join(projAdoptionRate, by = c("region", "period")) %>%
+      mutate(predictionReg = .data[["projAdoptionRate"]] * .data[["HDD"]],
              predictionGlo = predict(estimate, newdata = historicalData)) %>%
-      select(-matches("^(deltaSlope|deltaLast|tLast)$"))
+      select(-any_of(c("absSlope", "lastHistValue", "tLast")))
   }
 
 
@@ -316,22 +319,22 @@ makeProjections <- function(config,
 
   # NOTE: delta in this context refers to the difference between projected and observed historical data.
 
-  # Set up delta calculation based on convergence type with option for giving prefix to variable
+  # Set up delta calculation based on convergence type with option for giving suffix to variable
   if (convReg == "absolute") {
-    # The prefix parameter allows for both regular and Glo/Reg calculations
-    deltaFormula <- function(prefix = "") {
-      paste0("delta", prefix, " = -prediction", prefix, " + ", lhs)
+    # The suffix parameter allows for both regular and Glo/Reg calculations
+    deltaFormula <- function(suffix = "") {
+      paste0("delta", suffix, " = -prediction", suffix, " + ", lhs)
     }
-    projectionFinalFormula <- function(prefix = "") {
-      paste0("projectionFinal", prefix, " = projection", prefix, " + deltaFinal", prefix)
+    projectionFinalFormula <- function(suffix = "") {
+      paste0("projectionFinal", suffix, " = projection", suffix, " + deltaFinal", suffix)
     }
     deltaGlobalTarget <- 0
   } else if (convReg == "proportion") {
-    deltaFormula <- function(prefix = "") {
-      paste0("delta", prefix, " = (1/prediction", prefix, ") * ", lhs)
+    deltaFormula <- function(suffix = "") {
+      paste0("delta", suffix, " = (1/prediction", suffix, ") * ", lhs)
     }
-    projectionFinalFormula <- function(prefix = "") {
-      paste0("projectionFinal", prefix, " = projection", prefix, " * deltaFinal", prefix)
+    projectionFinalFormula <- function(suffix = "") {
+      paste0("projectionFinal", suffix, " = projection", suffix, " * deltaFinal", suffix)
     }
     deltaGlobalTarget <- 1
   } else {
@@ -342,35 +345,34 @@ makeProjections <- function(config,
   # Common initial setup
   regionalDeltas <- historicalData %>%
     group_by(across(all_of("region"))) %>%
-    filter(.data[["period"]] == endOfHistory)
+    filter(.data[["period"]] == endOfHistory) %>%
+    ungroup()
 
 
-  if (!(lhs == "space_heating_m2_Uval" && length(rhs) == 1 && rhs == "HDD")) {
-    # Regular case
-    regionalDeltas <- regionalDeltas %>%
-      mutate_text(deltaFormula()) %>%
-      reframe(delta = mean(.data[["delta"]], na.rm = TRUE)) %>%
-      rbind(data.frame(region = "GLO", delta = deltaGlobalTarget))
-
-    projectionData <- projectionData %>%
-      left_join(regionalDeltas, by = "region") %>%
-      left_join(scenAssumpRegion, by = "region") %>%
-      left_join(rename(regionalDeltas, regionTarget = "region", deltaTarget = "delta"),
-                by = "regionTarget")
-  } else {
+  if (lhs == "space_heating_m2_Uval") {
+    browser()
     # Special case for space heating
     regionalDeltas <- regionalDeltas %>%
       mutate_text(deltaFormula("Glo")) %>%  # global delta
       mutate_text(deltaFormula("Reg")) %>%  # regional delta
-      reframe(
-        deltaGlo = mean(.data[["deltaGlo"]], na.rm = TRUE),
-        deltaReg = mean(.data[["deltaReg"]], na.rm = TRUE)
-      )
+      select("region", "deltaReg", "deltaGlo")
 
     projectionData <- projectionData %>%
       left_join(regionalDeltas, by = "region") %>%
       left_join(scenAssumpRegion, by = "region") %>%
       mutate(deltaTarget = 1)
+  } else {
+    # Regular case
+    regionalDeltas <- regionalDeltas %>%
+      mutate_text(deltaFormula()) %>%
+      select("region", "delta") %>%
+      rbind(data.frame(region = "GLO", delta = deltaGlobalTarget))
+
+    projectionData <- projectionData %>%
+      left_join(regionalDeltas, by = "region") %>%
+      left_join(scenAssumpRegion, by = "region") %>%
+      left_join(rename(regionalDeltas, deltaTarget = "delta"),
+                by = c(regionTarget = "region"))
   }
 
   # Join lambda
@@ -476,7 +478,7 @@ makeProjections <- function(config,
 
   finalProjections <- projectionData %>%
     select(one_of(keepColumns)) %>%
-    rename_(.dots = setNames("projectionFinal", lhs)) %>%
+    rename(projectionFinal = sym(lhs)) %>%
     gather("variable", "value", one_of(lhs)) %>%
     anti_join(df, by = c("scenario", "variable", "period", "region")) %>%
     as.quitte() %>%
