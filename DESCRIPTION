@@ -51,6 +51,7 @@ Imports:
   stringr,
   targets,
   tidyr,
+  tidyselect,
   utils,
   yaml,
   zoo

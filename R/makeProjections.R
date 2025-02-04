@@ -1,7 +1,6 @@
 #' Project future values from historical data using linear and non-linear regressions
 #'
 #' @param df \code{data.frame} Input data containing the historical data
-#' @param config \code{data.frame} Configuration containing scenario parameters like deltaDecayRate and deltaTargetYear
 #' @param formul \code{formula} Projection model formula
 #' @param scenAssumpEcon \code{data.frame} Economic scenario assumptions for projections
 #' @param lambda \code{data.frame} Convergence factors (0 to 1) over time for scenario transitions
@@ -31,7 +30,6 @@
 
 
 makeProjections <- function(df,
-                            config,
                             formul,
                             scenAssumpEcon,
                             lambda,
@@ -77,9 +75,6 @@ makeProjections <- function(df,
 
   # PARAMETERS------------------------------------------------------------------
 
-  # scenario
-  scen <- row.names(config) %>% unique()
-
   cols <- colnames(df)
   lhs  <- all.vars(formul[[2]])
   rhs  <- all.vars(formul[[3]])
@@ -87,17 +82,6 @@ makeProjections <- function(df,
   if (!is.null(transformVariableScen)) {
     transformVariableScen <- transformVariableScen[1]
   }
-
-
-  # space_heating delta decay rate
-  decayRate <- config[scen, "deltaDecayRate"] %>%
-    unlist %>%
-    as.numeric()
-
-  # space_heating delta decay target year
-  targetYear <- config[scen, "deltaTargetYear"] %>%
-    unlist() %>%
-    as.numeric()
 
 
 
@@ -156,77 +140,19 @@ makeProjections <- function(df,
   }
 
 
+  #--- Projections and incorporation of scenario assumptions
 
-  #--- Special case for space heating with HDD
+  # Projections with uncorrected global fit (historical continuation)
+  projectionData$projectionReg <- predict(estimate, newdata = projectionData)
+  historicalData$prediction    <- predict(estimate, newdata = historicalData)
 
-  if (lhs == "space_heating_m2_Uval" && length(rhs) == 1 && rhs == "HDD") {
-
-    # NOTE: delta in this context refers to the scaling parameter between floor space
-    #       and u-value corrected space heating UE demand and HDD.
-
-    # Calculate historical trends of HDD-normalized values
-    heatingTrends <- do.call(rbind, lapply(getRegs(historicalData), function(reg) {
-      histAdoptionRates <- historicalData %>%
-        filter(.data[["region"]] == reg) %>%
-        arrange(period) %>%
-        mutate(adoptionRate = !!sym(lhs) / .data[["HDD"]])
-
-      fit <- lm(adoptionRate ~ period, data = histAdoptionRates)
-
-      data.frame(region        = reg,
-                 absSlope      = coef(fit)[2],
-                 relSlope      = coef(fit)[["period"]] / coef(fit)[["(Intercept)"]] * 100,
-                 lastHistValue     = tail(predict(fit), n = 1L),
-                 refYear       = max(histAdoptionRates$period))
-    }))
-
-    row.names(heatingTrends) <- NULL
-
-    # Calculate regional delta projections from model assumptions
-    projAdoptionRate <- projectionData %>%
-      left_join(heatingTrends, by = "region") %>%
-      mutate(projAdoptionRate = if_else(.data[["period"]] > endOfHistory,
-                                       if_else(abs(.data[["absSlope"]]) > 1e-3,
-                                               {
-                                                 decayFactor <- -log(decayRate) / (targetYear - .data[["refYear"]])
-                                                 .data[["lastHistValue"]] +
-                                                   (.data[["absSlope"]] / decayFactor) *
-                                                     (1 - exp(-decayFactor * (.data[["period"]] - .data[["refYear"]])))
-                                               },
-                                               .data[["lastHistValue"]]),
-                                       .data[["lastHistValue"]] + .data[["absSlope"]] *
-                                         (.data[["period"]] - .data[["refYear"]]))) %>%
-      select("region", "period", "projAdoptionRate")
-
-    # Project future demand w/ regional estimates
-    projectionData <- projectionData %>%
-      left_join(projAdoptionRate, by = c("region", "period")) %>%
-      mutate(projectionReg = .data[["projAdoptionRate"]] * .data[["HDD"]]) %>%
-      select(-any_of(c("absSlope", "lastHistValue", "tLast")))
-
-    # Project historical demand w/ regional estimates
-    historicalData <- historicalData %>%
-      left_join(projAdoptionRate, by = c("region", "period")) %>%
-      mutate(predictionReg = .data[["projAdoptionRate"]] * .data[["HDD"]],
-             predictionGlo = predict(estimate, newdata = historicalData)) %>%
-      select(-any_of(c("absSlope", "lastHistValue", "tLast")))
-  }
-
-
-  #--- Standard predictions w/ global estimate and scenario assumptions
-
-  # Only calculate projectionReg here if it's not the space heating case
-  if (!(lhs == "space_heating_m2_Uval" && length(rhs) == 1 && rhs == "HDD")) {
-    projectionData$projectionReg <- predict(estimate, newdata = projectionData)
-    historicalData$prediction    <- predict(estimate, newdata = historicalData)
-  }
 
   # Apply regional maximum if specified
   if (!is.null(maxReg)) {
     projectionData$projectionReg <- pmin(maxReg, projectionData$projectionReg)
   }
 
-  # Handle scenario-specific projections
+  # Projections with scenario-specific assumptions
   projectionList <- lapply(getScenarios(projectionData), function(scen) {
     scenarioResults <- do.call("rbind", lapply(getRegs(projectionData), function(reg) {
 
@@ -277,20 +203,13 @@ makeProjections <- function(df,
         }
       }
 
-      # Combine regional and scenario projections based on convergence
-      if (lhs == "space_heating_m2_Uval" && length(rhs) == 1 && rhs == "HDD") {
-        # projections are separated into regional and global part
-        currentScenario <- currentScenario %>%
-          rename("projectionGlo" = "projectionScen")
-        return(currentScenario)
-      } else {
-        currentScenario <- currentScenario %>%
-          left_join(lambda, by = c("region", "period", "scenario")) %>%
-          mutate(projection = .data[["projectionScen"]] * .data[["fullconv"]] +
-                   .data[["projectionReg"]] * (1 - .data[["fullconv"]])) %>%
-          select(-c("lambda", "fullconv"))
-        return(currentScenario)
-      }
+      # Merge historical continuation with scenario projections
+      currentScenario <- currentScenario %>%
+        left_join(lambda, by = c("region", "period", "scenario")) %>%
+        mutate(projection = .data[["projectionScen"]] * .data[["fullconv"]] +
+                 .data[["projectionReg"]] * (1 - .data[["fullconv"]])) %>%
+        select(-c("lambda", "fullconv"))
+      return(currentScenario)
     }))
     list(scenarioResults = scenarioResults)
   })
@@ -315,9 +234,7 @@ makeProjections <- function(df,
   }
 
 
-  #--- Calculate regional deltas
-
-  # NOTE: delta in this context refers to the difference between projected and observed historical data.
+  # --- Smooth out transition between history and projections (aka minimize deltas)
 
   # Set up delta calculation based on convergence type with option for giving suffix to variable
   if (convReg == "absolute") {
@@ -342,63 +259,35 @@ makeProjections <- function(df,
   }
 
 
-  # Common initial setup
   regionalDeltas <- historicalData %>%
+    # filter last historical data point
     group_by(across(all_of("region"))) %>%
     filter(.data[["period"]] == endOfHistory) %>%
-    ungroup()
+    ungroup() %>%
+
+    # determine deviation between projections and last historical point
+    mutate_text(deltaFormula()) %>%
+    select("region", "delta") %>%
+    rbind(data.frame(region = "GLO", delta = deltaGlobalTarget))
 
 
-  if (lhs == "space_heating_m2_Uval") {
-    browser()
-    # Special case for space heating
-    regionalDeltas <- regionalDeltas %>%
-      mutate_text(deltaFormula("Glo")) %>%  # global delta
-      mutate_text(deltaFormula("Reg")) %>%  # regional delta
-      select("region", "deltaReg", "deltaGlo")
-
-    projectionData <- projectionData %>%
-      left_join(regionalDeltas, by = "region") %>%
-      left_join(scenAssumpRegion, by = "region") %>%
-      mutate(deltaTarget = 1)
-  } else {
-    # Regular case
-    regionalDeltas <- regionalDeltas %>%
-      mutate_text(deltaFormula()) %>%
-      select("region", "delta") %>%
-      rbind(data.frame(region = "GLO", delta = deltaGlobalTarget))
-
-    projectionData <- projectionData %>%
-      left_join(regionalDeltas, by = "region") %>%
-      left_join(scenAssumpRegion, by = "region") %>%
-      left_join(rename(regionalDeltas, deltaTarget = "delta"),
-                by = c(regionTarget = "region"))
-  }
-
-  # Join lambda
   projectionData <- projectionData %>%
-    left_join(lambdaDelta, by = c("region", "period", "scenario"))
+    # join relevant data
+    left_join(regionalDeltas, by = "region") %>%
+    left_join(scenAssumpRegion, by = "region") %>%
+    left_join(rename(regionalDeltas, deltaTarget = "delta"),
+              by = c(regionTarget = "region")) %>%
+    left_join(lambdaDelta, by = c("region", "period", "scenario")) %>%
 
-  # Calculate final deltas and projections
-  if (!(lhs == "space_heating_m2_Uval" && length(rhs) == 1 && rhs == "HDD")) {
-    projectionData <- projectionData %>%
-      mutate_text(compDeltaFinal()) %>%
-      mutate_text(projectionFinalFormula())
-  } else {
-    projectionData <- projectionData %>%
-      mutate_text(compDeltaFinal("Glo")) %>%
-      mutate_text(compDeltaFinal("Reg")) %>%
-      mutate_text(projectionFinalFormula("Glo")) %>%  # global projection
-      mutate_text(projectionFinalFormula("Reg")) %>%  # regional projection
+    # determine progression of delta values with transition factors lambda
+    mutate_text(compDeltaFinal()) %>%
 
-      # mix regional and global projections
-      mutate(projectionFinal = .data[["projectionFinalGlo"]] * .data[["fullconv"]] +
-               .data[["projectionFinalReg"]] * (1 - .data[["fullconv"]]))
-  }
+    # correct projections w/ appropriate deltas
+    mutate_text(projectionFinalFormula()) %>%
 
-  # cleanup
-  projectionData <- projectionData %>%
+    # clean up
     select(-c("fullconv", "lambda"))
+
 
 
   #--- Special handling for space cooling
@@ -478,7 +367,7 @@ makeProjections <- function(df,
 
   finalProjections <- projectionData %>%
     select(one_of(keepColumns)) %>%
-    rename(projectionFinal = sym(lhs)) %>%
+    rename(!!sym(lhs) := "projectionFinal") %>%
     gather("variable", "value", one_of(lhs)) %>%
     anti_join(df, by = c("scenario", "variable", "period", "region")) %>%
     as.quitte() %>%

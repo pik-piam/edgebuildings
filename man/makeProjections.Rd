@@ -5,14 +5,12 @@
 \title{Project future values from historical data using linear and non-linear regressions}
 \usage{
 makeProjections(
-  config,
   df,
   formul,
   scenAssumpEcon,
   lambda,
   lambdaDelta,
   scenAssumpCorrect,
-  scen,
   maxReg = NULL,
   outliers = NULL,
   apply0toNeg = TRUE,
@@ -27,8 +25,6 @@ makeProjections(
 )
 }
 \arguments{
-\item{config}{\code{data.frame} Configuration containing scenario parameters like deltaDecayRate and deltaTargetYear}
-
 \item{df}{\code{data.frame} Input data containing the historical data}
 
 \item{formul}{\code{formula} Projection model formula}
@@ -40,8 +36,6 @@ makeProjections(
 \item{lambdaDelta}{\code{data.frame} Convergence factors (0 to 1) over time for delta targets}
 
 \item{scenAssumpCorrect}{\code{data.frame} Scenario-specific corrections}
-
-\item{scen}{\code{character} Current scenario name}
 
 \item{maxReg}{\code{numeric} Maximum allowed value for projections (optional)}
 
