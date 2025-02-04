@@ -236,24 +236,15 @@ makeProjections <- function(df,
 
   # --- Smooth out transition between history and projections (aka minimize deltas)
 
-  # Set up delta calculation based on convergence type with option for giving suffix to variable
+  # Set up delta calculation based on convergence type
   if (convReg == "absolute") {
-    # The suffix parameter allows for both regular and Glo/Reg calculations
-    deltaFormula <- function(suffix = "") {
-      paste0("delta", suffix, " = -prediction", suffix, " + ", lhs)
-    }
-    projectionFinalFormula <- function(suffix = "") {
-      paste0("projectionFinal", suffix, " = projection", suffix, " + deltaFinal", suffix)
-    }
-    deltaGlobalTarget <- 0
+    deltaFormula           <- paste0("delta = -prediction + ", lhs)
+    projectionFinalFormula <- "projectionFinal = projection + deltaFinal"
+    deltaGlobalTarget      <- 0
   } else if (convReg == "proportion") {
-    deltaFormula <- function(suffix = "") {
-      paste0("delta", suffix, " = (1/prediction", suffix, ") * ", lhs)
-    }
-    projectionFinalFormula <- function(suffix = "") {
-      paste0("projectionFinal", suffix, " = projection", suffix, " * deltaFinal", suffix)
-    }
-    deltaGlobalTarget <- 1
+    deltaFormula           <- paste0("delta = (1/prediction) * ", lhs)
+    projectionFinalFormula <- "projectionFinal = projection * deltaFinal"
+    deltaGlobalTarget      <- 1
   } else {
     stop("convReg must be in c('absolute','proportion')")
   }
