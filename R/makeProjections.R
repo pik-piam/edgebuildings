@@ -67,11 +67,6 @@ makeProjections <- function(df,
   }
 
 
-  compDeltaFinal <- function(suffix = "") {
-    return(paste0("deltaFinal", suffix, " = deltaTarget * lambda + delta", suffix, " * (1 - lambda)"))
-  }
-
-
 
   # PARAMETERS------------------------------------------------------------------
 
@@ -249,6 +244,8 @@ makeProjections <- function(df,
     stop("convReg must be in c('absolute','proportion')")
   }
 
+  deltaFinal <- "deltaFinal = deltaTarget * lambda + delta * (1 - lambda)"
+
 
   regionalDeltas <- historicalData %>%
     # filter last historical data point
@@ -271,10 +268,10 @@ makeProjections <- function(df,
     left_join(lambdaDelta, by = c("region", "period", "scenario")) %>%
 
     # determine progression of delta values with transition factors lambda
-    mutate_text(compDeltaFinal()) %>%
+    mutate_text(DeltaFinal) %>%
 
     # correct projections w/ appropriate deltas
-    mutate_text(projectionFinalFormula()) %>%
+    mutate_text(projectionFinalFormula) %>%
 
     # clean up
     select(-c("fullconv", "lambda"))
