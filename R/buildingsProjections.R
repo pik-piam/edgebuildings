@@ -122,9 +122,9 @@ buildingsProjections <- function(config,
 
   # population
   pop <- pop %>%
-    filter(.data[["variable"]] == config[, "popScen"]) %>%
-    unique() %>%
     sepVarScen() %>%
+    filter(.data[["scenario"]] == config[, "popScen"]) %>%
+    unique() %>%
     mutate(scenario = scen) %>%
     as.quitte()
 
