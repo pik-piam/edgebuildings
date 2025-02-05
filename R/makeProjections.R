@@ -268,7 +268,7 @@ makeProjections <- function(df,
     left_join(lambdaDelta, by = c("region", "period", "scenario")) %>%
 
     # determine progression of delta values with transition factors lambda
-    mutate_text(DeltaFinal) %>%
+    mutate_text(deltaFinal) %>%
 
     # correct projections w/ appropriate deltas
     mutate_text(projectionFinalFormula) %>%
