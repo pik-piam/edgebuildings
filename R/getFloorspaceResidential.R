@@ -218,7 +218,8 @@ predictFullDelta <- function(fullData,
                              interceptEstimate,
                              scenAssump,
                              lambda,
-                             endOfData) {
+                             endOfData,
+                             endOfHistory) {
 
   # Apply scenario assumptions: Modify the logarithmic income elasticity gradually
   fullData <- fullData %>%
