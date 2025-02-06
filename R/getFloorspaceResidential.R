@@ -103,9 +103,9 @@ getFloorspaceResidential <- function(config,
 
   # pop
   pop <- pop %>%
-    filter(.data[["variable"]] == config[scen, "popScen"]) %>%
-    unique() %>%
     sepVarScen() %>%
+    filter(.data[["scenario"]] == config[scen, "popScen"]) %>%
+    unique() %>%
     mutate(scenario = scen) %>%
     missingToNA()
 

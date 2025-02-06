@@ -17,7 +17,7 @@
 getGDPpop <- function(pop, gdp, fulltime = FALSE) {
 
   pop <- sepVarScen(pop)
-  gdp <- sepVarScen(gdp)
+  gdp <- mutate(gdp, scenario = .data[["variable"]], variable = "gdp")
 
   gdppop <- bind_rows(pop, gdp) %>%
     unique() %>%

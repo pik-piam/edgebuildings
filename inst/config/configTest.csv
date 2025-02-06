@@ -1,7 +1,7 @@
 parameter;valueComment;SSP5_OS;picontrol
-popScen;;pop_SSP5;pop_SSP2
-gdpScen;;gdp_SSP5;gdp_SSP2
-urbanisationScen;;pop_SSP5;pop_SSP2
+popScen;;SSP5;SSP2
+gdpScen;;SSP5;SSP2
+urbanisationScen;;SSP5;SSP2
 densityScen;;density_SSP5;density_SSP2
 floorScen;;SSP5;SSP2
 gdppopScen;;gdppop_SSP5;gdppop_SSP2

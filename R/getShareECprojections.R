@@ -149,8 +149,7 @@ getShareECprojections <- function(config,
   gdp <- gdp %>%
     filter(.data[["variable"]] == config[, "gdpScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
-    mutate(scenario = scen) %>%
+    mutate(scenario = .data[["variable"]], variable = "gdp") %>%
     filter(.data[["period"]] %in% years) %>%
     sepHistScen(endOfHistory = endOfHistory) %>%
     mutate(unit = NA)

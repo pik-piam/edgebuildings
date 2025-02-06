@@ -74,9 +74,9 @@ getShareFloorCommercial <- function(config,
 
   # prepare population
   pop <- pop %>%
-    filter(.data[["variable"]] == config[, "popScen"]) %>%
-    unique() %>%
     sepVarScen() %>%
+    filter(.data[["scenario"]] == config[, "popScen"]) %>%
+    unique() %>%
     mutate(scenario = scen) %>%
     mutate(value = as.numeric(.data[["value"]]))
 
