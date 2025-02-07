@@ -279,6 +279,66 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   i <- i + length(.regions(pData))
 
 
+  ## per capita Floorspace ====
+
+  bookmarks <- .addBookmark(bookmarks, "Floor space per capita", i, 1)
+
+
+  pData <- data %>%
+    filter(.data[["variable"]] %in% c("buildings", "pop", "gdp")) %>%
+    .aggREMIND(recover = "DEU") %>%
+    select(-"unit") %>%
+    pivot_wider(names_from = "variable") %>%
+    mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
+           buildings_pop = .data[["buildings"]] / .data[["pop"]]) # million m2/millioncap = m2/cap
+
+
+  ### all regions ####
+
+  p <- lapply(list("period", "gdppop"), function(x) {
+    linePlot(
+      pData,
+      title = switch(x, period = paste("Total floor space per capita")),
+      xAxisLabel = x,
+      yAxisLabel = switch(x, period = "m2/cap"),
+      linetypes = linetypes,
+      facet = "scenario",
+      color = "region",
+      x = x,
+      y = "buildings_pop"
+    ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+                                 axis.ticks.y = element_blank()))
+  })
+  print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE ,legend = "right",
+                  widths = c(1.2, 1), align = "hv"))
+
+  i <- i + 1
+
+
+  ### regional ####
+
+  for (r in .regions(pData)) {
+    p <- lapply(list("period", "gdppop"), function(x) {
+      linePlot(
+        filter(pData, .data[["region"]] %in% r),
+        title = switch(x, period = paste("Total floor space per capita")),
+        subtitle = switch(x, period = r),
+        xAxisLabel = x,
+        yAxisLabel = switch(x, period = "m2/cap"),
+        linetypes = linetypes,
+        color = "scenario",
+        x = x,
+        y = "buildings_pop"
+      ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+                                   axis.ticks.y = element_blank()))
+    })
+    print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE ,legend = "right",
+                    widths = c(1.2, 1), align = "hv"))
+  }
+
+  i <- i + length(.regions(pData))
+
+
   ## energy demand====
 
   bookmarks <- .addBookmark(bookmarks, "Energy demand", i, 1)
