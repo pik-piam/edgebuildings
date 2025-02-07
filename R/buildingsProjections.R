@@ -156,8 +156,8 @@ buildingsProjections <- function(config,
     filter(.data[["scenario"]] == scen)
 
   # temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = endOfHistory)
-  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = endOfHistory + 10)
+  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory)
+  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory + 10)
 
 
 

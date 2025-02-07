@@ -91,12 +91,12 @@ getEfficiencies <- function(config,
   # calculate temporal convergence shares
   lambda <- compLambdaScen(scenAssumpSpeed,
                            startYearVector = periodBegin,
-                           startPolicyYear = endOfHistory)
+                           lastIdenticalYear = endOfHistory)
 
   # calculate temporal convergence shares for deviations (delta)
   lambdaDelta <- compLambdaScen(scenAssumpSpeed,
                                 startYearVector = periodBegin,
-                                startPolicyYear = endOfHistory + 10)
+                                lastIdenticalYear = endOfHistory + 10)
 
 
 
