@@ -70,9 +70,8 @@ getUvalues <- function(config,
 
   # gdppop
   gdppop <- gdppop %>%
-    filter(.data[["variable"]] == config[, "gdppopScen"]) %>%
+    filter(.data[["scenario"]] == config[, "gdppopScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen)
 
 
@@ -83,9 +82,8 @@ getUvalues <- function(config,
 
   # population
   pop <- pop %>%
-    filter(.data[["variable"]] == config[, "popScen"]) %>%
+    filter(.data[["scenario"]] == config[, "popScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen)
 
 

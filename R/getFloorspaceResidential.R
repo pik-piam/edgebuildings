@@ -95,25 +95,22 @@ getFloorspaceResidential <- function(config,
 
   # gdppop
   gdppop <- gdppop %>%
-    filter(.data[["variable"]] == config[scen, "gdppopScen"]) %>%
+    filter(.data[["scenario"]] == config[scen, "gdppopScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen) %>%
     missingToNA()
 
   # pop
   pop <- pop %>%
-    filter(.data[["variable"]] == config[scen, "popScen"]) %>%
+    filter(.data[["scenario"]] == config[scen, "popScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen) %>%
     missingToNA()
 
   # density
   density <- density %>%
-    filter(.data[["variable"]] == config[scen, "densityScen"]) %>%
+    filter(.data[["scenario"]] == config[scen, "densityScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen) %>%
     missingToNA()
 

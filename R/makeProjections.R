@@ -253,7 +253,7 @@ makeProjections <- function(df,
     ungroup() %>%
 
     # determine deviation between projections and last historical point
-    mutate_text(deltaFormula()) %>%
+    mutate_text(deltaFormula) %>%
     select("region", "delta") %>%
     rbind(data.frame(region = "GLO", delta = deltaGlobalTarget))
 

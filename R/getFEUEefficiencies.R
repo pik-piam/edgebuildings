@@ -119,9 +119,8 @@ getFEUEefficiencies <- function(config,
 
   # gdppop
   gdppop <- gdppop  %>%
-    filter(.data[["variable"]] == config[, "gdppopScen"]) %>%
+    filter(.data[["scenario"]] == config[, "gdppopScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen)
 
 

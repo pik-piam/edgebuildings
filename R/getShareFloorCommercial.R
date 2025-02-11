@@ -65,18 +65,16 @@ getShareFloorCommercial <- function(config,
 
   # prepare gdppop
   gdppop <- gdppop %>%
-    filter(.data[["variable"]] == config[scen, "gdppopScen"]) %>%
+    filter(.data[["scenario"]] == config[scen, "gdppopScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen) %>%
     mutate(value = as.numeric(.data[["value"]])) %>%
     dplyr::select("region", "period", "scenario", "variable", "value")
 
   # prepare population
   pop <- pop %>%
-    filter(.data[["variable"]] == config[, "popScen"]) %>%
+    filter(.data[["scenario"]] == config[, "popScen"]) %>%
     unique() %>%
-    sepVarScen() %>%
     mutate(scenario = scen) %>%
     mutate(value = as.numeric(.data[["value"]]))
 
