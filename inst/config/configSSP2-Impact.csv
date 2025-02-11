@@ -1,7 +1,7 @@
 parameter;valueComment;SSP2-1.9;SSP2-2.6;SSP2-4.5;SSP2-6.0;SSP2-7.0;SSP2-noCC
-popScen;;SSP2;SSP2;SSP2;SSP2;SSP2;SSP2
-gdpScen;;SSP2;SSP2;SSP2;SSP2;SSP2;SSP2
-urbanisationScen;;SSP2;SSP2;SSP2;SSP2;SSP2;SSP2
+popScen;;pop_SSP2;pop_SSP2;pop_SSP2;pop_SSP2;pop_SSP2;pop_SSP2
+gdpScen;;gdp_SSP2;gdp_SSP2;gdp_SSP2;gdp_SSP2;gdp_SSP2;gdp_SSP2
+urbanisationScen;;pop_SSP2;pop_SSP2;pop_SSP2;pop_SSP2;pop_SSP2;pop_SSP2
 densityScen;;density_SSP2;density_SSP2;density_SSP2;density_SSP2;density_SSP2;density_SSP2
 floorScen;;SSP2;SSP2;SSP2;SSP2;SSP2;SSP2
 uvalueScen;;SSP2-noCC;SSP2-noCC;SSP2-noCC;SSP2-noCC;SSP2-noCC;SSP2-noCC

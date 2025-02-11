@@ -1,8 +1,8 @@
 parameter;parameterComment;history;default
-popScen;population scenario;NA;SSP2
-gdpScen;gdp scenario;NA;SSP2
+popScen;population scenario;NA;pop_SSP2
+gdpScen;gdp scenario;NA;gdp_SSP2
 gdppopScen;gdppop scenario;NA;gdppop_SSP2
-urbanisationScen;urbanisation scenario;NA;SSP2
+urbanisationScen;urbanisation scenario;NA;pop_SSP2
 densityScen;density scenario;NA;density_SSP2
 floorScen;floorspace scenario;NA;SSP2
 uvalueScen;uvalue scenario;NA;picontrol
