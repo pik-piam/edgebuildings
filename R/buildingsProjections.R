@@ -226,19 +226,14 @@ buildingsProjections <- function(config,
 
   df <- character.data.frame(df)
 
+  enduseVars <- c("space_heating_m2_Uval",
+                  "appliances_light_elas_FACTOR",
+                  "water_heating_pop",
+                  "cooking_pop",
+                  "space_cooling_m2_CDD_Uval")
+
   # change lambda according to lifestyle scenario assumptions
-  lambdaDifferentiated <- sapply( # nolint
-    c("space_heating_m2_Uval",
-      "appliances_light_elas_FACTOR",
-      "water_heating_pop",
-      "cooking_pop",
-      "space_cooling_m2_CDD_Uval"),
-    function(x) {
-      return(lambda)
-    },
-    USE.NAMES = TRUE,
-    simplify = FALSE
-  )
+  lambdaDifferentiated <- lapply(setNames(nm = enduseVars), function(x) lambda)
 
 
   #--- Make Projections
@@ -276,6 +271,9 @@ buildingsProjections <- function(config,
                         avoidLowValues = TRUE,
                         scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
 
+  # correct short- to midterm space heating adoption activity
+  df <- df %>%
+    adjustHeatingAdoption(config, lambda, lambdaDelta)
 
 
   df <- df %>%

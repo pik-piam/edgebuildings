@@ -2,7 +2,7 @@
 % Please edit documentation in R/makeProjections.R
 \name{makeProjections}
 \alias{makeProjections}
-\title{Project future from historic data with linear and non-linear regressions}
+\title{Project future values from historical data using linear and non-linear regressions}
 \usage{
 makeProjections(
   df,
@@ -25,57 +25,46 @@ makeProjections(
 )
 }
 \arguments{
-\item{df}{data.frame with required variables}
+\item{df}{\code{data.frame} Input data containing the historical data}
 
-\item{formul}{character, projection formula}
+\item{formul}{\code{formula} Projection model formula}
 
-\item{scenAssumpEcon}{data.frame with projection parameters}
+\item{scenAssumpEcon}{\code{data.frame} Economic scenario assumptions for projections}
 
-\item{lambda}{data.frame with values that go from zero to 1 over time
-describing the transition towards the projection scenario}
+\item{lambda}{\code{data.frame} Convergence factors (0 to 1) over time for scenario transitions}
 
-\item{lambdaDelta}{data.frame with values that go from zero to 1 over time
-describing the transition towards the projection scenario for delta targets}
+\item{lambdaDelta}{\code{data.frame} Convergence factors (0 to 1) over time for delta targets}
 
-\item{scenAssumpCorrect}{data.frame with scenario corrections}
+\item{scenAssumpCorrect}{\code{data.frame} Scenario-specific corrections}
 
-\item{maxReg}{maximum value}
+\item{maxReg}{\code{numeric} Maximum allowed value for projections (optional)}
 
-\item{outliers}{character vector with regions not to be considered in
-regression}
+\item{outliers}{\code{character} Vector of region names to exclude from regression (optional)}
 
-\item{apply0toNeg}{logical, if \code{TRUE}, negative values are replaced with
-zero}
+\item{apply0toNeg}{\code{logical} Replace negative projections with zero (default TRUE)}
 
-\item{transformVariable}{variable transformation}
+\item{transformVariable}{\code{character} Variable transformation to apply (optional)}
 
-\item{transformVariableScen}{scenario variable transformation}
+\item{transformVariableScen}{\code{character} Scenario-specific variable transformation (optional)}
 
-\item{applyScenFactor}{logical, if \code{TRUE} a given scaling factor is
-applied}
+\item{applyScenFactor}{\code{logical} Apply scenario scaling factor (default FALSE)}
 
-\item{convReg}{character, describing what deltas are considered:
-\itemize{
-\item \code{"absolute"}: absolute deviations from prediction
-\item \code{"relative"}: relative deviations from prediction
-}}
+\item{convReg}{\code{character} Convergence type: "absolute" for value differences or "proportion" for ratios}
 
-\item{avoidLowValues}{logical, if \code{TRUE} projection values are clipped
-to avoid that they fall below the start value (for increasing projections)
-or final value (for decreasing projections)}
+\item{avoidLowValues}{\code{logical} Prevent projections falling below initial/final values (default FALSE)}
 
-\item{endOfHistory}{upper temporal boundary of historical data}
+\item{endOfHistory}{\code{numeric} Last year of historical data (default 2020)}
 
-\item{scenAssumpRegion}{regional convergence assumptions}
+\item{scenAssumpRegion}{\code{data.frame} Regional convergence assumptions (optional)}
 
-\item{interpolate}{logical}
+\item{interpolate}{\code{logical} Use all historical points vs only latest (default TRUE)}
 }
 \value{
-data.frame with added projection
+\code{data.frame} Combined input data and calculated projections
 }
 \description{
-Project future from historic data with linear and non-linear regressions
+Project future values from historical data using linear and non-linear regressions
 }
 \author{
-Antoine Levesque
+Antoine Levesque, Hagen Tockhorn
 }
