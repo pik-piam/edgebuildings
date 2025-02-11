@@ -60,7 +60,6 @@ makeProjections <- function(df,
     return(res)
   }
 
-
   transVar <- function(dfTrans, form, var) {
     form <- gsub("VAR", var, form)
     return(dfTrans %>% mutate_(.dots = setNames(list(interp((form))), var)))
