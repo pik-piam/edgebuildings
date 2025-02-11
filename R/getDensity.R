@@ -28,7 +28,6 @@ getDensity <- function(fulltime = FALSE,
     mutate(density = .data[["pop"]] * million2unit / .data[["surface"]]) %>%
     dplyr::select(-"pop", -"surface") %>%
     gather(key = "variable", value = "value", "density") %>%
-    unite(col = "variable", "variable", "scenario", sep = "_") %>%
     filter(.data[["value"]] != 0) %>%
     as.data.frame() %>%
     as.quitte() %>%

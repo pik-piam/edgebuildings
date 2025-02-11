@@ -31,7 +31,7 @@ getGDP <- function(config,
 
   # gdp
   gdp <- gdp %>%
-    filter(.data[["variable"]] == config[scen, "gdpScen"])
+    filter(.data[["scenario"]] == config[scen, "gdpScen"])
 
   # gdpBoost
   gdpBoost <- config[scen, "gdpBoost"]
@@ -71,7 +71,7 @@ getGDP <- function(config,
   # OUTPUT----------------------------------------------------------------------
 
   gdp <- gdp %>%
-    select("region", "period", "variable", "value")
+    select("region", "period", "scenario", "variable", "value")
 
   return(gdp)
 }

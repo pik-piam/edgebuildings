@@ -341,22 +341,24 @@ list(
   tar_target(
     pop,
     {
-      cols <- c("period", "region", "variable", "value")
+      cols <- c("period", "region", "scenario", "value")
       file <- pop.cs4r
 
       read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols) %>%
-        mutate(value = as.numeric(.data[["value"]]))
+        mutate(value = as.numeric(.data[["value"]]), variable = "pop") %>%
+        dplyr::relocate("variable", .after = "scenario")
     }),
 
   # gdp
   tar_target(
     gdpInput,
     {
-      cols <- c("period", "region", "variable", "value")
+      cols <- c("period", "region", "scenario", "value")
       file <- gdp.cs4r
 
       read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols) %>%
-        mutate(value = as.numeric(.data[["value"]]))
+        mutate(value = as.numeric(.data[["value"]]), variable = "gdp") %>%
+        dplyr::relocate("variable", .after = "scenario")
     }),
 
   # population density
@@ -365,8 +367,7 @@ list(
     {
 
       getDensity(pop = pop %>%
-                   filter(variable == config[, "popScen"]) %>%
-                   sepVarScen(),
+                   filter(scenario == config[, "popScen"]),
                  surface = surface)
     },
     pattern = map(config),
@@ -403,9 +404,9 @@ list(
   tar_target(
     gdppop,{
       getGDPpop(pop = pop %>%
-                  filter(variable == config[, "popScen"]),
+                  filter(scenario == config[, "popScen"]),
                 gdp = gdp %>%
-                  filter(variable == config[, "gdpScen"]))
+                  filter(scenario == config[, "gdpScen"]))
     },
     pattern = map(config),
     iteration = "vector"

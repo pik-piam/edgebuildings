@@ -16,13 +16,9 @@
 
 getGDPpop <- function(pop, gdp, fulltime = FALSE) {
 
-  pop <- sepVarScen(pop)
-  gdp <- sepVarScen(gdp)
-
   gdppop <- bind_rows(pop, gdp) %>%
     unique() %>%
     calc_addVariable(gdppop = "gdp / pop", only.new = TRUE) %>%
-    unite(col = "variable", "variable", "scenario", sep = "_") %>%
     as.quitte() %>%
     missingToNA()
 

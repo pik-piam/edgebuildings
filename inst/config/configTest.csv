@@ -1,10 +1,10 @@
 parameter;valueComment;SSP5_OS;picontrol
-popScen;;pop_SSP5;pop_SSP2
-gdpScen;;gdp_SSP5;gdp_SSP2
-urbanisationScen;;pop_SSP5;pop_SSP2
-densityScen;;density_SSP5;density_SSP2
+popScen;;SSP5;SSP2
+gdpScen;;SSP5;SSP2
+urbanisationScen;;SSP5;SSP2
+densityScen;;SSP5;SSP2
 floorScen;;SSP5;SSP2
-gdppopScen;;gdppop_SSP5;gdppop_SSP2
+gdppopScen;;SSP5;SSP2
 hddcddScen;;SSP5;picontrol
 rcpScen;;3.4;picontrol
 tlimHist_HDD;historical set point temperature for space heating in degC;14;14
