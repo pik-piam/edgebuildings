@@ -124,7 +124,7 @@ adjustHeatingAdoption <- function(df,
     left_join(heatingTrends, by = "region") %>%
     mutate(projAdoptionRate = if_else(.data[["period"]] > endOfHistory,
                                       # only consider regions with pos. rel. growth
-                                      if_else(abs(.data[["relSlope"]]) > 0,
+                                      if_else(.data[["relSlope"]] > 0,
                                               {
                                                 decayFactor <- -log(decayRate) / (targetYear - .data[["refYear"]])
                                                 .data[["lastHistValue"]] +
