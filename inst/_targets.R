@@ -345,7 +345,7 @@ list(
       file <- pop.cs4r
 
       read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols) %>%
-        mutate(value = as.numeric(.data[["value"]]), variable = paste0("pop_", .data[["variable"]]))
+        mutate(value = as.numeric(.data[["value"]]))
     }),
 
   # gdp
@@ -363,8 +363,9 @@ list(
   tar_target(
     density,
     {
+
       getDensity(pop = pop %>%
-                   filter(variable == paste0("pop_", config[, "popScen"])) %>%
+                   filter(variable == config[, "popScen"]) %>%
                    sepVarScen(),
                  surface = surface)
     },
@@ -401,8 +402,10 @@ list(
   # gdppop
   tar_target(
     gdppop,{
-      getGDPpop(pop = dplyr::filter(pop, variable == paste0("pop_", config[, "popScen"])),
-                gdp = dplyr::filter(gdp, variable == config[, "gdpScen"]))
+      getGDPpop(pop = pop %>%
+                  filter(variable == config[, "popScen"]),
+                gdp = gdp %>%
+                  filter(variable == config[, "gdpScen"]))
     },
     pattern = map(config),
     iteration = "vector"

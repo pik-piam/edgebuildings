@@ -18,6 +18,9 @@ getGDP <- function(config,
                    regionmap) {
   # PARAMETERS------------------------------------------------------------------
 
+  # note: scen will be kept in form of "gdp_<scenario>" to facilitate
+  # scenario-wise handling in targets
+
   scen <- row.names(config) %>% unique()
   if (length(scen) > 1) {
     stop("Scenario count more than one. Please adjust to single scenario input.")
