@@ -65,8 +65,6 @@ getShareECprojections <- function(config,
     return(df)
   }
 
-  browser()
-
 
   # PARAMETERS -----------------------------------------------------------------
 
