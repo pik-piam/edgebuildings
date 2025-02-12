@@ -122,10 +122,7 @@ getEfficiencies <- function(config,
   histEfficiencies <- histEfficiencies %>%
     select("region", "period", "enduse", "carrier", "value") %>%
     unite("variable", c("enduse", "carrier"), sep = ".") %>%
-    mutate(scenario = "history") %>%
-
-    # filter low efficiencies
-    mutate(value = ifelse(.data[["value"]] < minEfficiency, NA, .data[["value"]]))
+    mutate(scenario = "history")
 
 
   # get enduse.carrier combinations

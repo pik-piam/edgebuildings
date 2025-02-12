@@ -241,8 +241,6 @@ buildingsProjections <- function(config,
   #--- Make Projections
   print("Start projections")
 
-  browser()
-
   df <- makeProjections(df,
                         formul = as.formula("space_heating_m2_Uval ~ 0 + HDD"),
                         scenAssump = scenAssump,

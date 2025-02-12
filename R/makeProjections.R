@@ -70,6 +70,7 @@ makeProjections <- function(df,
   if (is.null(endOfHistory)) {
     endOfHistory <- max(unique(filter(df, .data[["scenario"]] == "history")[["period"]]))
   }
+  endOfData <- max(unique(filter(df, .data[["variable"]] == lhs, !is.na(.data[["value"]]))[["period"]]))
 
 
   # PROCESS DATA----------------------------------------------------------------
@@ -244,19 +245,14 @@ makeProjections <- function(df,
 
     # For outlier regions, use growth rates instead of absolute values
     projectionOutliers <- projectionData %>%
+      full_join(historicalData, by = c("scenario", "region", "period", "gdppop", "space_cooling_m2_CDD_Uval", "projection", "delta", "projectionFinal")) %>%
       filter(.data[["region"]] %in% outliers) %>%
       group_by(across(all_of("region"))) %>%
-      tidyr::fill(.data[[lhs]], .direction = "down") %>%
-      mutate(
-        previousScenario = lag(.data[["projectionScen"]]),
-        growthRate = ifelse(.data[["period"]] <= endOfHistory,
-                            1,
-                            c(0, .data[["projectionScen"]] / .data[["previousScenario"]])),
-        growthRate = cumprod(.data[["growthRate"]]),
-        projectionFinal = .data[[lhs]] * .data[["growthRate"]]
-      ) %>%
+      mutate(growthRate = .data[["projectionScen"]] / .data[["projection"]][.data[["period"]] == endOfData]) %>%
+      mutate(projectionFinal = .data[[lhs]][.data[["period"]] == endOfData] * .data[["growthRate"]]) %>%
       ungroup() %>%
-      select(-c("growthRate", "previousScenario"))
+      filter(.data[["period"]] > endOfHistory) %>%
+      select(-"growthRate", -"model", -"unit")
 
     projectionData <- rbind(projectionOutliers, projectionNonOutliers)
   }
