@@ -7,10 +7,9 @@
 makeProjections(
   df,
   formul,
-  scenAssumpEcon,
+  scenAssump,
   lambda,
   lambdaDelta,
-  scenAssumpCorrect,
   maxReg = NULL,
   outliers = NULL,
   apply0toNeg = TRUE,
@@ -19,9 +18,10 @@ makeProjections(
   applyScenFactor = FALSE,
   convReg = "absolute",
   avoidLowValues = FALSE,
-  endOfHistory = 2020,
-  scenAssumpRegion = NULL,
-  interpolate = TRUE
+  endOfHistory = 2025,
+  interpolate = TRUE,
+  initCorrection = NULL,
+  replacePars = FALSE
 )
 }
 \arguments{
@@ -29,13 +29,11 @@ makeProjections(
 
 \item{formul}{\code{formula} Projection model formula}
 
-\item{scenAssumpEcon}{\code{data.frame} Economic scenario assumptions for projections}
+\item{scenAssump}{\code{data.frame} Economic scenario assumptions for projections}
 
 \item{lambda}{\code{data.frame} Convergence factors (0 to 1) over time for scenario transitions}
 
 \item{lambdaDelta}{\code{data.frame} Convergence factors (0 to 1) over time for delta targets}
-
-\item{scenAssumpCorrect}{\code{data.frame} Scenario-specific corrections}
 
 \item{maxReg}{\code{numeric} Maximum allowed value for projections (optional)}
 
@@ -55,9 +53,11 @@ makeProjections(
 
 \item{endOfHistory}{\code{numeric} Last year of historical data (default 2020)}
 
-\item{scenAssumpRegion}{\code{data.frame} Regional convergence assumptions (optional)}
-
 \item{interpolate}{\code{logical} Use all historical points vs only latest (default TRUE)}
+
+\item{initCorrection}{\code{data.frame} Corrected parameters for non-scenario projections (optional)}
+
+\item{replacePars}{\code{logical} Replace fit parameters with scenario assumptions (optional)}
 }
 \value{
 \code{data.frame} Combined input data and calculated projections
