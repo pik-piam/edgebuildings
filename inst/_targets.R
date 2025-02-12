@@ -54,8 +54,8 @@ list(
 
   # fe -> ue efficiency corrections
   tar_target(
-    correct_efficiencies.csv,
-    piamutils::getSystemFile("data_internal/mappings/correct_efficiencies.csv", package = "edgebuildings"),
+    correctEfficiencies.csv,
+    piamutils::getSystemFile("data_internal/mappings/correctEfficiencies.csv", package = "edgebuildings"),
     format = "file"
   ),
 
@@ -75,10 +75,10 @@ list(
     format = "file"
   ),
 
-  # pfu
+  # final energy
   tar_target(
-    pfu.cs4r,
-    file.path(mrData, "f_feue.cs4r"),
+    fe.cs4r,
+    file.path(mrData, "f_fe.cs4r"),
     format = "file"
   ),
 
@@ -216,8 +216,8 @@ list(
 
   # efficiency corrections
   tar_target(
-    scenAssumpCorrect,
-    read.csv(correct_efficiencies.csv, stringsAsFactors = F)
+    correctEfficiencies,
+    read.csv(correctEfficiencies.csv, stringsAsFactors = F)
   ),
 
 
@@ -252,12 +252,12 @@ list(
     }
   ),
 
-  # pfu
+  # final energy
   tar_target(
-    pfu,
+    fe,
     {
       cols <- c("period", "region", "scenario", "unit", "enduse", "carrier", "value")
-      file <- pfu.cs4r
+      file <- fe.cs4r
 
       read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = F) %>%
         mutate(value = as.numeric(.data[["value"]]),
@@ -270,7 +270,7 @@ list(
   tar_target(
     feueEffHist,
     {
-      cols <- c("period", "region", "scenario" ,"carrier", "enduse", "value")
+      cols <- c("period", "region", "enduse", "carrier", "value")
       file <- feueEff.cs4r
 
       read.csv(file, header = FALSE, comment.char = "*", col.names = cols) %>%
@@ -286,9 +286,7 @@ list(
       file <- feueEffPars.cs4r
 
       read.csv2(file, skip = skiprow(file), sep = ",", header = F, col.names = cols) %>%
-        mutate(value = as.numeric(.data[["value"]])) %>%
-        pivot_wider(names_from  = "variable",
-                    values_from = "value")
+        mutate(value = as.numeric(.data[["value"]]))
     }
   ),
 
@@ -489,7 +487,7 @@ list(
     feSharesEC,
     {
       getShareECprojections(config = config,
-                            pfu = pfu,
+                            fe = fe,
                             hddcdd = hddcdd,
                             gdp = gdp,
                             gdppop = gdppop,
@@ -522,12 +520,11 @@ list(
 
   # FE-EU-Efficiencies----------------------
 
-  # TODO: handle missing parameter "endOfHistory"
   tar_target(
     feueEfficiencies,
     {
-      getFEUEefficiencies(config = config,
-                          eff = feueEffHist,
+      getEfficiencies(config = config,
+                          histEfficiencies = feueEffHist,
                           gdppop = gdppop,
                           scenAssump = scenAssump,
                           scenAssumpSpeed = scenAssumpSpeed,
@@ -549,7 +546,7 @@ list(
                            pop = pop,
                            gdppop = gdppop,
                            uvalue = uvalue,
-                           pfu = pfu,
+                           fe = fe,
                            feueEff = feueEfficiencies,
                            feSharesEC = feSharesEC,
                            regionmap = regionmap,
