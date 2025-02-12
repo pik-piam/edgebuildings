@@ -50,7 +50,8 @@ As an estimation model we assume an exponential relation between the sum of
 annual degree days (HDD/CDD) and the U-value. As the wished level of
 insulation might be unaffordable for low-income households/businesses, we multiply
 the U-value computed by the previous equation by a coefficient decreasing from
-two to one when the per capita income of the region considered moves from US$0 to US$15000.
+a given multiple to one when the per capita income of the region considered
+moves from zero to a given threshold.
 }
 \author{
 Antoine Levesque, Hagen Tockhorn

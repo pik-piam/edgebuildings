@@ -387,14 +387,13 @@ projectShares <- function(df, var, xTar, yTar, phaseOutMaxEnd, phaseOutStart) {
       # weight (1 is the linear case)
       power <- 1
 
-      # nolint start
       # reach yTar once gdppop reaches threshold
       thresholdPhaseOut <- pmax(
         yTar,
         predEndHist + (yTar - predEndHist) *
           (pmax(0, dataRegScen$gdppop - gdppopEndHist) /
-             (xTar[[reg, "value"]] - gdppopEndHist))^power)
-      # nolint end
+             (xTar[[reg, "value"]] - gdppopEndHist))^power
+      )
 
       # max phase out: reaches 0 when gdppop is 1.5 gdppop(eoh)
       maxPhaseOut <- predEndHist *

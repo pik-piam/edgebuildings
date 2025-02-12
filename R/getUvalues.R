@@ -13,7 +13,8 @@
 #' annual degree days (HDD/CDD) and the U-value. As the wished level of
 #' insulation might be unaffordable for low-income households/businesses, we multiply
 #' the U-value computed by the previous equation by a coefficient decreasing from
-#' two to one when the per capita income of the region considered moves from US$0 to US$15000.
+#' a given multiple to one when the per capita income of the region considered
+#' moves from zero to a given threshold.
 #'
 #' @param config scenario-wise parameter configuration
 #' @param uvaluesResCom residential and commercial uvalue data
@@ -204,7 +205,9 @@ getUvalues <- function(config,
   # linearise change to avoid that uvalue estimates reproduce the climate variability
   tmp <- tmp %>%
     lineariseChange(periodBegin, periodUvalue, endOfHistory) %>%
-    includeInputDataAndCorrect(dataEstimate, gdppop, lambda, periodUvalue) %>%
+    includeInputDataAndCorrect(dataEstimate, gdppop, lambda, periodUvalue,
+                               config[["incomeThresholdUvalue"]][[1]],
+                               config[["multiUValue"]][[1]]) %>%
     mutate(value = ifelse(.data[["variable"]] == "uvalue",
                           pmin(maxUValue, .data[["value"]]),
                           .data[["value"]]))
@@ -403,7 +406,13 @@ correctRegions <- function(df, lambda, endOfHistory) {
 }
 
 
-includeInputDataAndCorrect <- function(dfScen, dfData, gdp, lambda, endOfHistory) {
+includeInputDataAndCorrect <- function(dfScen,
+                                       dfData,
+                                       gdppop,
+                                       lambda,
+                                       endOfHistory,
+                                       incomeThresholdUvalue,
+                                       multiUValue) {
 
   dfData <- dfData %>% select("uvalue", "region", "period")
 
@@ -423,31 +432,27 @@ includeInputDataAndCorrect <- function(dfScen, dfData, gdp, lambda, endOfHistory
     filter(.data[["variable"]] != "uvalue") %>%
     select("region", "period", "scenario", "variable", "value")
 
-  gdp <- gdp %>%
+  gdppop <- gdppop %>%
     select("scenario", "period", "region", "variable", "value") %>%
     spread(key = "variable", value = "value")
 
   tmp <- dfScen %>%
     filter(.data[["variable"]] == "uvalue") %>%
     left_join(dfData, by = c("region", "period")) %>%
-    left_join(gdp, by = c("scenario", "period", "region"))
-
-  # linear combination between scenario trajectories and historical values
-  multiUValues <- 1.5
+    left_join(gdppop, by = c("scenario", "period", "region"))
 
   tmp <- tmp %>%
     left_join(lambda, by = c("region", "period", "scenario")) %>%
     group_by(across(all_of("region"))) %>%
-    mutate(uvalue = ifelse(is.na(.data[["uvalue"]]),
-                           pmax(.data[["value"]],
-                                (multiUValues - ((multiUValues - 1) / 20000) *
-                                   .data[["gdppop"]]) * .data[["value"]]),
-                           .data[["uvalue"]]),
-           maxFactor = pmax(0, pmin(1, (20000 - .data[["gdppop"]][.data[["period"]] == endOfHistory]) / 20000)),
-           factor = .data[["maxFactor"]] - pmax(0, pmin(1, (20000 - .data[["gdppop"]]) / 20000)),
-           uvalue = .data[["uvalue"]] * (1 - .data[["factor"]] / multiUValues),
-           delta = .data[["uvalue"]] - .data[["value"]],
-           value = .data[["value"]] + .data[["delta"]] * (1 - .data[["fullconv"]])) %>%
+    mutate(
+      uvalue = ifelse(is.na(.data$uvalue),
+                      .data$value * pmax(1, (multiUValue - 1) * (1 - .data$gdppop / incomeThresholdUvalue) + 1),
+                      .data$uvalue),
+      incSat = pmin(1, .data$gdppop / incomeThresholdUvalue),
+      factor = .data$incSat - .data$incSat[.data$period == endOfHistory],
+      uvalue = .data$uvalue * (1 - .data$factor / multiUValue),
+      delta = .data$uvalue - .data$value,
+      value = .data$value + .data$delta * (1 - .data$fullconv)) %>%
     ungroup() %>%
     select("region", "period", "scenario", "variable", "value")
 
