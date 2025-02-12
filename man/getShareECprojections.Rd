@@ -6,7 +6,7 @@
 \usage{
 getShareECprojections(
   config,
-  pfu,
+  fe,
   hddcdd,
   gdp,
   gdppop,
@@ -17,7 +17,7 @@ getShareECprojections(
 \arguments{
 \item{config}{scenario-wise parameter configuration}
 
-\item{pfu}{data.frame final and useful energy data}
+\item{fe}{data.frame final energy data}
 
 \item{hddcdd}{historical and future HDD's/CDD's}
 
