@@ -20,8 +20,13 @@
 #'
 #' @author Hagen Tockhorn
 #'
-#' @importFrom dplyr filter mutate %>% .data
+#' @importFrom dplyr filter mutate group_by ungroup pull
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data
 #' @importFrom quitte getRegs getScenarios
+#' @importFrom stats predict
+#' @importFrom utils setNames
+#' @importFrom lazyeval interp
 
 makeScenarioProjections <- function(data,
                                     fitModel,

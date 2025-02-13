@@ -14,10 +14,13 @@
 #'
 #' @author Hagen Tockhorn
 #'
-#' @importFrom dplyr filter mutate group_by ungroup left_join case_when cur_data group_modify
-#' @importFrom stats formula
+#' @importFrom dplyr filter mutate group_by ungroup left_join case_when cur_data 
+#'             group_modify select across all_of
+#' @importFrom stats formula predict coef
 #' @importFrom data.table :=
 #' @importFrom quitte getPeriods interpolate_missing_periods
+#' @importFrom rlang .data !!
+#' @importFrom base unique setdiff names stop paste all any is.na
 
 fillHistoricalData <- function(data, estimate, var, periodBegin, endOfHistory) {
 

@@ -23,11 +23,17 @@
 #'
 #' @author Antoine Levesque, Hagen Tockhorn
 #'
-#' @importFrom quitte mutate_text
-#' @importFrom dplyr rename_ select if_else case_when cur_data
-#' @importFrom tidyselect any_of
-#' @importFrom stats lm nls coef
-#' @importFrom rlang parse_expr sym
+#' @importFrom dplyr group_by filter ungroup mutate select left_join rename 
+#'             mutate_ case_when cur_data across
+#' @importFrom tidyr fill spread gather pivot_longer
+#' @importFrom stats nls lm predict coef
+#' @importFrom rlang parse_expr sym .data
+#' @importFrom quitte as.quitte missingToNA mutate_text
+#' @importFrom tidyselect any_of all_of one_of
+#' @importFrom magrittr %>%
+#' @importFrom lazyeval interp
+#' @importFrom utils setNames
+#' @importFrom base invisible min pmax pmin rbind unique
 
 
 makeProjections <- function(df,
