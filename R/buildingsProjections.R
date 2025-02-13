@@ -71,9 +71,15 @@ buildingsProjections <- function(config,
   EJ2Wyr          <- EJ2KwH / (24 * 365) * 1e3
   # nolint end
 
+  # lower temporal threshold of historic data
+  periodBegin <- config[scen, "periodBegin"] %>%
+    unlist()
+
+
   # upper temporal threshold of historic data
   endOfHistory <- config[scen, "endOfHistory"] %>%
     unlist()
+
 
   # enduses
   enduses <- c("space_heating",
@@ -174,9 +180,10 @@ buildingsProjections <- function(config,
     missingToNA()
 
 
+
   #--- Make Projections --------------------------------------------------------
 
-  # standardize missing column entries
+  # bind all relevant data
   df <- rbind(gdppop, pop, hddcdd, ue, floor, uvalue) %>%
     filter(.data[["period"]] <= 2100) %>%
     missingToNA()
@@ -239,7 +246,9 @@ buildingsProjections <- function(config,
                         lambda = lambdaDifferentiated["space_heating_m2_Uval"][[1]],
                         lambdaDelta = lambdaDelta,
                         convReg = "proportion",
-                        outliers = c("RUS", "FIN"))
+                        outliers = c("RUS", "FIN"),
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
   df <- makeProjections(df,
                         formul = as.formula("appliances_light_elas ~ I(gdppop^(-1/2))"),
@@ -249,7 +258,9 @@ buildingsProjections <- function(config,
                         apply0toNeg = FALSE,
                         transformVariableScen = c("exp(VAR +  0.3*log(gdppop)) *1e3",
                                                   unit = "Appliances and Light Demand [GJ/cap]"),
-                        applyScenFactor = TRUE)
+                        applyScenFactor = TRUE,
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
   df <- makeProjections(df,
                         formul = as.formula("water_heating_pop ~ SSlogis(gdppop, Asym,phi2,phi3)"),
@@ -258,14 +269,18 @@ buildingsProjections <- function(config,
                         lambdaDelta = lambdaDelta,
                         maxReg = 7,
                         outliers = c("RUS", eurCountries),
-                        avoidLowValues = TRUE)
+                        avoidLowValues = TRUE,
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
   df <- makeProjections(df,
                         formul = as.formula("cooking_pop ~ 1"),
                         scenAssump = scenAssump,
                         lambda = lambdaDifferentiated["cooking_pop"][[1]],
                         lambdaDelta = lambdaDelta,
-                        outliers = eurCountries)
+                        outliers = eurCountries,
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
   df <- makeProjections(df,
                         formul = as.formula("space_cooling_m2_CDD_Uval ~ SSlogis(gdppop, Asym,phi2,phi3)"),
@@ -273,7 +288,9 @@ buildingsProjections <- function(config,
                         lambda = lambdaDifferentiated["space_cooling_m2_CDD_Uval"][[1]],
                         lambdaDelta = lambdaDelta,
                         outliers = c("RUS", "EUR", "OCD", setdiff(eurCountries, c("ESP", "PRT", "GRC", "ITA"))),
-                        avoidLowValues = TRUE)
+                        avoidLowValues = TRUE,
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
 
   # correct short- to midterm space heating adoption activity

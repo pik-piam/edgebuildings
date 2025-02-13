@@ -19,6 +19,7 @@ makeProjections(
   convReg = "absolute",
   avoidLowValues = FALSE,
   endOfHistory = 2025,
+  periodBegin = 1990,
   interpolate = TRUE,
   initCorrection = NULL,
   replacePars = FALSE
@@ -51,7 +52,9 @@ makeProjections(
 
 \item{avoidLowValues}{\code{logical} Prevent projections falling below initial/final values (default FALSE)}
 
-\item{endOfHistory}{\code{numeric} Last year of historical data (default 2020)}
+\item{endOfHistory}{\code{numeric} Last year of historical data}
+
+\item{periodBegin}{\code{numeric} First year of historical data}
 
 \item{interpolate}{\code{logical} Use all historical points vs only latest (default TRUE)}
 

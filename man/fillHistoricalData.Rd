@@ -4,16 +4,18 @@
 \alias{fillHistoricalData}
 \title{Fill Historical Data Gaps Using Model Predictions}
 \usage{
-fillHistoricalData(data, estimate, endOfHistory, var)
+fillHistoricalData(data, estimate, var, periodBegin, endOfHistory)
 }
 \arguments{
 \item{data}{\code{data.frame} Input data frame containing historical data on}
 
 \item{estimate}{\code{nls/lm} Fitted model object}
 
-\item{endOfHistory}{\code{numeric} Last year of historical data}
-
 \item{var}{\code{character} Name of the target variable}
+
+\item{periodBegin}{\code{numeric} first year of historical data}
+
+\item{endOfHistory}{\code{numeric} Last year of historical data}
 }
 \value{
 \code{data.frame} Historical data with gaps filled using corrected predictions

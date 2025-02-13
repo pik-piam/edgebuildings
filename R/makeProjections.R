@@ -13,7 +13,8 @@
 #' @param applyScenFactor \code{logical} Apply scenario scaling factor (default FALSE)
 #' @param convReg \code{character} Convergence type: "absolute" for value differences or "proportion" for ratios
 #' @param avoidLowValues \code{logical} Prevent projections falling below initial/final values (default FALSE)
-#' @param endOfHistory \code{numeric} Last year of historical data (default 2020)
+#' @param endOfHistory \code{numeric} Last year of historical data
+#' @param periodBegin \code{numeric} First year of historical data
 #' @param interpolate \code{logical} Use all historical points vs only latest (default TRUE)
 #' @param initCorrection \code{data.frame} Corrected parameters for non-scenario projections (optional)
 #' @param replacePars \code{logical} Replace fit parameters with scenario assumptions (optional)
@@ -43,6 +44,7 @@ makeProjections <- function(df,
                             convReg = "absolute",
                             avoidLowValues = FALSE,
                             endOfHistory = 2025,
+                            periodBegin = 1990,
                             interpolate = TRUE,
                             initCorrection = NULL,
                             replacePars = FALSE) {
@@ -178,8 +180,9 @@ makeProjections <- function(df,
   # Fill missing gaps in historical data
   historicalData <- fillHistoricalData(data         = fullData,
                                        estimate     = estimate,
-                                       endOfHistory = endOfHistory,
-                                       var          = lhs)
+                                       var          = lhs,
+                                       periodBegin  = periodBegin,
+                                       endOfHistory = endOfHistory)
 
   # Make predictions with global fit
   historicalData$prediction <- predict(estimate, newdata = historicalData)

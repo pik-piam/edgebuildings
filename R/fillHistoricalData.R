@@ -6,8 +6,9 @@
 #'
 #' @param data \code{data.frame} Input data frame containing historical data on
 #' @param estimate \code{nls/lm} Fitted model object
-#' @param endOfHistory \code{numeric} Last year of historical data
 #' @param var \code{character} Name of the target variable
+#' @param periodBegin \code{numeric} first year of historical data
+#' @param endOfHistory \code{numeric} Last year of historical data
 #'
 #' @return \code{data.frame} Historical data with gaps filled using corrected predictions
 #'
@@ -15,13 +16,28 @@
 #'
 #' @importFrom dplyr filter mutate group_by ungroup left_join case_when cur_data group_modify
 #' @importFrom stats formula
+#' @importFrom data.table :=
+#' @importFrom quitte getPeriods interpolate_missing_periods
 
-fillHistoricalData <- function(data, estimate, endOfHistory, var) {
+fillHistoricalData <- function(data, estimate, var, periodBegin, endOfHistory) {
+
+  # Truncate data set
+  data <- data %>%
+    filter(.data[["period"]] <= endOfHistory,
+           .data[["period"]] >= periodBegin)
+
+  # Fill missing periods if necessary
+  if (!endOfHistory %in% getPeriods(data)) {
+    data <- data %>%
+      interpolate_missing_periods(seq(periodBegin, endOfHistory), value = var)
+  }
+
 
   # Extract dependent & independent variable from formula
   formula <- formula(estimate)
   dependentVar <- all.vars(formula[[2]])
   independentVar <- setdiff(all.vars(formula), c(dependentVar, names(coef(estimate))))
+
 
   # Check if all relevant variables exist within the data
   requiredVars <- unique(c("region", "period", dependentVar, independentVar))
@@ -33,14 +49,12 @@ fillHistoricalData <- function(data, estimate, endOfHistory, var) {
 
   # Create complete historical template
   historicalTemplate <- data %>%
-    filter(.data[["period"]] <= endOfHistory) %>%
     select("region", "period") %>%
     unique()
 
 
   # Calculate and interpolate correction factors
   correctionFactors <- data %>%
-    filter(.data[["period"]] <= endOfHistory) %>%
     mutate(prediction = predict(estimate, newdata = cur_data()),
            correctionFactor = .data[[var]] / .data[["prediction"]]) %>%
     # Get correction factors per region
@@ -52,28 +66,33 @@ fillHistoricalData <- function(data, estimate, endOfHistory, var) {
 
   # Fill historical data with corrected regression predictions
   historicalFilled <- historicalTemplate %>%
-    left_join(data %>% filter(.data[["period"]] <= endOfHistory),
-              by = c("region", "period")) %>%
+    left_join(data, by = c("region", "period")) %>%
     left_join(correctionFactors, by = c("region", "period", "scenario")) %>%
 
     # make predictions
     mutate(prediction = predict(estimate, newdata = cur_data())) %>%
 
-    # fill up missing data points
+    # Check if region has any non-NA values but not all values are NA
     group_by(across(all_of("region"))) %>%
-    mutate(
-      # Check if region has any non-NA values but not all values are NA
-      hasPartialData = any(!is.na(.data[[var]])) && !all(is.na(.data[[var]])),
+    mutate(hasPartialData = any(!is.na(.data[[var]])) && !all(is.na(.data[[var]]))) %>%
+    ungroup() %>%
 
+    # fill up missing data points
+    mutate(
       # Apply corrections following the three-tier logic:
+      #   1. Original data if exists
+      #   2. Corrected prediction if partial data is there
+      #   3. Uncorrected prediction if no historical data
       !!var := case_when(
-        !is.na(.data[[var]])   ~ .data[[var]],                   # 1. Use original if exists
-        isTRUE(hasPartialData) ~ prediction * correctionFactor,  # 2. Use corrected prediction if partial data
-        TRUE                   ~ prediction                      # 3. Use uncorrected prediction if no historical data
+        !is.na(.data[[var]])      ~ .data[[var]],
+        .data[["hasPartialData"]] ~ .data[["prediction"]] * .data[["correctionFactor"]],
+        TRUE                      ~ .data[["prediction"]]
       )
     ) %>%
-    ungroup() %>%
-    select(-c("correctionFactor", "prediction", "hasPartialData"))
+    select(-c("correctionFactor", "prediction", "hasPartialData")) %>%
+
+    # label as history
+    mutate(scenario = "history")
 
   return(historicalFilled)
 }
