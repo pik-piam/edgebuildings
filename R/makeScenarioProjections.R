@@ -20,8 +20,7 @@
 #'
 #' @author Hagen Tockhorn
 #'
-#' @importFrom dplyr filter mutate %>%
-#' @importFrom rlang .data
+#' @importFrom dplyr filter mutate %>% .data
 #' @importFrom quitte getRegs getScenarios
 
 makeScenarioProjections <- function(data,

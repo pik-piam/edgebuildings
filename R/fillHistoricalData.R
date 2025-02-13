@@ -86,7 +86,7 @@ fillHistoricalData <- function(data, estimate, var, periodBegin, endOfHistory) {
       !!var := case_when(
         !is.na(.data[[var]])      ~ .data[[var]],
         .data[["hasPartialData"]] ~ .data[["prediction"]] * .data[["correctionFactor"]],
-        TRUE                      ~ .data[["prediction"]]
+        .default                  = .data[["prediction"]]
       )
     ) %>%
     select(-c("correctionFactor", "prediction", "hasPartialData")) %>%
