@@ -175,7 +175,6 @@ buildingsProjections <- function(config,
     reframe(value = sum(.data[["value"]], na.rm = TRUE)) %>%
     ungroup() %>%
     rename("variable" = "enduse") %>%
-    as.data.frame() %>%
     as.quitte() %>%
     missingToNA()
 

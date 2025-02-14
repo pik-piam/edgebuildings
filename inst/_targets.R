@@ -217,7 +217,7 @@ list(
   # efficiency corrections
   tar_target(
     correctEfficiencies,
-    read.csv(correctEfficiencies.csv, stringsAsFactors = F)
+    read.csv(correctEfficiencies.csv, stringsAsFactors = FALSE)
   ),
 
 
@@ -232,11 +232,12 @@ list(
       cols <- c("period", "region", "variable", "value")
       file <- surface.cs4r
 
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = F) %>%
+      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
         mutate(value = as.numeric(.data[["value"]])) %>%
         dplyr::select(-"period") %>%
         mutate(variable = "surface")
-    }),
+    }
+  ),
 
   # floor
   tar_target(
@@ -245,7 +246,7 @@ list(
       cols <- c("period", "region", "value")
       file <- floorspacePast.cs4r
 
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = F) %>%
+      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
         mutate(value = as.numeric(.data[["value"]]),
                variable = "m2cap",
                scenario = "history")
@@ -259,7 +260,7 @@ list(
       cols <- c("period", "region", "scenario", "unit", "enduse", "carrier", "value")
       file <- fe.cs4r
 
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = F) %>%
+      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
         mutate(value = as.numeric(.data[["value"]]),
                scenario = "history") %>%
         as.quitte()
@@ -285,7 +286,7 @@ list(
       cols <- c("carrier", "enduse", "variable", "value")
       file <- feueEffPars.cs4r
 
-      read.csv2(file, skip = skiprow(file), sep = ",", header = F, col.names = cols) %>%
+      read.csv2(file, skip = skiprow(file), sep = ",", header = FALSE, col.names = cols) %>%
         mutate(value = as.numeric(.data[["value"]]))
     }
   ),
@@ -310,7 +311,7 @@ list(
     {
       cols <- c("period", "region", "variable", "value")
       file <- uvaluesResCom.cs4r
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = F) %>%
+      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
         mutate(value = as.numeric(.data[["value"]]))
     }
   ),
@@ -320,7 +321,7 @@ list(
     {
       cols <- c("region", "variable", "value")
       file <- uvaluesETSAP.cs4r
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = F) %>%
+      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
         mutate(value = as.numeric(.data[["value"]]))
     }
   ),
@@ -345,7 +346,8 @@ list(
       read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols) %>%
         mutate(value = as.numeric(.data[["value"]]), variable = "pop") %>%
         dplyr::relocate("variable", .after = "scenario")
-    }),
+    }
+  ),
 
   # gdp
   tar_target(
@@ -357,7 +359,8 @@ list(
       read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols) %>%
         mutate(value = as.numeric(.data[["value"]]), variable = "gdp") %>%
         dplyr::relocate("variable", .after = "scenario")
-    }),
+    }
+  ),
 
   # population density
   tar_target(
@@ -400,7 +403,8 @@ list(
 
   # gdppop
   tar_target(
-    gdppop,{
+    gdppop,
+    {
       getGDPpop(pop = pop %>%
                   filter(scenario == config[, "popScen"]),
                 gdp = gdp %>%
@@ -424,7 +428,8 @@ list(
                               gdppop = gdppop,
                               pop = pop,
                               floor0 = floor0,
-                              regionalmap = regionmap)},
+                              regionalmap = regionmap)
+    },
     pattern = map(config),
     iteration = "vector"
   ),
@@ -439,7 +444,8 @@ list(
                               gdppop = gdppop,
                               pop = pop,
                               floor0 = floor0,
-                              regionalmap = regionmap)},
+                              regionalmap = regionmap)
+    },
     pattern = map(config),
     iteration = "vector"
   ),
@@ -524,11 +530,11 @@ list(
     feueEfficiencies,
     {
       getEfficiencies(config = config,
-                          histEfficiencies = feueEffHist,
-                          gdppop = gdppop,
-                          scenAssump = scenAssump,
-                          scenAssumpSpeed = scenAssumpSpeed,
-                          regPars = feueEffPars)
+                      histEfficiencies = feueEffHist,
+                      gdppop = gdppop,
+                      scenAssump = scenAssump,
+                      scenAssumpSpeed = scenAssumpSpeed,
+                      regPars = feueEffPars)
     },
     pattern = map(config),
     iteration = "vector"
@@ -553,8 +559,7 @@ list(
                            scenAssump = scenAssump,
                            scenAssumpSpeed = scenAssumpSpeed,
                            scenAssumpCorrect = scenAssumpCorrect,
-                           outputDir = output
-      )
+                           outputDir = output)
     },
     pattern = map(config),
     iteration = "vector"

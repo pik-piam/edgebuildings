@@ -28,12 +28,11 @@
 #' De Stercke, S. (2014). Dynamics of Energy Systems: A Useful Perspective
 #' (Interim Report, p. 68). IIASA. http://pure.iiasa.ac.at/id/eprint/11254/1/IR-14-013.pdf
 #'
-#' @importFrom dplyr filter mutate select bind_rows separate unite ungroup
-#' @importFrom tidyr pivot_wider unite separate
+#' @importFrom dplyr filter mutate select bind_rows ungroup
+#' @importFrom tidyr pivot_wider unite separate separate unite
 #' @importFrom magrittr %>%
 #' @importFrom stats as.formula
 #' @importFrom rlang .data
-#' @importFrom base unique unlist ifelse lapply do.call rbind paste0
 #' @importFrom quitte getPeriods
 
 getEfficiencies <- function(config,
@@ -90,7 +89,9 @@ getEfficiencies <- function(config,
 
 
   # calculate temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = periodBegin)
+  lambda <- compLambdaScen(scenAssumpSpeed,
+                           startYearVector = periodBegin,
+                           startPolicyYear = endOfHistory)
 
   # calculate temporal convergence shares for deviations (delta)
   lambdaDelta <- compLambdaScen(scenAssumpSpeed,

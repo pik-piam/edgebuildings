@@ -23,17 +23,14 @@
 #'
 #' @author Antoine Levesque, Hagen Tockhorn
 #'
-#' @importFrom dplyr group_by filter ungroup mutate select left_join rename 
-#'             mutate_ case_when cur_data across
+#' @importFrom dplyr group_by filter ungroup mutate select left_join rename
+#'             mutate_ case_when across slice_max
 #' @importFrom tidyr fill spread gather pivot_longer
 #' @importFrom stats nls lm predict coef
 #' @importFrom rlang parse_expr sym .data
-#' @importFrom quitte as.quitte missingToNA mutate_text
+#' @importFrom quitte as.quitte mutate_text
 #' @importFrom tidyselect any_of all_of one_of
 #' @importFrom magrittr %>%
-#' @importFrom lazyeval interp
-#' @importFrom utils setNames
-#' @importFrom base invisible min pmax pmin rbind unique
 
 
 makeProjections <- function(df,
@@ -54,15 +51,6 @@ makeProjections <- function(df,
                             interpolate = TRUE,
                             initCorrection = NULL,
                             replacePars = FALSE) {
-
-  # FUNCTIONS-------------------------------------------------------------------
-
-  # transform variables
-  transVar <- function(dfTrans, form, var) {
-    form <- gsub("VAR", var, form)
-    return(dfTrans %>% mutate_(.dots = setNames(list(interp((form))), var)))
-  }
-
 
 
   # PARAMETERS------------------------------------------------------------------
@@ -88,14 +76,14 @@ makeProjections <- function(df,
   # Prepare data by removing NAs and extracting variables needed for formula
   fullData <- df %>%
     mutate(unit = NA) %>%
-    removeColNa() %>%
     filter(.data[["variable"]] %in% all.vars(formul)) %>%
     spread(key = "variable", value = "value")
 
   # Split historical and projection data
   historicalData <- fullData %>%
     filter(.data[["period"]] <= endOfHistory) %>%
-    filter(!is.na(.data[[lhs]]))
+    filter(!is.na(.data[[lhs]])) %>%
+    removeColNa()
 
   # For projection: if no RHS variables, use unique combinations, otherwise use full data
   projectionData <- if (length(rhs) == 0) {
@@ -108,7 +96,8 @@ makeProjections <- function(df,
 
   # Filter to relevant projection periods
   projectionData <- projectionData %>%
-    filter(.data[["period"]] %in% getPeriods(lambda))
+    filter(.data[["period"]] %in% getPeriods(lambda)) %>%
+    filter(.data[["period"]] > endOfHistory)
 
 
 
@@ -166,13 +155,13 @@ makeProjections <- function(df,
 
 
   # Projections with scenario-specific assumptions
-  projectionData <- makeScenarioProjections(data = projectionData,
-                                            fitModel = estimate,
-                                            scenAssump,
-                                            lhs,
-                                            transformVariableScen,
-                                            applyScenFactor,
-                                            replacePars)
+  projectionData <- .makeScenarioProjections(data                  = projectionData,
+                                             fitModel              = estimate,
+                                             scenAssump            = scenAssump,
+                                             lhs                   = lhs,
+                                             transformVariableScen = transformVariableScen,
+                                             applyScenFactor       = applyScenFactor,
+                                             replacePars           = replacePars)
 
 
   # Merge scenario projections with regression projections
@@ -183,74 +172,60 @@ makeProjections <- function(df,
     select(-c("lambda", "fullconv"))
 
 
-  # Fill missing gaps in historical data
-  historicalData <- fillHistoricalData(data         = fullData,
-                                       estimate     = estimate,
-                                       var          = lhs,
-                                       periodBegin  = periodBegin,
-                                       endOfHistory = endOfHistory)
 
-  # Make predictions with global fit
-  historicalData$prediction <- predict(estimate, newdata = historicalData)
+  #--- Fill historical data
+
+  # Fill missing gaps in historical data
+  historicalData <- .fillHistoricalData(data                  = fullData,
+                                        estimate              = estimate,
+                                        var                   = lhs,
+                                        periodBegin           = periodBegin,
+                                        endOfHistory          = endOfHistory,
+                                        convReg               = convReg,
+                                        transformVariable     = transformVariable,
+                                        transformVariableScen = transformVariableScen)
+
 
 
   #--- Post-processing transformations
 
   # Apply variable transformations if specified
   if (!is.null(transformVariable)) {
-    for (col in c(lhs, "prediction")) {
-      historicalData <- transVar(historicalData, transformVariable, col)
-    }
     for (col in c("projectionReg", "projectionScen", "projection")) {
-      projectionData <- transVar(projectionData, transformVariable, col)
-    }
-  } else if (!is.null(transformVariableScen)) {
-    for (col in c("prediction", lhs)) {
-      historicalData <- transVar(historicalData, transformVariableScen, col)
+      projectionData <- .transVar(projectionData, transformVariable, col)
     }
   }
+
 
 
   #--- Smooth out transition between history and projections (aka minimize deltas)
 
-  # Set up delta calculation based on convergence type
-  if (convReg == "absolute") {
-    deltaFormula           <- paste0("delta = -prediction + ", lhs)
-    projectionFinalFormula <- "projectionFinal = projection + deltaFinal"
-    deltaGlobalTarget      <- 0
-  } else if (convReg == "proportion") {
-    deltaFormula           <- paste0("delta = (1/prediction) * ", lhs)
-    projectionFinalFormula <- "projectionFinal = projection * deltaFinal"
-    deltaGlobalTarget      <- 1
-  } else {
-    stop("convReg must be in c('absolute','proportion')")
-  }
+  # Get correction formulas to smooth deviations (delta) between empirical data and projections
+  deltaFormulas <- .getDeltaFormulas(lhs = lhs, convReg = convReg, deltaTarget = TRUE)
 
-  deltaFinal <- "deltaFinal = deltaTarget * lambda + delta * (1 - lambda)"
-
-
+  # Obtain deltas from last historical data point
   projectionDeltas <- historicalData %>%
-    # filter last historical data point
-    filter(.data[["period"]] == endOfHistory) %>%
-
-    # determine deviation between projections and last historical point
-    mutate_text(deltaFormula) %>%
+    group_by(across(all_of("region"))) %>%
+    filter(!is.na(.data[["delta"]])) %>%
+    slice_max(.data[["period"]], n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
     select("region", "delta")
 
 
+  # correct scenario projections
   projectionData <- projectionData %>%
     # join relevant data
     left_join(projectionDeltas, by = "region") %>%
     left_join(lambdaDelta, by = c("region", "period", "scenario")) %>%
 
     # define lambda target value
-    mutate(deltaTarget = deltaGlobalTarget) %>%
+    mutate(deltaTarget = deltaFormulas[["deltaGlobalTarget"]]) %>%
 
     # determine progression of delta values with transition factors lambda
-    mutate_text(deltaFinal) %>%
+    mutate_text(deltaFormulas[["deltaFinal"]]) %>%
 
     # correct projections w/ appropriate deltas
-    mutate_text(projectionFinalFormula) %>%
+    mutate_text(deltaFormulas[["projectionFinalFormula"]]) %>%
 
     # clean up
     select(-c("fullconv", "lambda"))
@@ -282,6 +257,7 @@ makeProjections <- function(df,
 
     projectionData <- rbind(projectionOutliers, projectionNonOutliers)
   }
+
 
 
   #--- Final value adjustments
@@ -327,28 +303,34 @@ makeProjections <- function(df,
   }
 
 
-  # Prepare historical data for output
-  historicalData <- historicalData %>%
-    pivot_longer(cols = all_of(lhs), names_to = "variable", values_to = "value") %>%
-    select("region", "period", "scenario", "variable", "value")
+
+  #--- Merge existing historical data with projections
+
+  keepColumns <- c(intersect(cols, colnames(projectionData)), lhs, "projectionFinal")
+
+  # If length(rhs) == 0, projectionData has no lhs column, so we add this as NAs
+  if (!lhs %in% colnames(projectionData)) projectionData[lhs] <- NA
+
+  # Final dataset with (filled/existing) historical data and scenario projections
+  combinedData <- rbind(historicalData %>%
+                          select(one_of(keepColumns)),
+                        projectionData %>%
+                          select(one_of(keepColumns)))
+
+
+  # Combine existing data with projections
+  finalProjections <- combinedData %>%
+    mutate(!!lhs := ifelse(is.na(.data[[lhs]]),
+                           .data[["projectionFinal"]],
+                           .data[[lhs]])) %>%
+    select(-"projectionFinal") %>%
+    gather("variable", "value", one_of(lhs))
 
 
 
   # OUTPUT----------------------------------------------------------------------
 
-  keepColumns <- c(intersect(cols, colnames(projectionData)), "projectionFinal")
-
-  # Final dataset with (filled/existing) historical data and scenario projections
-  finalProjections <- projectionData %>%
-    # add projections
-    select(one_of(keepColumns)) %>%
-    rename(!!sym(lhs) := "projectionFinal") %>%
-    gather("variable", "value", one_of(lhs)) %>%
-    filter(.data[["period"]] > endOfHistory) %>%
-
-    # add filled historical data
-    rbind(historicalData) %>%
-
+  finalProjections <- finalProjections %>%
     as.quitte() %>%
     missingToNA()
 
@@ -359,4 +341,295 @@ makeProjections <- function(df,
                 as.quitte())
 
   return(df)
+}
+
+
+
+
+#' Transform Variables in a Data Frame
+#'
+#' This function applies a transformation to a specified variable in a data frame.
+#'
+#' @param dfTrans \code{data.frame} A data frame containing the variable to be transformed.
+#' @param form \code{character} A string representing the transformation formula.
+#' @param var \code{character} The name of the variable to be transformed.
+#'
+#' @return \code{data.frame} A data frame with the transformed variable.
+#'
+#' @importFrom dplyr mutate_
+#' @importFrom lazyeval interp
+
+.transVar <- function(dfTrans, form, var) {
+  form <- gsub("VAR", var, form)
+  return(dfTrans %>% mutate_(.dots = setNames(list(interp((form))), var)))
+}
+
+
+
+
+#' Generate Delta Formulas
+#'
+#' This function generates a list of formulas for calculating deltas and projections
+#' based on the specified conversion regime.
+#'
+#' @param lhs \code{character} A character string representing the left-hand side of the delta formula.
+#' @param convReg \code{character} A character string specifying the conversion regime.
+#' @param deltaTarget \code{logical} Indicate whether to use a target for the delta calculation..
+#'
+#' @return \code{list} A list of formulas for calculating deltas and projections.
+
+.getDeltaFormulas <- function(lhs,
+                              convReg = "absolute",
+                              deltaTarget = TRUE) {
+  if (convReg == "absolute") {
+    formulas <- list(
+      deltaFormula           = paste0("delta = -projection + ", lhs),
+      projectionFinalFormula = "projectionFinal = projection + deltaFinal",
+      deltaGlobalTarget      = 0
+    )
+  } else if (convReg == "proportion") {
+    formulas <- list(
+      deltaFormula           = paste0("delta = (1/projection) * ", lhs),
+      projectionFinalFormula = "projectionFinal = projection * deltaFinal",
+      deltaGlobalTarget      = 1
+    )
+  } else {
+    stop("convReg must be in c('absolute','proportion')")
+  }
+
+  formulas$deltaFinal <- if (isTRUE(deltaTarget)) {
+    "deltaFinal = deltaTarget * lambda + delta * (1 - lambda)"
+  } else {
+    "deltaFinal = delta"
+  }
+
+  return(formulas)
+}
+
+
+
+
+#' Fill Historical Data Gaps Using Model Projections
+#'
+#' Fills gaps in the historical data of a single specified variable using model projections,
+#' based on an estimate from a former regression. The data set must include the necessary variables
+#' to ensure accurate estimation and correction.
+#'
+#' @param data \code{data.frame} Input data frame containing historical data on
+#' @param estimate \code{nls/lm} Fitted model object
+#' @param var \code{character} Name of the target variable
+#' @param periodBegin \code{numeric} first year of historical data
+#' @param endOfHistory \code{numeric} Last year of historical data
+#' @param convReg \code{character} Convergence type: "absolute" for value differences or "proportion" for ratios
+#' @param transformVariable \code{character} Variable transformation to apply (optional)
+#' @param transformVariableScen \code{character} Scenario-specific variable transformation (optional)
+#'
+#' @return \code{data.frame} Historical data with gaps filled using corrected projections
+#'
+#' @author Hagen Tockhorn
+#'
+#' @importFrom dplyr filter mutate group_by ungroup left_join case_when
+#'             group_modify select across all_of arrange
+#' @importFrom tidyr fill
+#' @importFrom stats formula predict coef
+#' @importFrom data.table :=
+#' @importFrom quitte getPeriods interpolate_missing_periods
+#' @importFrom rlang .data !!
+
+.fillHistoricalData <- function(data,
+                                estimate,
+                                var,
+                                periodBegin,
+                                endOfHistory,
+                                convReg = "absolute",
+                                transformVariable     = NULL,
+                                transformVariableScen = NULL) {
+
+  # Truncate data set
+  data <- data %>%
+    filter(.data[["period"]] <= endOfHistory,
+           .data[["period"]] >= periodBegin)
+
+  # Fill missing periods if necessary
+  if (!endOfHistory %in% getPeriods(data)) {
+    data <- data %>%
+      interpolate_missing_periods(seq(periodBegin, endOfHistory), value = var)
+  }
+
+
+  # Extract dependent & independent variable from formula
+  formula <- formula(estimate)
+  dependentVar <- all.vars(formula[[2]])
+  independentVar <- setdiff(all.vars(formula), c(dependentVar, names(coef(estimate))))
+
+
+  # Check if all relevant variables exist within the data
+  requiredVars <- unique(c("region", "period", dependentVar, independentVar))
+
+  if (!all(requiredVars %in% names(data))) {
+    stop("The dataset must contain the necessary variables: ", paste(requiredVars, collapse = ", "), ".")
+  }
+
+
+  # Make projection with global fit
+  data$projection <- predict(estimate, newdata = data)
+
+
+  # Apply variable transformations if specified
+  if (!is.null(transformVariable)) {
+    for (col in c(var, "projection")) {
+      data <- .transVar(data, transformVariable, col)
+    }
+  } else if (!is.null(transformVariableScen)) {
+    for (col in c(var, "projection")) {
+      data <- .transVar(data, transformVariableScen, col)
+    }
+  }
+
+
+  # Get correction formulas to smooth deviations (delta) between empirical data and projections
+  deltaFormulas <- .getDeltaFormulas(lhs = var, convReg = convReg, deltaTarget = FALSE)
+
+
+  # Calculate deltas and correct projections
+  historicalFilled <- data %>%
+
+    # calculate delta
+    mutate_text(deltaFormulas[["deltaFormula"]]) %>%
+    mutate_text(deltaFormulas[["deltaFinal"]]) %>%
+
+    # continue delta of last historical data point
+    group_by(across(all_of("region"))) %>%
+    arrange(.data[["period"]]) %>%
+    fill(.data[["deltaFinal"]], .direction = "down") %>%
+    ungroup() %>%
+
+    # make final projections
+    mutate_text(deltaFormulas[["projectionFinalFormula"]]) %>%
+
+    # label as history
+    mutate(scenario = "history") %>%
+
+    # keep the "delta" and "projection" column
+    select(-"deltaFinal")
+
+
+  return(historicalFilled)
+}
+
+
+
+
+#' Generate Scenario-Specific Projections
+#'
+#' Generates projections for multiple scenarios and regions, applying scenario-specific
+#' parameter corrections. The function requires baseline projections (projectionReg)
+#' that were generated using the original, uncorrected model fit.
+#'
+#' @param data \code{data.frame} Base projection data for all scenarios and regions.
+#'        Must contain column 'projectionReg' with baseline projections from the
+#'        uncorrected model fit, as well as columns 'scenario' and 'region'
+#' @param fitModel \code{nls/lm} Fitted model object of class 'nls' or 'lm'
+#' @param scenAssump \code{data.frame} Scenario-specific assumptions for parameter corrections
+#' @param lhs \code{character} Left-hand side variable name from model
+#' @param transformVariableScen \code{character} Optional scenario-specific variable transformation
+#' @param applyScenFactor \code{logical} Whether to apply scenario scaling factors (default FALSE)
+#' @param replacePars \code{logical} Replace parameters with scenario values vs scaling (default FALSE)
+#'
+#' @return \code{data.frame} Combined scenario projections with column 'projectionScen'
+#'         containing the scenario-specific projections. The original baseline projections
+#'         remain in column 'projectionReg'
+#'
+#' @author Hagen Tockhorn
+#'
+#' @importFrom dplyr filter mutate group_by ungroup pull
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data
+#' @importFrom quitte getRegs getScenarios
+#' @importFrom stats predict
+#' @importFrom lazyeval interp
+
+.makeScenarioProjections <- function(data,
+                                     fitModel,
+                                     scenAssump,
+                                     lhs,
+                                     transformVariableScen = NULL,
+                                     applyScenFactor = FALSE,
+                                     replacePars = FALSE) {
+
+  # PROCESS DATA ---------------------------------------------------------------
+
+  # Generate projections for each scenario
+  projections <- do.call("rbind", lapply(getScenarios(data), function(scen) {
+
+    # Process each region within the scenario
+    scenarioResults <- do.call("rbind", lapply(getRegs(data), function(reg) {
+
+
+      # Extract scenario-specific variables from assumptions
+      scenarioVars <- grep(paste0(lhs, "_X_"), colnames(scenAssump), value = TRUE)
+      varNames <- gsub(paste0(lhs, "_X_"), "", scenarioVars)
+
+
+      # Filter data for current scenario and region
+      currentScenario <- data %>%
+        filter(.data[["scenario"]] == scen, .data[["region"]] == reg)
+
+
+      # copy fit model to prevent parameter mix-ups
+      currentFitModel <- fitModel
+
+
+      if (inherits(currentFitModel, "nls")) {
+        # Modify NLS parameters based on scenario assumptions
+        parameters <- currentFitModel$m$getPars()
+        formula    <- currentFitModel$m$formula()[[3L]]
+
+        for (var in varNames) {
+          correctionValue <- scenAssump %>%
+            filter(.data[["scenario"]] == scen, .data[["region"]] == reg) %>%
+            pull(paste0(lhs, "_X_", var))
+
+          if (replacePars) {
+            parameters[var] <- correctionValue
+          } else {
+            parameters[var] <- parameters[var] * correctionValue
+          }
+        }
+        currentScenario$projectionScen <- eval(formula, c(as.list(currentScenario), as.list(parameters)))
+      } else {
+        # Modify linear model coefficients based on scenario assumptions
+        for (var in varNames) {
+          correctionValue <- scenAssump %>%
+            filter(.data[["scenario"]] == scen, .data[["region"]] == reg) %>%
+            pull(paste0(lhs, "_X_", var))
+
+          if (replacePars) {
+            currentFitModel$coefficients[var] <- correctionValue
+          } else {
+            currentFitModel$coefficients[var] <- currentFitModel$coefficients[var] * correctionValue
+          }
+        }
+        currentScenario$projectionScen <- predict(currentFitModel, newdata = currentScenario)
+
+        # Apply scenario-specific transformations if specified
+        if (!is.null(transformVariableScen)) {
+          currentScenario <- .transVar(currentScenario, transformVariableScen, "projectionScen")
+          currentScenario <- .transVar(currentScenario, transformVariableScen, "projectionReg")
+        }
+
+        # Apply scenario factors if specified
+        if (applyScenFactor) {
+          scenFactor <- scenAssump %>%
+            filter(.data[["scenario"]] == scen, .data[["region"]] == reg) %>%
+            pull(paste0(lhs, "_FACTOR"))
+          currentScenario$projectionScen <- scenFactor * currentScenario$projectionReg
+        }
+      }
+      return(currentScenario)
+    }))
+    return(scenarioResults)
+  }))
+
+  return(projections)
 }
