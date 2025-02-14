@@ -33,7 +33,8 @@
 #'
 #' @return A data frame with adjusted space heating useful energy demand projections.
 #'
-#' @importFrom dplyr %>% filter select rename mutate arrange group_by ungroup left_join summarise across any_of
+#' @importFrom dplyr %>% filter select rename mutate arrange group_by ungroup left_join
+#' summarise across any_of if_else
 #' @importFrom tidyr pivot_wider pivot_longer
 #' @importFrom stats lm coef predict
 #' @importFrom quitte getPeriods getRegs as.quitte
