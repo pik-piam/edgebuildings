@@ -31,7 +31,7 @@ getGDP <- function(config,
 
   # gdp
   gdp <- gdp %>%
-    filter(.data[["scenario"]] == config[scen, "gdpScen"])
+    filter(.data[["scenario"]] == sub("_boost", "", config[scen, "gdpScen"]))
 
   # gdpBoost
   gdpBoost <- config[scen, "gdpBoost"]
@@ -50,9 +50,9 @@ getGDP <- function(config,
     rename(boost = "value")
 
 
-  # GDP boost for SDP scenarios
-  if (grepl("SDP", scen)) {
-    #nolint start
+  # GDP boost if not zero for any region
+  if (any(gdpBoost[["boost"]] <= 0)) {
+
     # split time horizon into periods
     lambda <- data.frame(period = c(endOfHistory, 2030, 2055, 2100),
                          value = c(0, 1, 1, 0.25),
@@ -63,7 +63,8 @@ getGDP <- function(config,
     gdp <- gdp %>%
       left_join(gdpBoost, by = "region") %>%
       left_join(lambda, by = "period") %>%
-      mutate(value = .data[["value"]] * (1 + .data[["boost"]] * .data[["lambda"]])) %>%
+      mutate(value = .data[["value"]] * (1 + .data[["boost"]] * .data[["lambda"]]),
+             scenario = config[[scen, "gdpScen"]]) %>%
       select(-"boost", -"lambda")
   }
 

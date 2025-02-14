@@ -16,6 +16,14 @@
 
 getGDPpop <- function(pop, gdp, fulltime = FALSE) {
 
+  if (grepl("_boost", unique(gdp[["scenario"]]))) {
+    pop <- mutate(pop, scenario = paste0(.data[["scenario"]], "_boost"))
+  }
+
+  if (unique(gdp[["scenario"]]) != unique(pop[["scenario"]])) {
+    stop("Scenarios in gdp and pop do not match.")
+  }
+
   gdppop <- bind_rows(pop, gdp) %>%
     unique() %>%
     calc_addVariable(gdppop = "gdp / pop", only.new = TRUE) %>%

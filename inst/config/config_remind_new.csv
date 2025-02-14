@@ -1,11 +1,11 @@
 parameter;valueComment;SSP1;SSP2;SSP1_lowEn;SSP2IndiaHigh
 popScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
-gdpScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
+gdpScen;;SSP1;SSP2;SSP1_boost;SSP2IndiaHigh
 urbanisationScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
 densityScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
 floorScen;;SSP1;SSP2;SSP1;SSP2
 uvalueScen;;SSP1;SSP2;SSP1;SSP2
-gdppopScen;;SSP1;SSP2;SSP1;SSP2IndiaHigh
+gdppopScen;;SSP1;SSP2;SSP1_boost;SSP2IndiaHigh
 hddcddScen;;SSP1;SSP2;SSP1;SSP2
 rcpScen;;noCC;noCC;noCC;noCC
 tlimTarget_HDD;set point temperature target for space heating in degC;12;14;12;14
