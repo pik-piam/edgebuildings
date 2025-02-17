@@ -9,7 +9,7 @@ runEdgeBuildings(
   outputDir = "./output",
   reporting = NULL,
   madratDir = NULL,
-  inputdataRevision = "0.4.4",
+  inputdataRevision = "0.5",
   forceDownload = FALSE
 )
 }

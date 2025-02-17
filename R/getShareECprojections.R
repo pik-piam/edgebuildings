@@ -475,7 +475,7 @@ projectShares <- function(df, var, xTar, yTar, phaseoutYear, endOfHistory) {
   df <- rbind(data, dataHist, dataOuter) %>%
     filter(.data[["scenario"]] != "history") %>%
     gather("variable", "value", matches("^pred$")) %>%
-    select(one_of(colnames(df))) %>%
+    select(any_of(colnames(df))) %>%
     filter(!is.na(.data[["value"]])) %>%
     mutate(variable = var) %>%
     rbind(df)
