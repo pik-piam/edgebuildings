@@ -1,0 +1,4 @@
+variable;Asym;R0;lrc;phi3
+space_cooling.elec;3.10;0.50;-10.12663;NA
+water_heating.elec;1.5;NA;NA;NA
+space_heating.elec;1.5;NA;NA;NA

@@ -14,7 +14,7 @@
 #' @param pop historical and future population data
 #' @param gdppop historical and future gdp per capita
 #' @param uvalue historical and future building insulation values
-#' @param pfu historical final and useful energy data
+#' @param fe historical final and useful energy data
 #' @param feueEff historical and future FE->UE conversion efficiencies
 #' @param feSharesEC historical and future final energy carrier shares
 #' @param regionmap regional mapping
@@ -43,7 +43,7 @@ buildingsProjections <- function(config,
                                  pop,
                                  gdppop,
                                  uvalue,
-                                 pfu,
+                                 fe,
                                  feueEff,
                                  feSharesEC,
                                  regionmap,
@@ -71,9 +71,15 @@ buildingsProjections <- function(config,
   EJ2Wyr          <- EJ2KwH / (24 * 365) * 1e3
   # nolint end
 
+  # lower temporal threshold of historic data
+  periodBegin <- config[scen, "periodBegin"] %>%
+    unlist()
+
+
   # upper temporal threshold of historic data
   endOfHistory <- config[scen, "endOfHistory"] %>%
     unlist()
+
 
   # enduses
   enduses <- c("space_heating",
@@ -93,17 +99,6 @@ buildingsProjections <- function(config,
 
 
   # PRE-PROCESS DATA--------------------------------------------------------------
-
-  # aggregate fe/ue data to enduse resolution
-  pfu <- pfu %>%
-    filter(.data[["unit"]] == "ue") %>%
-    group_by(across(all_of(c("scenario", "region", "period", "enduse")))) %>%
-    reframe(value = sum(.data[["value"]], na.rm = TRUE)) %>%
-    ungroup() %>%
-    rename("variable" = "enduse") %>%
-    as.data.frame() %>%
-    as.quitte() %>%
-    missingToNA()
 
   # remove duplicate data
   floor <- unique(floor)
@@ -142,6 +137,7 @@ buildingsProjections <- function(config,
   # fe->ue efficiencies
   feueEff <- feueEff %>%
     filter(.data[["scenario"]] == scen) %>%
+    sepHistScen(endOfHistory = endOfHistory) %>%
     rename("efficiency" = "value") %>%
     removeColNa()
 
@@ -160,27 +156,34 @@ buildingsProjections <- function(config,
     filter(.data[["scenario"]] == scen)
 
   # temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = 2020)
-  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = 2030)
-
-  dfPlot <- joinReduceYearsRegion(pop, hddcdd)
-  dfPlot <- joinReduceYearsRegion(dfPlot, pfu)
-  dfPlot <- joinReduceYearsRegion(dfPlot, floor)
+  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = endOfHistory)
+  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = endOfHistory + 10)
 
 
 
   # PROCESS DATA----------------------------------------------------------------
 
-  # build region global mapping
-  scenAssumpRegion <- data.frame(
-    region       = unique(regionmap[["EDGE_EUR_ETP"]]), # nolint
-    regionTarget = "GLO") # nolint
+  #--- Convert Final to Useful Energy ------------------------------------------
+
+  ue <- fe %>%
+    # join efficiencies and convert final to useful energy
+    left_join(feueEff, by = c("region", "period", "enduse", "carrier", "scenario")) %>%
+    mutate(value = .data[["value"]] * .data[["efficiency"]]) %>%
+
+    # aggregate ue to enduses
+    group_by(across(all_of(c("scenario", "region", "period", "enduse")))) %>%
+    reframe(value = sum(.data[["value"]], na.rm = TRUE)) %>%
+    ungroup() %>%
+    rename("variable" = "enduse") %>%
+    as.quitte() %>%
+    missingToNA()
+
 
 
   #--- Make Projections --------------------------------------------------------
 
-  # standardize missing column entries
-  df <- rbind(gdppop, pop, hddcdd, pfu, floor, uvalue) %>%
+  # bind all relevant data
+  df <- rbind(gdppop, pop, hddcdd, ue, floor, uvalue) %>%
     filter(.data[["period"]] <= 2100) %>%
     missingToNA()
 
@@ -201,8 +204,6 @@ buildingsProjections <- function(config,
     calc_addVariable("rvalue" = "1/uvalue") %>%
     calc_addVariable("coefCDD" = "(1 - 0.949 * exp(-0.00187 * CDD * 1.26))",
                      units = NA) %>%
-    # calc_addVariable("coefGDP" = "(1 / (1 + exp(4.152 - 0.237*(gdppop/1e3))))",
-    #                  units = NA) %>%
     filter(!is.na(.data[["value"]])) %>%
     calc_addVariable("space_heating_m2_Uval" = "space_heating * 1e6 / (buildings * uvalue)",
                      factor = 1e6,
@@ -234,40 +235,62 @@ buildingsProjections <- function(config,
   lambdaDifferentiated <- lapply(setNames(nm = enduseVars), function(x) lambda)
 
 
+
   #--- Make Projections
   print("Start projections")
 
-  df <- makeProjections(df, as.formula("space_heating_m2_Uval ~ 0 + HDD"),
-                        scenAssump, lambdaDifferentiated["space_heating_m2_Uval"][[1]],
-                        scenAssumpCorrect, convReg = "proportion",
+  df <- makeProjections(df,
+                        formul = as.formula("space_heating_m2_Uval ~ 0 + HDD"),
+                        scenAssump = scenAssump,
+                        lambda = lambdaDifferentiated["space_heating_m2_Uval"][[1]],
+                        lambdaDelta = lambdaDelta,
+                        convReg = "proportion",
                         outliers = c("RUS", "FIN"),
-                        scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
-  df <- makeProjections(df, as.formula("appliances_light_elas ~ I(gdppop^(-1/2))"),
-                        scenAssump, lambdaDifferentiated["appliances_light_elas_FACTOR"][[1]],
-                        scenAssumpCorrect, apply0toNeg = FALSE,
+  df <- makeProjections(df,
+                        formul = as.formula("appliances_light_elas ~ I(gdppop^(-1/2))"),
+                        scenAssump = scenAssump,
+                        lambda = lambdaDifferentiated["appliances_light_elas_FACTOR"][[1]],
+                        lambdaDelta = lambdaDelta,
+                        apply0toNeg = FALSE,
                         transformVariableScen = c("exp(VAR +  0.3*log(gdppop)) *1e3",
                                                   unit = "Appliances and Light Demand [GJ/cap]"),
                         applyScenFactor = TRUE,
-                        scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
-  df <- makeProjections(df, as.formula("water_heating_pop ~ SSlogis(gdppop, Asym,phi2,phi3)"),
-                        scenAssump, lambdaDifferentiated["water_heating_pop"][[1]],
-                        scenAssumpCorrect, maxReg = 7,
-                        outliers = c("RUS", eurCountries), avoidLowValues = TRUE,
-                        scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
+  df <- makeProjections(df,
+                        formul = as.formula("water_heating_pop ~ SSlogis(gdppop, Asym,phi2,phi3)"),
+                        scenAssump = scenAssump,
+                        lambda = lambdaDifferentiated["water_heating_pop"][[1]],
+                        lambdaDelta = lambdaDelta,
+                        maxReg = 7,
+                        outliers = c("RUS", eurCountries),
+                        avoidLowValues = TRUE,
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
-  df <- makeProjections(df, as.formula("cooking_pop ~ 1"),
-                        scenAssump, lambdaDifferentiated["cooking_pop"][[1]],
-                        scenAssumpCorrect, outliers = eurCountries,
-                        scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
+  df <- makeProjections(df,
+                        formul = as.formula("cooking_pop ~ 1"),
+                        scenAssump = scenAssump,
+                        lambda = lambdaDifferentiated["cooking_pop"][[1]],
+                        lambdaDelta = lambdaDelta,
+                        outliers = eurCountries,
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
 
-  df <- makeProjections(df, as.formula("space_cooling_m2_CDD_Uval ~ SSlogis(gdppop, Asym,phi2,phi3)"),
-                        scenAssump, lambdaDifferentiated["space_cooling_m2_CDD_Uval"][[1]],
-                        scenAssumpCorrect,
+  df <- makeProjections(df,
+                        formul = as.formula("space_cooling_m2_CDD_Uval ~ SSlogis(gdppop, Asym,phi2,phi3)"),
+                        scenAssump = scenAssump,
+                        lambda = lambdaDifferentiated["space_cooling_m2_CDD_Uval"][[1]],
+                        lambdaDelta = lambdaDelta,
                         outliers = c("RUS", "EUR", "OCD", setdiff(eurCountries, c("ESP", "PRT", "GRC", "ITA"))),
                         avoidLowValues = TRUE,
-                        scenAssumpRegion = scenAssumpRegion, lambdaDelta = lambdaDelta)
+                        periodBegin = periodBegin,
+                        endOfHistory = endOfHistory)
+
 
   # correct short- to midterm space heating adoption activity
   df <- df %>%
@@ -409,16 +432,17 @@ buildingsProjections <- function(config,
     c("fe", "ue"), "pop"
   )
 
-  df <- calc_addRatio(df, c("space_heating|es", "space_cooling|es"),
+  df <- calc_addRatio(df,
+                      c("space_heating|es", "space_cooling|es"),
                       c("space_heating|ue", "space_cooling|ue"),
                       "uvalue",
-                      factor = EJ2Wyr
-  )
-  df <- calc_addRatio(df, c("space_heating|gradient", "space_cooling|gradient"),
+                      factor = EJ2Wyr)
+
+  df <- calc_addRatio(df,
+                      c("space_heating|gradient", "space_cooling|gradient"),
                       c("space_heating|es", "space_cooling|es"),
                       "buildings",
-                      factor = 1 / Million2Units
-  )
+                      factor = 1 / Million2Units)
 
   # split history / scenario for all data
   df <- rbind(df %>%

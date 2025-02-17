@@ -11,7 +11,7 @@
 #' history (EOH).
 #'
 #' @param config scenario-wise parameter configuration
-#' @param pfu data.frame final and useful energy data
+#' @param fe data.frame final energy data
 #' @param hddcdd historical and future HDD's/CDD's
 #' @param gdp data.frame gdp data
 #' @param gdppop data.frame gdp per capita
@@ -46,7 +46,7 @@
 #'   expand_limits
 
 getShareECprojections <- function(config,
-                                  pfu,
+                                  fe,
                                   hddcdd,
                                   gdp,
                                   gdppop,
@@ -126,7 +126,7 @@ getShareECprojections <- function(config,
   # PRE-PROCESS DATA ---------------------------------------------------------------
 
   # final/useful energy data
-  pfu <- pfu %>%
+  fe <- fe %>%
     select(-"variable") %>%
     rename(variable = "enduse") %>%
     select("region", "period", "scenario", "unit", "carrier", "variable", "value")
@@ -178,11 +178,10 @@ getShareECprojections <- function(config,
 
   # PROCESS DATA ---------------------------------------------------------------
 
-  fillYears <- years[which(years %in% min(pfu$period):endOfHistory)]
+  fillYears <- years[which(years %in% min(fe$period):endOfHistory)]
 
   # extrapolate historic values, replace NAs in RUS and AFR
-  pfu <- pfu %>%
-    filter(.data[["unit"]] == "fe") %>%
+  fe <- fe %>%
     interpolate_missing_periods(fillYears, expand.values = TRUE) %>%
     group_by(across(all_of(c("period", "variable", "region")))) %>%
     mutate(value = .data[["value"]] / sum(.data[["value"]], na.rm = TRUE),
@@ -201,17 +200,17 @@ getShareECprojections <- function(config,
 
   # project phase out with increasing gdppop
   for (useCarrier in useCarrierPhaseOut) {
-    pfu <- projectShares(df = pfu,
-                         var = useCarrier,
-                         xTar = incomeThresholdEC,
-                         yTar = 0.01,
-                         phaseoutYear = feShareSpeed,
-                         endOfHistory = endOfHistory)
+    fe <- projectShares(df = fe,
+                        var = useCarrier,
+                        xTar = incomeThresholdEC,
+                        yTar = 0.01,
+                        phaseoutYear = feShareSpeed,
+                        endOfHistory = endOfHistory)
   }
 
 
   # save the projectShares and split the variable columns
-  pfuPhaseOut <- pfu %>%
+  fePhaseOut <- fe %>%
     filter(.data[["variable"]] %in% useCarrierPhaseOut) %>%
     separate(col = "variable", into = c("enduse", "carrier"), sep = "\\.")
 
@@ -219,17 +218,17 @@ getShareECprojections <- function(config,
   ## tuples converging final shares ====
 
   # shares of (end-use, carrier) tuples that converge towards assumed values
-  pfuConverge <- pfu %>%
+  feConverge <- fe %>%
     filter(!(.data[["variable"]] %in% c("gdp", "gdppop")),
            !.data[["variable"]] %in% useCarrierPhaseOut) %>%
     separate(col = "variable", into = c("enduse", "carrier"), sep = "\\.") %>%
     normalise() %>%
     unite(col = "variable", c("enduse", "carrier"), sep = ".") %>%
-    rbind(filter(pfu, .data[["variable"]] %in% c("gdp", "gdppop")))
+    rbind(filter(fe, .data[["variable"]] %in% c("gdp", "gdppop")))
 
 
   # transition towards assumed shares with max of temporal and GDP-driven speed
-  pfuConverge <- pfuConverge %>%
+  feConverge <- feConverge %>%
     spread("variable", "value") %>%
     gather("variable", "value", matches("[_.]")) %>%
     group_by(across(all_of("region"))) %>%
@@ -241,7 +240,7 @@ getShareECprojections <- function(config,
 
 
   # add target shares from scenario assumptions, make adjustments
-  pfuConverge <- pfuConverge %>%
+  feConverge <- feConverge %>%
     right_join(scenAssumpFEShares, by = c("region", "scenario", "variable")) %>%
     mutate(enduse = gsub(".[a-z]*$", "", .data[["variable"]]),
            obj_share = ifelse(
@@ -271,32 +270,32 @@ getShareECprojections <- function(config,
              (1 - .data[["lambdaEff"]]) * .data[["shareEndHist"]]) %>%
     ungroup() %>%
     select("region", "period", "scenario", "unit", "variable", "value") %>%
-    rbind(pfuConverge %>%
+    rbind(feConverge %>%
             filter(.data[["variable"]] == "gdp" |
                      .data[["scenario"]] == "history") %>%
             select("region", "period", "scenario", "unit", "variable", "value"))
 
 
   # variables for which there are already projections
-  varsProjected <- pfuConverge %>%
+  varsProjected <- feConverge %>%
     filter(.data[["period"]] == 2100,
            .data[["variable"]] != "gdppop") %>%
     getElement("variable") %>%
     unique()
 
   # set variables without projections (gdppop-driven or temporal) to zero
-  pfuConverge <- pfuConverge %>%
+  feConverge <- feConverge %>%
     filter(!(.data[["variable"]] %in% varsProjected)) %>%
     spread("variable", "value") %>%
     gather("variable", "value", matches("[_.]")) %>%
     mutate(value = ifelse(.data[["scenario"]] != "history",
                           0, .data[["value"]])) %>%
-    rbind(filter(pfuConverge, .data[["variable"]] %in% c("gdppop",
+    rbind(filter(feConverge, .data[["variable"]] %in% c("gdppop",
                                                          varsProjected))) %>%
     separate(col = "variable", into = c("enduse", "carrier"), sep = "\\.")
 
   # re-normalize converged shares
-  pfuConverge <- pfuConverge %>%
+  feConverge <- feConverge %>%
     group_by(across(-all_of(c("carrier", "value")))) %>%
     mutate(value = proportions(.data[["value"]]),
            value = replace_na(.data[["value"]], 0)) %>%
@@ -306,24 +305,24 @@ getShareECprojections <- function(config,
   ## remaining tuples ====
 
   # rest as sum of what remains after phase out
-  pfuRest <- pfuPhaseOut %>%
+  feRest <- fePhaseOut %>%
     group_by(across(-all_of(c("carrier", "value")))) %>%
     reframe(rest = 1 - sum(.data[["value"]]))
 
   # multiplied the shares computed with the assumptions by the rest
-  pfuConverge <- pfuConverge %>%
-    left_join(pfuRest, by = c("region", "period", "scenario", "unit", "enduse")) %>%
+  feConverge <- feConverge %>%
+    left_join(feRest, by = c("region", "period", "scenario", "unit", "enduse")) %>%
     mutate(value = ifelse(!is.na(.data[["rest"]]),
                           .data[["value"]] * .data[["rest"]],
                           .data[["value"]])) %>%
     select(-"rest")
 
-  pfu <- rbind(pfuPhaseOut, pfuConverge)
+  fe <- rbind(fePhaseOut, feConverge)
 
 
   # OUTPUT----------------------------------------------------------------------
 
-  data <- pfu %>%
+  data <- fe %>%
     mutate(scenario = scen) %>%
     select(-"unit")
 

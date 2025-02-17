@@ -11,7 +11,7 @@ buildingsProjections(
   pop,
   gdppop,
   uvalue,
-  pfu,
+  fe,
   feueEff,
   feSharesEC,
   regionmap,
@@ -38,7 +38,7 @@ buildingsProjections(
 
 \item{uvalue}{historical and future building insulation values}
 
-\item{pfu}{historical final and useful energy data}
+\item{fe}{historical final and useful energy data}
 
 \item{feueEff}{historical and future FE->UE conversion efficiencies}
 
