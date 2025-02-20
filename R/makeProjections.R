@@ -247,16 +247,19 @@ makeProjections <- function(df,
     projectionNonOutliers <- projectionData %>%
       filter(!(.data[["region"]] %in% outliers))
 
+    # Assemble last historical value
+    lastHist <- historicalData %>%
+      filter(.data[["period"]] == endOfData) %>%
+      select(c("region", lhs, "projection")) %>%
+      rename_with(~ paste0(.x, "Hist"), all_of(c(lhs, "projection")))
+
     # For outlier regions, use growth rates instead of absolute values
     projectionOutliers <- projectionData %>%
-      full_join(historicalData, by = c("scenario", "region", "period", "gdppop", "space_cooling_m2_CDD_Uval", "projection", "delta", "projectionFinal")) %>%
       filter(.data[["region"]] %in% outliers) %>%
-      group_by(across(all_of("region"))) %>%
-      mutate(growthRate = .data[["projectionScen"]] / .data[["projection"]][.data[["period"]] == endOfData]) %>%
-      mutate(projectionFinal = .data[[lhs]][.data[["period"]] == endOfData] * .data[["growthRate"]]) %>%
-      ungroup() %>%
-      filter(.data[["period"]] > endOfHistory) %>%
-      select(-"growthRate", -"model", -"unit")
+      left_join(lastHist, by = "region") %>%
+      mutate(growthRate = .data[["projectionScen"]] / .data[["projectionHist"]],
+             projectionFinal = .data[[paste0(lhs, "Hist")]] * .data[["growthRate"]]) %>%
+      select(-"growthRate", -paste0(lhs, "Hist"), -"projectionHist")
 
     projectionData <- rbind(projectionOutliers, projectionNonOutliers)
   }
