@@ -29,7 +29,7 @@ to \code{yearTarget}. The convergence is done region- and variable-wise.
 }
 \note{
 Since the current data only delivers historic data until 2014, but EDGE-B defines
-historic data until 2020, projected degree day data from SSP2 between 2015-2020
+historic data until endOfHistory, projected degree day data from SSP2 between 2015-endOfHistory
 is used to fill this gap. The degree day data is then linearly converged in the
 same time period towards the respective scenario values.
 }

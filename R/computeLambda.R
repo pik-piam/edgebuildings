@@ -8,6 +8,7 @@
 #' @param scaleLogit scale parameter of logistic function
 #' @param startYearVector year from which to prepend yearly steps until
 #'        \code{lastIdenticalYear}
+#' @param step numeric time step to determine for which years lambda is computed
 #' @returns list with time series of share parameter
 #'
 #' @author Antoine Levesque

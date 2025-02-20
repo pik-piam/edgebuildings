@@ -4,12 +4,19 @@
 \alias{.getDeltaFormulas}
 \title{Generate Delta Formulas}
 \usage{
-.getDeltaFormulas(lhs, convReg = "absolute", deltaTarget = TRUE)
+.getDeltaFormulas(
+  lhs,
+  convReg = "absolute",
+  convFactor = "lambda",
+  deltaTarget = TRUE
+)
 }
 \arguments{
 \item{lhs}{\code{character} A character string representing the left-hand side of the delta formula.}
 
 \item{convReg}{\code{character} A character string specifying the conversion regime.}
+
+\item{convFactor}{\code{character} Conversion factor: Either "lambda" or "fullconv".}
 
 \item{deltaTarget}{\code{logical} Indicate whether to use a target for the delta calculation..}
 }

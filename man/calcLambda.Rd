@@ -6,16 +6,17 @@
 transition}
 \usage{
 calcLambda(
-  startYear,
+  lastIdenticalYear,
   endYear,
   lambdaEnd,
   type = "logit",
   scaleLogit = 0.15,
-  startYearVector = 2005
+  startYearVector = 2005,
+  step = 5
 )
 }
 \arguments{
-\item{startYear}{first year of transition}
+\item{lastIdenticalYear}{first year of transition}
 
 \item{endYear}{last year of transition}
 
@@ -26,7 +27,9 @@ calcLambda(
 \item{scaleLogit}{scale parameter of logistic function}
 
 \item{startYearVector}{year from which to prepend yearly steps until
-\code{startYear}}
+\code{lastIdenticalYear}}
+
+\item{step}{numeric time step to determine for which years lambda is computed}
 }
 \value{
 list with time series of share parameter

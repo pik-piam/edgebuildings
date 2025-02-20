@@ -17,6 +17,7 @@ makeProjections(
   transformVariableScen = NULL,
   applyScenFactor = FALSE,
   convReg = "absolute",
+  convFactor = "lambda",
   avoidLowValues = FALSE,
   endOfHistory = 2025,
   periodBegin = 1990,
@@ -49,6 +50,9 @@ makeProjections(
 \item{applyScenFactor}{\code{logical} Apply scenario scaling factor (default FALSE)}
 
 \item{convReg}{\code{character} Convergence type: "absolute" for value differences or "proportion" for ratios}
+
+\item{convFactor}{\code{character} Convergence factor: "lambda" for slow linear convergence
+or "fullconv" for fast logistic convergence}
 
 \item{avoidLowValues}{\code{logical} Prevent projections falling below initial/final values (default FALSE)}
 

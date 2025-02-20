@@ -4,12 +4,14 @@
 \alias{lineariseChange}
 \title{Linearise U-value temporal evolution}
 \usage{
-lineariseChange(df, periodBegin, endOfHistory)
+lineariseChange(df, periodBegin, periodUvalue, endOfHistory)
 }
 \arguments{
 \item{df}{data.frame with U-value projections}
 
 \item{periodBegin}{lower temporal boundary of historical data}
+
+\item{periodUvalue}{time period which we assume to be the year from which uvalue data comes}
 
 \item{endOfHistory}{upper temporal boundary of historical data}
 }

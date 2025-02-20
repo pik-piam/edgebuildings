@@ -61,9 +61,6 @@ getEfficiencies <- function(config,
   endOfHistory <- config[scen, "endOfHistory"] %>%
     unlist()
 
-  # Minimal efficiency to be considered
-  minEfficiency <- 0.05
-
 
 
   # PRE-PROCESS DATA------------------------------------------------------------

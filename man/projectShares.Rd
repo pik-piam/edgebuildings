@@ -4,7 +4,7 @@
 \alias{projectShares}
 \title{Project energy carrier (EC) shares to pre-set target value}
 \usage{
-projectShares(df, var, xTar, yTar, phaseoutYear, endOfHistory)
+projectShares(df, var, xTar, yTar, phaseOutMaxEnd, phaseOutStart)
 }
 \arguments{
 \item{df}{data.frame with historic EC shares and gdp per capita}
@@ -15,9 +15,9 @@ projectShares(df, var, xTar, yTar, phaseoutYear, endOfHistory)
 
 \item{yTar}{year of full convergence}
 
-\item{phaseoutYear}{lower temporal boundary of phaseout time period}
+\item{phaseOutMaxEnd}{upper temporal boundary of phaseout time period}
 
-\item{endOfHistory}{upper temporal boundary of historical data}
+\item{phaseOutStart}{starting point of phaseOut}
 }
 \value{
 projected EC shares

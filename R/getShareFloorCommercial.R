@@ -152,6 +152,6 @@ getShareFloorCommercial <- function(config,
                   as.quitte() %>%
                   missingToNA(),
                 "IEA" = as.data.frame(floor %>% dplyr::select(-"scenario", -"gdppop")),
-                "raw_pop" = as.data.frame(floorRawPop)
-  ))
+                "raw_pop" = as.data.frame(floorRawPop))
+  )
 }

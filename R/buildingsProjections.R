@@ -298,18 +298,17 @@ buildingsProjections <- function(config,
   df <- df %>%
     adjustHeatingAdoption(config, lambda, lambdaDelta)
 
-  dfTmp <- df %>%
+  df <- df %>%
     # define enduse variables from projected variables
     calc_addVariable_(list( # nolint start
       "space_heating"    = c("space_heating_m2_Uval/1e6 * buildings * uvalue", NA),
       "appliances_light" = c("appliances_light_elas* pop/1e3", NA),
       "water_heating"    = c("water_heating_pop  / 1e3 * pop", NA),
       "cooking"          = c("cooking_pop  / 1e3 * pop", NA),
-      "space_cooling"    = c("space_cooling_m2_CDD_Uval/1e6 * (buildings*uvalue*CDD*coefCDD)", NA)))
+      "space_cooling"    = c("space_cooling_m2_CDD_Uval/1e6 * (buildings*uvalue*CDD*coefCDD)", NA))) %>%
     # nolint end
 
     # filter unwanted entries
-  df <- dfTmp %>%
     anti_join(df, by = c("scenario", "period", "region", "variable")) %>%
     rbind(df) %>%
 

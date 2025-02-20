@@ -118,9 +118,6 @@ getShareECprojections <- function(config,
   # multiple of gdppop needed to reach for gdp-driven convergence (w.r.t. EOH)
   fullConvergenceLevel <- 40
 
-  # temporal convergence of shares
-  lambda <- calcLambda(2015, feShareSpeed, 1, type = "linear", step = 1)
-
 
 
   # PRE-PROCESS DATA ---------------------------------------------------------------
@@ -131,8 +128,13 @@ getShareECprojections <- function(config,
     rename(variable = "enduse") %>%
     select("region", "period", "scenario", "unit", "carrier", "variable", "value")
 
-  endOfData <- max(fe[["period"]][!is.na(fe[["value"]])]) # Only works if temporal scope is the same for all carrier-variable combinations
+  # Compute last time period with historic data
+  # Only works if temporal scope is the same for all carrier-variable combinations
+  endOfData <- max(fe[["period"]][!is.na(fe[["value"]])])
   # TODO: This is required for the start of the phase-out - maybe do this explicitly
+
+  # temporal convergence of shares
+  lambda <- calcLambda(endOfData, feShareSpeed, 1, type = "linear", step = 1)
 
   #--- Data is made compliant with config file
 
@@ -174,7 +176,7 @@ getShareECprojections <- function(config,
   # scenario parameter assumptions for EC share convergence
   refAssumpFEShares <- scenAssumpFEShares %>%
     filter(.data[["scenario"]] == refScen) %>%
-    mutate(obj_shareRef = obj_share) %>%
+    mutate(obj_shareRef = .data[["obj_share"]]) %>%
     select(-"scenario") %>%
     tidyr::crossing(scenario = c("history", refScen))
 
@@ -240,10 +242,10 @@ getShareECprojections <- function(config,
     left_join(hdd, by = "region")
 
   refConverge <- convergeFEShares(feConverge, refAssumpFEShares, lambda, endOfData, endOfHistory, fullConvergenceLevel,
-                                 useCarrierInert, thresInert, useCarrierDh, thresDh)
+                                  useCarrierInert, thresInert, useCarrierDh, thresDh)
 
-  feConverge <- convergeFEShares(refConverge, scenAssumpFEShares, lambda, endOfHistory, feShareSpeed, fullConvergenceLevel,
-                                     useCarrierInert, thresInert, useCarrierDh, thresDh) %>%
+  feConverge <- convergeFEShares(refConverge, scenAssumpFEShares, lambda, endOfHistory, feShareSpeed,
+                                 fullConvergenceLevel, useCarrierInert, thresInert, useCarrierDh, thresDh) %>%
     select("region", "period", "scenario", "unit", "variable", "value") %>%
     rbind(feConverge %>%
             filter(.data[["variable"]] == "gdp") %>%
@@ -264,8 +266,7 @@ getShareECprojections <- function(config,
     gather("variable", "value", matches("[_.]")) %>%
     mutate(value = ifelse(.data[["scenario"]] != "history",
                           0, .data[["value"]])) %>%
-    rbind(filter(feConverge, .data[["variable"]] %in% c("gdppop",
-                                                         varsProjected))) %>%
+    rbind(filter(feConverge, .data[["variable"]] %in% c("gdppop", varsProjected))) %>%
     separate(col = "variable", into = c("enduse", "carrier"), sep = "\\.")
 
   # re-normalize converged shares
@@ -318,7 +319,7 @@ getShareECprojections <- function(config,
 #' @param var carrier/enduse combination to be phased out
 #' @param xTar region-wise target values of carrier FE share
 #' @param yTar year of full convergence
-#' @param phaseoutMaxEnd upper temporal boundary of phaseout time period
+#' @param phaseOutMaxEnd upper temporal boundary of phaseout time period
 #' @param phaseOutStart starting point of phaseOut
 #'
 #' @return projected EC shares
@@ -359,10 +360,6 @@ projectShares <- function(df, var, xTar, yTar, phaseOutMaxEnd, phaseOutStart) {
     filter(.data[["region"]] %in% outliers)
   data <- data %>%
     filter(.data[["region"]] %in% regions)
-
-  # Regional convergence: target regions' values for all levels of GDPpop
-  dataHist <- data %>%
-    filter(.data[["period"]] <= phaseOutStart)
 
   # project phaseouts
   data <- do.call(
@@ -441,8 +438,6 @@ projectShares <- function(df, var, xTar, yTar, phaseOutMaxEnd, phaseOutStart) {
     filter(.data[["period"]] > phaseOutStart) %>%
     as.data.frame()
 
-  # browser()
-
   # bind data and filter for non-historical values
   df <- rbind(data, dataOuter) %>%
     rename(value = "pred") %>%
@@ -497,7 +492,7 @@ convergeFEShares <- function(feConverge, assumpFEShares, lambda, thist, tmax, fu
     mutate(enduse = gsub(".[a-z]*$", "", .data[["variable"]]),
            obj_share = ifelse(
              .data[["variable"]] %in% useCarrierInert,
-             pmax(.data[["obj_share"]]* ifelse(.data[["shareEndHist"]] <= thresInert, 0.5, 1),
+             pmax(.data[["obj_share"]] * ifelse(.data[["shareEndHist"]] <= thresInert, 0.5, 1),
                   .data[["shareEndHist"]]),
              .data[["obj_share"]]
            )) %>%
@@ -508,7 +503,8 @@ convergeFEShares <- function(feConverge, assumpFEShares, lambda, thist, tmax, fu
     )) %>%
     group_by(across(all_of(c("scenario", "period", "region", "enduse")))) %>%
     mutate(across(all_of(c("obj_share", "shareEndHist")), ~ .x *
-                    ifelse(.data[["variable"]] %in% useCarrierRescale | sum(.x[!.data[["variable"]] %in% useCarrierRescale]) == 0,
+                    ifelse(.data[["variable"]] %in% useCarrierRescale
+                           | sum(.x[!.data[["variable"]] %in% useCarrierRescale]) == 0,
                            1,
                            (1 - sum(.x[.data[["variable"]] %in% useCarrierRescale])) /
                              sum(.x[!.data[["variable"]] %in% useCarrierRescale])))) %>%
@@ -521,7 +517,8 @@ convergeFEShares <- function(feConverge, assumpFEShares, lambda, thist, tmax, fu
              .data[["period"]] <= tmax & .data[["period"]] > thist,
              .data[["lambdaEff"]] * .data[["obj_share"]] +
                (1 - .data[["lambdaEff"]]) * .data[["shareEndHist"]],
-             .data[["value"]])) %>%
+             .data[["value"]])
+           ) %>%
     ungroup() %>%
     select("region", "period", "scenario", "unit", "variable", "gdp", "hdd", "value")
 }

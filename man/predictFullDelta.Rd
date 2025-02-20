@@ -11,6 +11,7 @@ predictFullDelta(
   interceptEstimate,
   scenAssump,
   lambda,
+  endOfData,
   endOfHistory
 )
 }
@@ -27,7 +28,10 @@ predictFullDelta(
 
 \item{lambda}{temporal convergence factors}
 
-\item{endOfHistory}{upper temporal boundary of historical data}
+\item{endOfData}{upper temporal boundary of available historical data}
+
+\item{endOfHistory}{last historic time period, i.e. before scenario assumptions take effect
+TODO: Can be removed as soon as lambda is fixed!}
 }
 \description{
 As the income elasticity will evolve over time according to scenario assumptions,

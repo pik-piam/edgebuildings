@@ -11,6 +11,7 @@
   periodBegin,
   endOfHistory,
   convReg = "absolute",
+  convFactor = "lambda",
   transformVariable = NULL,
   transformVariableScen = NULL
 )
@@ -27,6 +28,9 @@
 \item{endOfHistory}{\code{numeric} Last year of historical data}
 
 \item{convReg}{\code{character} Convergence type: "absolute" for value differences or "proportion" for ratios}
+
+\item{convFactor}{\code{character} Convergence factor: "lambda" for slow linear convergence
+or "fullconv" for fast logistic convergence}
 
 \item{transformVariable}{\code{character} Variable transformation to apply (optional)}
 
