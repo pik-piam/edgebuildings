@@ -70,9 +70,6 @@ makeProjections <- function(df,
     transformVariableScen <- transformVariableScen[1]
   }
 
-  if (is.null(endOfHistory)) {
-    endOfHistory <- max(unique(filter(df, .data[["scenario"]] == "history")[["period"]]))
-  }
   endOfData <- max(unique(filter(df, .data[["variable"]] == lhs, !is.na(.data[["value"]]))[["period"]]))
 
 

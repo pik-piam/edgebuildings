@@ -192,8 +192,6 @@ buildingsProjections <- function(config,
   df         <- history2SSPs(df,         reverse = TRUE, endOfHistory = endOfHistory)
   feueEff    <- history2SSPs(feueEff,    reverse = TRUE, endOfHistory = endOfHistory)
   feSharesEC <- history2SSPs(feSharesEC, reverse = TRUE, endOfHistory = endOfHistory)
-  lambda <- history2SSPs(lambda, reverse = TRUE, endOfHistory = endOfHistory)
-  lambdaDelta <- history2SSPs(lambdaDelta, reverse = TRUE, endOfHistory = endOfHistory)
 
 
   # match periods with lambda

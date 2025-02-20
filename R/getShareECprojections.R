@@ -486,9 +486,8 @@ convergeFEShares <- function(feConverge, assumpFEShares, lambda, thist, tmax, fu
 
 
   # add target shares from scenario assumptions, make adjustments
-  feConvergeTmp <- feConverge %>%
-    left_join(assumpFEShares, by = c("region", "scenario", "variable"))
-  feConvergeTmp <- feConvergeTmp %>%
+  feConverge <- feConverge %>%
+    left_join(assumpFEShares, by = c("region", "scenario", "variable")) %>%
     mutate(enduse = gsub(".[a-z]*$", "", .data[["variable"]]),
            obj_share = ifelse(
              .data[["variable"]] %in% useCarrierInert,

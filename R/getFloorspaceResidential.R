@@ -226,10 +226,8 @@ predictFullDelta <- function(fullData,
     filter(.data[["period"]] %in% getPeriods(lambda)) %>%
     left_join(scenAssump, by = c("region", "scenario")) %>%
     left_join(lambda, by = c("region", "period", "scenario")) %>%
-    mutate(coefLogGdp = ifelse(.data[["period"]] == endOfHistory, # Temporary: Can be removed once lambda is fixed to be 0 in endOfData
-                               coefLogGdpEstimate,
-                               .data[["fullconv"]] * (coefLogGdpEstimate * .data[["floorspace"]])
-                               + (1 - .data[["fullconv"]]) * coefLogGdpEstimate),
+    mutate(coefLogGdp = .data[["fullconv"]] * (coefLogGdpEstimate * .data[["floorspace"]])
+                        + (1 - .data[["fullconv"]]) * coefLogGdpEstimate,
            coefLogDensity = coefLogDensityEstimate,
            intercept = interceptEstimate) %>%
     select(-"floorspace", -"lambda", -"fullconv")
@@ -259,7 +257,6 @@ predictFullDelta <- function(fullData,
     # Gradually decrease the region-specific deviation delta from the regression model:
     # Instead of delta we now apply (1-lambda) * delta.
     left_join(lambda, by = c("region", "period", "scenario")) %>%
-    mutate(lambda = ifelse(.data[["period"]] == endOfHistory, .data[["fullconv"]], .data[["lambda"]])) %>% # temporary until lambda is fixed
     mutate(m2hatConv = .data[["m2hat"]] / exp(.data[["lambda"]] * .data[["delta"]])) %>%
     select("model", "scenario", "region", "unit", "period", "pop", "gdppop", "m2hatConv")
 }
