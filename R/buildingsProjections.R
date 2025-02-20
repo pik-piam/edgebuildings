@@ -156,8 +156,8 @@ buildingsProjections <- function(config,
     filter(.data[["scenario"]] == scen)
 
   # temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = endOfHistory)
-  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, startPolicyYear = endOfHistory + 10)
+  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory)
+  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory + 10)
 
 
 
@@ -295,7 +295,6 @@ buildingsProjections <- function(config,
   # correct short- to midterm space heating adoption activity
   df <- df %>%
     adjustHeatingAdoption(config, lambda, lambdaDelta)
-
 
   df <- df %>%
     # define enduse variables from projected variables
@@ -476,7 +475,8 @@ buildingsProjections <- function(config,
       splitElec,
       df = df,
       feueEff = feueEff,
-      scenAssump = scenAssump
+      scenAssump = scenAssump,
+      endOfHistory = endOfHistory
     ))
 
     # add split electric space heating to results
@@ -635,6 +635,7 @@ addEURagg <- function(df, extVars, intVars, floorVars, regionmap) {
 #' @param feueEff historical and future FE->UE conversion efficiencies
 #' @param enduseChar character, enduse for which electric FE demand should be split
 #' @param scenAssump carrier/enduse-specific scenario assumptions
+#' @param endOfHistory Last historic time period
 #'
 #' @returns data frame containing split fe and ue
 #'
@@ -643,13 +644,13 @@ addEURagg <- function(df, extVars, intVars, floorVars, regionmap) {
 #' @importFrom quitte calc_addVariable_
 #' @importFrom tidyr gather spread
 #'
-splitElec <- function(df, feueEff, enduseChar, scenAssump) {
+splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
   effRHasym  <- 1.0 # assumed by AL but IDEES finds rather 0.8 - 0.9
 
   hpEffHist <- 3
 
   # exponential function approaching Asym, constant before start year
-  expAsym <- function(valStart, valAsym, t, tStart = 2020, tau = 50) {
+  expAsym <- function(valStart, valAsym, t, tStart, tau = 50) {
     valStart + (valAsym - valStart) * (1 - exp(-pmax(0, t - tStart) / tau))
   }
 
@@ -678,23 +679,26 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump) {
       effRH = pmin(expAsym(.data[["effRHstart"]],
                            effRHasym,
                            .data[["period"]],
+                           endOfHistory,
                            tau = 25),
                    .data[["efficiency"]]),
       effHP = expAsym(hpEffHist,
                       .data[[paste0(enduseChar, ".elecHP_eff_X_Asym")]],
-                      .data[["period"]]),
+                      .data[["period"]],
+                      endOfHistory),
       shareHP = (.data[["efficiency"]] - .data[["effRH"]]) /
         (.data[["effHP"]] - .data[["effRH"]])
     ) %>%
     group_by(across("region")) %>%
-    mutate(shareHPstart = .data[["shareHP"]][.data[["period"]] == 2020]) %>%
+    mutate(shareHPstart = .data[["shareHP"]][.data[["period"]] == endOfHistory]) %>%
     ungroup()
   hp <- hp %>%
     mutate(
-      shareHP = ifelse(.data[["period"]] > 2020,
+      shareHP = ifelse(.data[["period"]] > endOfHistory,
                        expAsym(.data[["shareHPstart"]],
                                .data[[paste0(enduseChar, ".elecHP_share_X_Asym")]],
-                               .data[["period"]]),
+                               .data[["period"]],
+                               endOfHistory),
                        .data[["shareHP"]]),
       factor = ifelse(
         .data[["shareHP"]] != 0,

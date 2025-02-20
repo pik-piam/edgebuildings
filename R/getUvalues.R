@@ -57,6 +57,8 @@ getUvalues <- function(config,
   endOfHistory <- config[scen, "endOfHistory"] %>%
     unlist()
 
+  periodUvalue <- 2020
+
   # Walls maximum Uvalues * 75% + windows max uvalues * 25%
   maxUValue <- 2 * 0.75 + 5 * 0.25
 
@@ -100,7 +102,7 @@ getUvalues <- function(config,
 
 
   # calculate temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = periodBegin)
+  lambda <- compLambdaScen(scenAssumpSpeed, endOfHistory, startYearVector = periodBegin)
 
 
 
@@ -127,10 +129,10 @@ getUvalues <- function(config,
 
   # prepare and mean degree day data
   hddcddHist <- hddcdd %>%
-    filter(.data[["period"]] <= endOfHistory)
+    filter(.data[["period"]] <= periodUvalue)
 
   hddcddScen <- hddcdd %>%
-    filter(.data[["period"]] > endOfHistory)
+    filter(.data[["period"]] > periodUvalue)
 
   nMean <- periodBegin - min(hddcddHist$period) + 1
 
@@ -159,7 +161,7 @@ getUvalues <- function(config,
   # prepare the HDD and CDD data for the estimation
   hddcddEstimate <- hddcdd %>%
     spread(key = "variable", value = "value") %>%
-    filter(.data[["period"]] == endOfHistory) %>%
+    filter(.data[["period"]] == periodUvalue) %>%
     removeColNa()
 
 
@@ -196,13 +198,13 @@ getUvalues <- function(config,
   tmp <- datPred %>%
     implementScenAssump(scenAssumpFactor, lambda, minUValue, endOfHistory) %>%
     filter(!is.na(.data[["value"]])) %>%
-    correctRegions(lambda, endOfHistory)
+    correctRegions(lambda, periodUvalue)
 
 
   # linearise change to avoid that uvalue estimates reproduce the climate variability
   tmp <- tmp %>%
-    lineariseChange(periodBegin, endOfHistory) %>%
-    includeInputDataAndCorrect(dataEstimate, gdppop, lambda, endOfHistory) %>%
+    lineariseChange(periodBegin, periodUvalue, endOfHistory) %>%
+    includeInputDataAndCorrect(dataEstimate, gdppop, lambda, periodUvalue) %>%
     mutate(value = ifelse(.data[["variable"]] == "uvalue",
                           pmin(maxUValue, .data[["value"]]),
                           .data[["value"]]))
@@ -306,6 +308,7 @@ implementScenAssump <- function(tmp, scenAssumpFactor, lambda, minU, endOfHistor
 #' time period of \code{endOfHistory} and 2100.
 #'
 #' @param df data.frame with U-value projections
+#' @param periodUvalue time period which we assume to be the year from which uvalue data comes
 #' @param endOfHistory upper temporal boundary of historical data
 #' @param periodBegin lower temporal boundary of historical data
 #'
@@ -314,7 +317,7 @@ implementScenAssump <- function(tmp, scenAssumpFactor, lambda, minU, endOfHistor
 #' @importFrom dplyr select filter mutate group_by across all_of inner_join
 #' @importFrom quitte interpolate_missing_periods
 
-lineariseChange <- function(df, periodBegin, endOfHistory) {
+lineariseChange <- function(df, periodBegin, periodUvalue, endOfHistory) {
   # define time periods
   yearsFinal <- seq(2080, 2100, 5)
   scenPeriod <- c(periodBegin:endOfHistory,
@@ -332,10 +335,10 @@ lineariseChange <- function(df, periodBegin, endOfHistory) {
     filter(.data[["variable"]] != "uvalue")
 
   tmpHist <- tmp %>%
-    filter(.data[["period"]] == endOfHistory)
+    filter(.data[["period"]] == periodUvalue)
 
   tmpPast <- tmp %>%
-    filter(.data[["period"]] < endOfHistory)
+    filter(.data[["period"]] < periodUvalue)
 
   tmpFinal <- tmp %>%
     filter(.data[["period"]] %in% yearsFinal) %>%

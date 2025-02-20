@@ -61,7 +61,7 @@ getFloorspaceBuild <- function(config,
     filter(.data[["scenario"]] == scen)
 
   # create the temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960)
+  lambda <- compLambdaScen(scenAssumpSpeed, endOfHistory, startYearVector = 1960)
 
 
 

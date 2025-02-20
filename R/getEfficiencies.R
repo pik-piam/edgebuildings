@@ -61,9 +61,6 @@ getEfficiencies <- function(config,
   endOfHistory <- config[scen, "endOfHistory"] %>%
     unlist()
 
-  # Minimal efficiency to be considered
-  minEfficiency <- 0.05
-
 
 
   # PRE-PROCESS DATA------------------------------------------------------------
@@ -91,12 +88,12 @@ getEfficiencies <- function(config,
   # calculate temporal convergence shares
   lambda <- compLambdaScen(scenAssumpSpeed,
                            startYearVector = periodBegin,
-                           startPolicyYear = endOfHistory)
+                           lastIdenticalYear = endOfHistory)
 
   # calculate temporal convergence shares for deviations (delta)
   lambdaDelta <- compLambdaScen(scenAssumpSpeed,
                                 startYearVector = periodBegin,
-                                startPolicyYear = endOfHistory + 10)
+                                lastIdenticalYear = endOfHistory)
 
 
 
@@ -122,10 +119,7 @@ getEfficiencies <- function(config,
   histEfficiencies <- histEfficiencies %>%
     select("region", "period", "enduse", "carrier", "value") %>%
     unite("variable", c("enduse", "carrier"), sep = ".") %>%
-    mutate(scenario = "history") %>%
-
-    # filter low efficiencies
-    mutate(value = ifelse(.data[["value"]] < minEfficiency, NA, .data[["value"]]))
+    mutate(scenario = "history")
 
 
   # get enduse.carrier combinations
@@ -153,6 +147,7 @@ getEfficiencies <- function(config,
                       lambda           = lambda,
                       lambdaDelta      = lambdaDelta,
                       convReg          = "proportion",
+                      convFactor       = "fullconv",
                       endOfHistory     = endOfHistory,
                       initCorrection   = regPars,
                       replacePars      = TRUE) %>%

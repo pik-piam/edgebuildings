@@ -1,25 +1,27 @@
 #' Calculate time series of share parameter describing a linear or logistic
 #' transition
 #'
-#' @param startYear first year of transition
+#' @param lastIdenticalYear first year of transition
 #' @param endYear last year of transition
 #' @param lambdaEnd final value of share parameter (0 ... 1)
 #' @param type interpolation function c('logit', 'linear')
 #' @param scaleLogit scale parameter of logistic function
 #' @param startYearVector year from which to prepend yearly steps until
-#'        \code{startYear}
+#'        \code{lastIdenticalYear}
+#' @param step numeric time step to determine for which years lambda is computed
 #' @returns list with time series of share parameter
 #'
 #' @author Antoine Levesque
 #'
 #' @importFrom stats plogis qlogis
 
-calcLambda <- function(startYear,
+calcLambda <- function(lastIdenticalYear,
                        endYear,
                        lambdaEnd,
                        type = "logit",
                        scaleLogit = 0.15,
-                       startYearVector = 2005) {
+                       startYearVector = 2005,
+                       step = 5) {
   # Internal Functions ---------------------------------------------------------
 
   computeLogit <- function(x) {
@@ -44,7 +46,7 @@ calcLambda <- function(startYear,
 
   if (lambdaEnd > 1 || lambdaEnd < 0) stop("lambdaEnd must lie between 0 and 1")
 
-  lambdaYears <- seq(from = startYear - 5, to = endYear, by = 5)
+  lambdaYears <- seq(from = lastIdenticalYear, to = endYear, by = step)
 
   if (type == "logit") {
     x <- seq(0, 1, length.out = length(lambdaYears))
@@ -55,13 +57,13 @@ calcLambda <- function(startYear,
   } else if (type == "linear") {
 
     lambda <- c(seq(from = 0, to = lambdaEnd, length.out = length(lambdaYears)),  # start with a non 0 value
-                rep(lambdaEnd, max(0, (2100 - endYear) / 5)))
+                rep(lambdaEnd, max(0, (2100 - endYear) / step)))
   }
 
 
-  names(lambda) <- seq(startYear - 5, max(2100, endYear), by = 5)
+  names(lambda) <- seq(lastIdenticalYear, max(2100, endYear), by = step)
 
-  addYears  <- setdiff(seq(startYearVector, startYear, 1), names(lambda))
+  addYears  <- setdiff(seq(startYearVector, lastIdenticalYear, 1), names(lambda))
   lambdaAdd <- rep(0, length(addYears))
 
   names(lambdaAdd) <- addYears
@@ -77,11 +79,11 @@ calcLambda <- function(startYear,
 #' efficiencies towards long-term assumption for a specific scenario.
 #'
 #' @param scenAssumpSpeed years of full regional convergence for each scenario
+#' @param lastIdenticalYear year from which to start convergence
 #' @param varySpeed scale speed period of transition from 2015 onward
 #'        (e.g. full convergence in 2075 and \code{varySpeed = 2} leads to
 #'        full convergence in 2045)
 #' @param startYearVector year from which to start time series (yearly steps)
-#' @param startPolicyYear year from which to start convergence
 #'
 #' @return data.frame with region-wise convergence shares
 #'
@@ -92,9 +94,9 @@ calcLambda <- function(startYear,
 #' @importFrom data.table :=
 
 compLambdaScen <- function(scenAssumpSpeed,
+                           lastIdenticalYear,
                            varySpeed = 1,
-                           startYearVector = 2005,
-                           startPolicyYear = 2020) {
+                           startYearVector = 2005) {
   # Internal Functions ---------------------------------------------------------
 
   compEvolutionShares <- function(type, reg) {
@@ -107,7 +109,7 @@ compLambdaScen <- function(scenAssumpSpeed,
     endYear <- round(((upperBound - 2015) / varySpeed + 2015) / 5) * 5
 
     # calc convergence shares
-    tmp <- calcLambda(startPolicyYear, endYear, 1,
+    tmp <- calcLambda(lastIdenticalYear, endYear, 1,
                       type = ifelse(type == "fullconv", "logit", "linear"),
                       startYearVector = startYearVector)
 

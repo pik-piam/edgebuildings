@@ -12,6 +12,8 @@
 #' @param transformVariableScen \code{character} Scenario-specific variable transformation (optional)
 #' @param applyScenFactor \code{logical} Apply scenario scaling factor (default FALSE)
 #' @param convReg \code{character} Convergence type: "absolute" for value differences or "proportion" for ratios
+#' @param convFactor \code{character} Convergence factor: "lambda" for slow linear convergence
+#'   or "fullconv" for fast logistic convergence
 #' @param avoidLowValues \code{logical} Prevent projections falling below initial/final values (default FALSE)
 #' @param endOfHistory \code{numeric} Last year of historical data
 #' @param periodBegin \code{numeric} First year of historical data
@@ -45,6 +47,7 @@ makeProjections <- function(df,
                             transformVariableScen = NULL,
                             applyScenFactor = FALSE,
                             convReg = "absolute",
+                            convFactor = "lambda",
                             avoidLowValues = FALSE,
                             endOfHistory = 2025,
                             periodBegin = 1990,
@@ -67,6 +70,7 @@ makeProjections <- function(df,
     transformVariableScen <- transformVariableScen[1]
   }
 
+  endOfData <- max(unique(filter(df, .data[["variable"]] == lhs, !is.na(.data[["value"]]))[["period"]]))
 
 
   # PROCESS DATA----------------------------------------------------------------
@@ -182,6 +186,7 @@ makeProjections <- function(df,
                                         periodBegin           = periodBegin,
                                         endOfHistory          = endOfHistory,
                                         convReg               = convReg,
+                                        convFactor            = convFactor,
                                         transformVariable     = transformVariable,
                                         transformVariableScen = transformVariableScen)
 
@@ -201,7 +206,7 @@ makeProjections <- function(df,
   #--- Smooth out transition between history and projections (aka minimize deltas)
 
   # Get correction formulas to smooth deviations (delta) between empirical data and projections
-  deltaFormulas <- .getDeltaFormulas(lhs = lhs, convReg = convReg, deltaTarget = TRUE)
+  deltaFormulas <- .getDeltaFormulas(lhs = lhs, convReg = convReg, convFactor = convFactor, deltaTarget = TRUE)
 
   # Obtain deltas from last historical data point
   projectionDeltas <- historicalData %>%
@@ -239,21 +244,19 @@ makeProjections <- function(df,
     projectionNonOutliers <- projectionData %>%
       filter(!(.data[["region"]] %in% outliers))
 
+    # Assemble last historical value
+    lastHist <- historicalData %>%
+      filter(.data[["period"]] == endOfData) %>%
+      select(c("region", lhs, "projection")) %>%
+      rename_with(~ paste0(.x, "Hist"), all_of(c(lhs, "projection")))
+
     # For outlier regions, use growth rates instead of absolute values
     projectionOutliers <- projectionData %>%
       filter(.data[["region"]] %in% outliers) %>%
-      group_by(across(all_of("region"))) %>%
-      tidyr::fill(.data[[lhs]], .direction = "down") %>%
-      mutate(
-        previousScenario = lag(.data[["projectionScen"]]),
-        growthRate = ifelse(.data[["period"]] <= 2020,
-                            1,
-                            c(0, .data[["projectionScen"]] / .data[["previousScenario"]])),
-        growthRate = cumprod(.data[["growthRate"]]),
-        projectionFinal = .data[[lhs]] * .data[["growthRate"]]
-      ) %>%
-      ungroup() %>%
-      select(-c("growthRate", "previousScenario"))
+      left_join(lastHist, by = "region") %>%
+      mutate(growthRate = .data[["projectionScen"]] / .data[["projectionHist"]],
+             projectionFinal = .data[[paste0(lhs, "Hist")]] * .data[["growthRate"]]) %>%
+      select(-"growthRate", -paste0(lhs, "Hist"), -"projectionHist")
 
     projectionData <- rbind(projectionOutliers, projectionNonOutliers)
   }
@@ -374,12 +377,14 @@ makeProjections <- function(df,
 #'
 #' @param lhs \code{character} A character string representing the left-hand side of the delta formula.
 #' @param convReg \code{character} A character string specifying the conversion regime.
+#' @param convFactor \code{character} Conversion factor: Either "lambda" or "fullconv".
 #' @param deltaTarget \code{logical} Indicate whether to use a target for the delta calculation..
 #'
 #' @return \code{list} A list of formulas for calculating deltas and projections.
 
 .getDeltaFormulas <- function(lhs,
                               convReg = "absolute",
+                              convFactor = "lambda",
                               deltaTarget = TRUE) {
   if (convReg == "absolute") {
     formulas <- list(
@@ -398,7 +403,7 @@ makeProjections <- function(df,
   }
 
   formulas$deltaFinal <- if (isTRUE(deltaTarget)) {
-    "deltaFinal = deltaTarget * lambda + delta * (1 - lambda)"
+    paste("deltaFinal = deltaTarget *", convFactor, "+ delta * (1 -", convFactor, ")")
   } else {
     "deltaFinal = delta"
   }
@@ -421,6 +426,8 @@ makeProjections <- function(df,
 #' @param periodBegin \code{numeric} first year of historical data
 #' @param endOfHistory \code{numeric} Last year of historical data
 #' @param convReg \code{character} Convergence type: "absolute" for value differences or "proportion" for ratios
+#' @param convFactor \code{character} Convergence factor: "lambda" for slow linear convergence
+#'   or "fullconv" for fast logistic convergence
 #' @param transformVariable \code{character} Variable transformation to apply (optional)
 #' @param transformVariableScen \code{character} Scenario-specific variable transformation (optional)
 #'
@@ -442,6 +449,7 @@ makeProjections <- function(df,
                                 periodBegin,
                                 endOfHistory,
                                 convReg = "absolute",
+                                convFactor = "lambda",
                                 transformVariable     = NULL,
                                 transformVariableScen = NULL) {
 
@@ -488,7 +496,7 @@ makeProjections <- function(df,
 
 
   # Get correction formulas to smooth deviations (delta) between empirical data and projections
-  deltaFormulas <- .getDeltaFormulas(lhs = var, convReg = convReg, deltaTarget = FALSE)
+  deltaFormulas <- .getDeltaFormulas(lhs = var, convReg = convReg, convFactor = convFactor, deltaTarget = FALSE)
 
 
   # Calculate deltas and correct projections

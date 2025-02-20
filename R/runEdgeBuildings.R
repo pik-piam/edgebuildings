@@ -105,7 +105,8 @@ runEdgeBuildings <- function(config = "configEDGEscens.csv",
   invisible(file.copy(
     file.path(getSystemFile(package = "edgebuildings"), "output",
               paste0("projections_", scenarios, ".csv")),
-    runFolderDir))
+    runFolderDir)
+  )
 
 
   if (!is.null(reporting)) {
