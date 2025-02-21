@@ -235,7 +235,8 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
 
   # check whether gdp scenario names were adjusted if gdpBoost is active
   lapply(scenNames, function(scen) {
-    if ((is.data.frame(fullConfig[[scen, "gdpBoost"]]) || any(fullConfig[[scen, "gdpBoost"]] != 0))
+    if (!grepl("SDP", scen)
+        &&(is.data.frame(fullConfig[[scen, "gdpBoost"]]) || any(fullConfig[[scen, "gdpBoost"]] != 0))
         && (!grepl("_boost", fullConfig[[scen, "gdpScen"]]) || !grepl("_boost", fullConfig[[scen, "gdppopScen"]]))) {
       stop("If the gdp-boost option is set, the gdp and gdppop scenarios need to include the suffix '_boost'.")
     }
