@@ -23,12 +23,12 @@ econCoef_uvalues_X_min;RC less good insulation, MC strong regulation leading to 
 econCoef_biotrad;;2;1;0.25;1,lowIncome:0.25,highIncome:1.5;1.5
 econCoef_space_heating.elecHP_eff_X_Asym;RC a little less efficient, MC more efficient;5;5;3.875;5,lowIncome:3.875,highIncome:5;6
 econCoef_space_heating.elecHP_share_X_Asym;RC a little less efficient, MC more efficient;0.8;0.5,Europe:0.75;0.25;0.4,lowIncome:0.25,highIncome:0.6;0.75
-econCoef_space_heating.elec_X_lrc;RC a little less efficient, MC more efficient;-10.46310334;-10.1266311,Europe:-10;-9.61580548;-10.1266311,lowIncome:-9.61580548;-10.46310334
+econCoef_space_heating.elec_X_lrc;RC a little less efficient, MC more efficient;-10.67122;-10.33475,Europe:-10.20812;-10.03205;-10.33475,lowIncome:-9.823925;-10.67122
 econCoef_space_cooling.elec_X_Asym;RC a little less efficient, MC more efficient;8;5;3.875;5,lowIncome:3.875;8
-econCoef_space_cooling.elec_X_lrc;;-10.30895266;-10.30895266;-10.1266311;-10.30895266,lowIncome:-10.1266311;-10.30895266
+econCoef_space_cooling.elec_X_lrc;;-10.51707;-10.51707;-10.33475;-10.51707,lowIncome:-10.33475;-10.51707
 econCoef_water_heating.elecHP_eff_X_Asym;;5;5;3.875;5,lowIncome:3.875,highIncome:5;6
 econCoef_water_heating.elecHP_share_X_Asym;;0.8;0.5;0.25;0.4,lowIncome:0.25,highIncome:0.6;0.75
-econCoef_water_heating.elec_X_lrc;;-10.30895266;-10.30895266;-10.1266311;-10.30895266,lowIncome:-10.1266311;-10.30895266
+econCoef_water_heating.elec_X_lrc;;-10.51707;-10.51707;-10.33475;-10.51707,lowIncome:-10.33475;-10.51707
 econCoef_appliances_light.elec_X_Asym;;0.9;0.9;0.75;0.82,lowIncome:0.75;0.9
 feShare_space_heating_natgas;;15;35,Europe:32;40;35,lowIncome:40,highIncome:75;75
 feShare_space_heating_elec;EI and RC high, MC close to technical potential;40;40,Europe:37;15;40,lowIncome:15,highIncome:17;17
@@ -55,6 +55,6 @@ feShare_space_cooling_biomod;;0;0;0;0;0
 speed;;2200;2300;2400;2400,lowIncome:2500,highIncome:2300;2200
 speed_fullconv;;2070;2070;2070;2070;2070
 floorspaceCap;;NA;NA;NA;NA;NA
-incomeThresholdEC;account for lower GDP/cap in RC and tighter regulation in MC;30000;30000;30000;30000;30000
+incomeThresholdEC;account for lower GDP/cap in RC and tighter regulation in MC;36941;36941;36941;36941;36941
 gdpBoost;;0;0;0;0;0
 interpolate;;TRUE;TRUE;TRUE;TRUE;TRUE
