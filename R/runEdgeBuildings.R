@@ -19,7 +19,7 @@ runEdgeBuildings <- function(config = "configEDGEscens.csv",
                              outputDir = "./output",
                              reporting = NULL,
                              madratDir = NULL,
-                             inputdataRevision = "0.5.2",
+                             inputdataRevision = "0.5.3",
                              forceDownload = FALSE) {
 
   # TODO: relocate data_internal
