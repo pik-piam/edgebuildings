@@ -470,43 +470,6 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     i <- i + length(.regions(pData))
 
 
-    ### by carrier ###
-
-    bookmarks <- .addBookmark(bookmarks, "by carrier", i, 3)
-
-    pDataCarrier <- data %>%
-      # Filter for relevant variables
-      filter(.data[["variable"]] %in% c("gdp", "pop", paste(carriers, enType, sep = "|"))) %>%
-      select(-"unit") %>%
-      .aggREMIND(recover = "DEU") %>%
-      pivot_wider(names_from = "variable") %>%
-      mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
-             across(.cols = matches("^[^|]+\\|[^|]+$"),
-                    .fns = ~ .x * 1e6 / .data[["pop"]],  # Convert EJ to GJ and divide by population
-                    .names = "{.col}_pop"))
-
-    for (c in carriers) {
-      p <- lapply(list("period", "gdppop"), function(x) {
-        linePlot(
-          pDataCarrier,
-          title = switch(x, period = paste(c, toupper(enType), "demand per capita")),
-          xAxisLabel = x,
-          yAxisLabel = switch(x, period = "GJ/yr/cap"),
-          color = "region",
-          facet = "scenario",
-          x = x,
-          y = paste0(c, "|", enType, "_pop")
-        ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
-                                     axis.ticks.y = element_blank()))
-      })
-      print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
-                      widths = c(1.2, 1), align = "hv"))
-
-    }
-
-    i <- i + length(carriers)
-
-
     ### by enduse ###
 
     bookmarks <- .addBookmark(bookmarks, "by enduse", i, 3)
@@ -519,7 +482,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       pivot_wider(names_from = "variable") %>%
       mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
              across(.cols = matches("^[^|]+\\|[^|]+$"),
-                    .fns = ~ .x * 1e6 / .data[["pop"]],  # Convert EJ to GJ and divide by population
+                    .fns = ~ .x * 1e3 / .data[["pop"]],  # EJ/yr/cap -> GJ/yr/cap
                     .names = "{.col}_pop"))
 
     for (eu in uses) {
@@ -542,6 +505,43 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     }
 
     i <- i + length(uses)
+
+
+    ### by carrier ###
+
+    bookmarks <- .addBookmark(bookmarks, "by carrier", i, 3)
+
+    pDataCarrier <- data %>%
+      # Filter for relevant variables
+      filter(.data[["variable"]] %in% c("gdp", "pop", paste(carriers, enType, sep = "|"))) %>%
+      select(-"unit") %>%
+      .aggREMIND(recover = "DEU") %>%
+      pivot_wider(names_from = "variable") %>%
+      mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
+             across(.cols = matches("^[^|]+\\|[^|]+$"),
+                    .fns = ~ .x * 1e3 / .data[["pop"]],  # EJ/yr/cap -> GJ/yr/cap
+                    .names = "{.col}_pop"))
+
+    for (c in carriers) {
+      p <- lapply(list("period", "gdppop"), function(x) {
+        linePlot(
+          pDataCarrier,
+          title = switch(x, period = paste(c, toupper(enType), "demand per capita")),
+          xAxisLabel = x,
+          yAxisLabel = switch(x, period = "GJ/yr/cap"),
+          color = "region",
+          facet = "scenario",
+          x = x,
+          y = paste0(c, "|", enType, "_pop")
+        ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+                                     axis.ticks.y = element_blank()))
+      })
+      print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
+                      widths = c(1.2, 1), align = "hv"))
+
+    }
+
+    i <- i + length(carriers)
 
   }
 
