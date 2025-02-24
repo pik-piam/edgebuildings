@@ -35,7 +35,8 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       `appliances_light` = "#E0CB09",
       `water_heating`    = "#1452F5",
       `cooking`          = "#E00962",
-      `space_cooling`    = "#09BCE0"),
+      `space_cooling`    = "#09BCE0"
+    ),
     Carrier = c(
       `biomod`  = "#005900",
       `biotrad` = "#7f7f7f",
@@ -163,8 +164,9 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       scale_x_continuous(xAxisLabel) +
       scale_linetype_manual(
         values = linetypes,
-        guide = if (length(linetypes) == 1) {"none"} else {"legend"},
-        na.value = "solid") +
+        guide = if (length(linetypes) == 1) "none" else "legend",
+        na.value = "solid"
+      ) +
       scale_color_manual(values = colors) +
       theme_bw() +
       theme(strip.background = element_blank())
@@ -309,7 +311,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
                                  axis.ticks.y = element_blank()))
   })
-  print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE ,legend = "right",
+  print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
                   widths = c(1.2, 1), align = "hv"))
 
   i <- i + 1
@@ -332,7 +334,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
                                    axis.ticks.y = element_blank()))
     })
-    print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE ,legend = "right",
+    print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
                     widths = c(1.2, 1), align = "hv"))
   }
 
@@ -419,6 +421,8 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
     bookmarks <- .addBookmark(bookmarks, toupper(enType), i, 2)
 
+    bookmarks <- .addBookmark(bookmarks, "Total", i, 3)
+
 
     ### all regions ####
 
@@ -436,7 +440,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
                                    axis.ticks.y = element_blank()))
     })
-    print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE ,legend = "right",
+    print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
                     widths = c(1.2, 1), align = "hv"))
 
     i <- i + 1
@@ -459,11 +463,85 @@ visualiseScenarios <- function(path, outputFile = NULL) {
         ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
                                      axis.ticks.y = element_blank()))
       })
-      print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE ,legend = "right",
+      print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
                       widths = c(1.2, 1), align = "hv"))
     }
 
     i <- i + length(.regions(pData))
+
+
+    ### by enduse ###
+
+    bookmarks <- .addBookmark(bookmarks, "by enduse", i, 3)
+
+    pDataUse <- data %>%
+      # Filter for relevant variables
+      filter(.data[["variable"]] %in% c("gdp", "pop", paste(uses, enType, sep = "|"))) %>%
+      select(-"unit") %>%
+      .aggREMIND(recover = "DEU") %>%
+      pivot_wider(names_from = "variable") %>%
+      mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
+             across(.cols = matches("^[^|]+\\|[^|]+$"),
+                    .fns = ~ .x * 1e3 / .data[["pop"]],  # EJ/yr/cap -> GJ/yr/cap
+                    .names = "{.col}_pop"))
+
+    for (eu in uses) {
+      p <- lapply(list("period", "gdppop"), function(x) {
+        linePlot(
+          pDataUse,
+          title = switch(x, period = paste(eu, toupper(enType), "demand per capita")),
+          xAxisLabel = x,
+          yAxisLabel = switch(x, period = "GJ/yr/cap"),
+          color = "region",
+          facet = "scenario",
+          x = x,
+          y = paste0(eu, "|", enType, "_pop")
+        ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+                                     axis.ticks.y = element_blank()))
+      })
+      print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
+                      widths = c(1.2, 1), align = "hv"))
+
+    }
+
+    i <- i + length(uses)
+
+
+    ### by carrier ###
+
+    bookmarks <- .addBookmark(bookmarks, "by carrier", i, 3)
+
+    pDataCarrier <- data %>%
+      # Filter for relevant variables
+      filter(.data[["variable"]] %in% c("gdp", "pop", paste(carriers, enType, sep = "|"))) %>%
+      select(-"unit") %>%
+      .aggREMIND(recover = "DEU") %>%
+      pivot_wider(names_from = "variable") %>%
+      mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
+             across(.cols = matches("^[^|]+\\|[^|]+$"),
+                    .fns = ~ .x * 1e3 / .data[["pop"]],  # EJ/yr/cap -> GJ/yr/cap
+                    .names = "{.col}_pop"))
+
+    for (c in carriers) {
+      p <- lapply(list("period", "gdppop"), function(x) {
+        linePlot(
+          pDataCarrier,
+          title = switch(x, period = paste(c, toupper(enType), "demand per capita")),
+          xAxisLabel = x,
+          yAxisLabel = switch(x, period = "GJ/yr/cap"),
+          color = "region",
+          facet = "scenario",
+          x = x,
+          y = paste0(c, "|", enType, "_pop")
+        ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+                                     axis.ticks.y = element_blank()))
+      })
+      print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
+                      widths = c(1.2, 1), align = "hv"))
+
+    }
+
+    i <- i + length(carriers)
 
   }
 
@@ -512,7 +590,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
           ggplot() +
           geom_col(aes(.data[["period"]], .data[["value"]],
                        fill = .data[["variable"]])) +
-          facet_grid(.data[["scenario"]]~.data[["version"]]) +
+          facet_grid(.data[["scenario"]] ~ .data[["version"]]) +
           scale_y_continuous(switch(by, Carrier = "EJ/yr"), expand = c(0, 0, 0.05, 0)) +
           scale_x_continuous(NULL, expand = c(0, 0)) +
           scale_fill_manual(values = colors[[by]], name = by) +
