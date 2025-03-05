@@ -29,7 +29,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   # READ -----------------------------------------------------------------------
 
-  colors <- list(
+  colorScale <- list(
     Use = c(
       `space_heating`    = "#8B3458",
       `appliances_light` = "#E0CB09",
@@ -50,8 +50,8 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     )
   )
 
-  uses <- names(colors$Use)
-  carriers <- names(colors$Carrier)
+  uses <- names(colorScale$Use)
+  carriers <- names(colorScale$Carrier)
 
   ## scenarios ====
 
@@ -95,6 +95,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       select("RegionCode", "RegionCodeEUR_ETP") %>%
       unique()
     out <- df %>%
+      filter(region != "GLO") %>%
       replace_column(mask, region = "RegionCodeEUR_ETP", "RegionCode") %>%
       group_by(across(-all_of("value"))) %>%
       summarise(value = aggMethod(.data[["value"]]), .groups = "drop")
@@ -119,12 +120,12 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
 
   .getColors <- function(ColorCol) {
-    colors <- c(brewer.pal(9, "Set1")[c(1:5, 7:9)],
+    colorScale <- c(brewer.pal(9, "Set1")[c(1:5, 7:9)],
                 brewer.pal(12, "Set3")[c(1, 3:12)],
                 brewer.pal(12, "Paired"))
     colorVals <- unique(ColorCol)
-    colors <- setNames(colors[seq_along(colorVals)], colorVals)
-    return(colors)
+    colorScale <- setNames(colorScale[seq_along(colorVals)], colorVals)
+    return(colorScale)
   }
 
 
@@ -132,7 +133,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   ## linetype ====
 
-  linetypes <- setNames(seq_along(path), names(path))
+  linetypeScale <- setNames(seq_along(path), names(path))
 
 
   ## plot theme ====
@@ -142,20 +143,25 @@ visualiseScenarios <- function(path, outputFile = NULL) {
                        subtitle = NULL,
                        xAxisLabel = NULL,
                        yAxisLabel = NULL,
-                       linetypes = NULL,
+                       linetype = "version",
+                       linetypeScale = NULL,
                        facet = NULL,
                        facetNcol = NULL,
                        color = "scenario",
+                       colorScale = NULL,
                        x = "period",
                        y = "value") {
 
-    colors <- .getColors(df[[color]])
+    if (is.null(colorScale)) {
+      colorScale <- .getColors(df[[color]])
+    }
+
 
     p <- df %>%
       ggplot() +
       geom_line(aes(.data[[x]], .data[[y]],
                     colour = .data[[color]],
-                    linetype = .data[["version"]]),
+                    linetype = .data[[linetype]]),
                 size = .8) +
       ggtitle(title, subtitle) +
       scale_y_continuous(yAxisLabel,
@@ -163,11 +169,11 @@ visualiseScenarios <- function(path, outputFile = NULL) {
                          limits = c(0, NA)) +
       scale_x_continuous(xAxisLabel) +
       scale_linetype_manual(
-        values = linetypes,
-        guide = if (length(linetypes) == 1) "none" else "legend",
+        values = linetypeScale,
+        guide = if (length(linetypeScale) == 1) "none" else "legend",
         na.value = "solid"
       ) +
-      scale_color_manual(values = colors) +
+      scale_color_manual(values = colorScale) +
       theme_bw() +
       theme(strip.background = element_blank())
 
@@ -184,10 +190,12 @@ visualiseScenarios <- function(path, outputFile = NULL) {
                         title = NULL,
                         xAxisLabel = "",
                         yAxisLabel = NULL,
-                        linetypes = NULL,
+                        linetype = "version",
+                        linetypeScale = NULL,
                         facet = NULL,
                         facetNcol = NULL,
                         color = "scenario",
+                        colorScale = NULL,
                         x = "period",
                         y = "value") {
 
@@ -198,10 +206,12 @@ visualiseScenarios <- function(path, outputFile = NULL) {
                      subtitle = r,
                      xAxisLabel = xAxisLabel,
                      yAxisLabel = yAxisLabel,
-                     linetypes = linetypes,
+                     linetype = linetype,
+                     linetypeScale = linetypeScale,
                      facet = facet,
                      facetNcol = facetNcol,
                      color = color,
+                     colorScale = colorScale,
                      x = x,
                      y = y))
     }
@@ -276,7 +286,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   linePlots(pData,
             title = "Floor space",
             yAxisLabel = "billion m2",
-            linetypes = linetypes)
+            linetypeScale = linetypeScale)
 
   i <- i + length(.regions(pData))
 
@@ -303,7 +313,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       title = switch(x, period = paste("Total floor space per capita")),
       xAxisLabel = x,
       yAxisLabel = switch(x, period = "m2/cap"),
-      linetypes = linetypes,
+      linetypeScale = linetypeScale,
       facet = "scenario",
       color = "region",
       x = x,
@@ -327,7 +337,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
         subtitle = switch(x, period = r),
         xAxisLabel = x,
         yAxisLabel = switch(x, period = "m2/cap"),
-        linetypes = linetypes,
+        linetypeScale = linetypeScale,
         color = "scenario",
         x = x,
         y = "buildings_pop"
@@ -341,7 +351,147 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   i <- i + length(.regions(pData))
 
 
-  ## energy demand====
+  ## U-value ====
+
+  bookmarks <- .addBookmark(bookmarks, "U-value", i, 1)
+  pData <- data %>%
+    filter(.data[["variable"]] %in% c("gdppop", "uvalue")) %>%
+    .aggREMIND(recover = c("DEU", "GLO"), aggMethod = mean) %>%
+    pivot_wider(names_from = "variable")
+
+
+  ### all regions ####
+
+  p <- lapply(list("period", "gdppop"), function(x) {
+    linePlot(
+      pData,
+      title = switch(x, period = paste("U-value")),
+      xAxisLabel = x,
+      yAxisLabel = switch(x, period = "W/m2/K"),
+      linetypeScale = linetypeScale,
+      facet = "scenario",
+      color = "region",
+      x = x,
+      y = "uvalue"
+    ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+                                 axis.ticks.y = element_blank()))
+  })
+  print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
+                  widths = c(1.2, 1), align = "hv"))
+
+  i <- i + 1
+
+
+  ### regional ####
+
+  # for (r in .regions(pData)) {
+  #   p <- lapply(list("period", "gdppop"), function(x) {
+  #     linePlot(
+  #       filter(pData, .data[["region"]] %in% r),
+  #       title = switch(x, period = paste("U-value")),
+  #       subtitle = switch(x, period = r),
+  #       xAxisLabel = x,
+  #       yAxisLabel = switch(x, period = "unit"),
+  #       linetypeScale = linetypeScale,
+  #       color = "scenario",
+  #       x = x,
+  #       y = "uvalue"
+  #     ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+  #                                  axis.ticks.y = element_blank()))
+  #   })
+  #   print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
+  #                   widths = c(1.2, 1), align = "hv"))
+  # }
+  #
+  # i <- i + length(.regions(pData))
+
+  ## HDD ====
+
+  bookmarks <- .addBookmark(bookmarks, "HDD", i, 1)
+  pData <- data %>%
+    filter(.data[["variable"]] == "HDD") %>%
+    .aggREMIND(recover = c("DEU", "GLO"), aggMethod = mean) %>%
+    pivot_wider(names_from = "variable")
+
+
+  ### all regions ####
+
+  print(linePlot(
+      pData,
+      title = "HDD",
+      xAxisLabel = "period",
+      yAxisLabel = "K d/yr",
+      linetypeScale = linetypeScale,
+      facet = "scenario",
+      color = "region",
+      x = "period",
+      y = "HDD"
+    ))
+
+  i <- i + 1
+
+  ## CDD ====
+
+  bookmarks <- .addBookmark(bookmarks, "CDD", i, 1)
+  pData <- data %>%
+    filter(.data[["variable"]] == "CDD") %>%
+    .aggREMIND(recover = c("DEU", "GLO"), aggMethod = mean) %>%
+    pivot_wider(names_from = "variable")
+
+
+  ### all regions ####
+
+  print(linePlot(
+    pData,
+    title = "CDD",
+    xAxisLabel = "period",
+    yAxisLabel = "K d/yr",
+    linetypeScale = linetypeScale,
+    facet = "scenario",
+    color = "region",
+    x = "period",
+    y = "CDD"
+  ))
+
+  i <- i + 1
+
+
+  ## carrier efficiency and shares ====
+
+  # Only generate these plots if only one path is given
+  if (length(linetypeScale) == 1) {
+
+    bookmarks <- .addBookmark(bookmarks, "Carrier projections", i, 1)
+
+    for (projType in c("efficiency", "share")) {
+
+      bookmarks <- .addBookmark(bookmarks, projType, i, 2)
+
+
+      ### by end use ####
+
+      pData <- data %>%
+        filter(grepl(paste0("(", paste(uses, collapse = "|"), ")\\.(",
+                            paste(carriers, collapse = "|"), ")\\|", projType),
+                     .data[["variable"]])) %>%
+        .aggREMIND(recover = c("GLO", "DEU"), aggMethod = mean) %>%
+        tidyr::separate_wider_delim(variable, delim = ".", names = c("enduse", "carrier")) %>%
+        mutate(carrier = sub(paste0("\\|", projType), "", .data[["carrier"]]))
+      linePlots(pData,
+                title = paste("Carrier", projType, "by end use"),
+                yAxisLabel = "",
+                linetype = "scenario",
+                linetypeScale = setNames(seq_along(unique(pData$scenario)), unique(pData$scenario)),
+                color = "carrier",
+                colorScale = colorScale[['Carrier']],
+                facet = "enduse")
+
+      i <- i + length(.regions(pData))
+
+    }
+  }
+
+  ## energy demand ====
 
   bookmarks <- .addBookmark(bookmarks, "Energy demand", i, 1)
 
@@ -360,7 +510,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     linePlots(pData,
               title = paste("Total", toupper(enType), "demand"),
               yAxisLabel = "EJ/yr",
-              linetypes = linetypes)
+              linetypeScale = linetypeScale)
 
     i <- i + length(.regions(pData))
 
@@ -377,7 +527,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     linePlots(pData,
               title = paste(toupper(enType), "demand by end use"),
               yAxisLabel = "EJ/yr",
-              linetypes = linetypes,
+              linetypeScale = linetypeScale,
               facet = "variable")
 
     i <- i + length(.regions(pData))
@@ -395,7 +545,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     linePlots(pData,
               title = paste(toupper(enType), "demand by carrier"),
               yAxisLabel = "EJ/yr",
-              linetypes = linetypes,
+              linetypeScale = linetypeScale,
               facet = "variable")
 
     i <- i + length(.regions(pData))
@@ -432,7 +582,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
         title = switch(x, period = paste("Total", toupper(enType), "demand per capita")),
         xAxisLabel = x,
         yAxisLabel = switch(x, period = "GJ/yr/cap"),
-        linetypes = linetypes,
+        linetypeScale = linetypeScale,
         facet = "scenario",
         color = "region",
         x = x,
@@ -456,7 +606,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
           subtitle = switch(x, period = r),
           xAxisLabel = x,
           yAxisLabel = switch(x, period = "GJ/yr/cap"),
-          linetypes = linetypes,
+          linetypeScale = linetypeScale,
           color = "scenario",
           x = x,
           y = paste0(enType, "_pop")
@@ -555,7 +705,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
     pivot_longer(c("gdp", "pop", "gdppop"), names_to = "variable")
   linePlots(pData,
             "Macro drivers",
-            linetypes = linetypes,
+            linetypeScale = linetypeScale,
             facet = "variable",
             facetNcol = 1)
 
@@ -593,7 +743,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
           facet_grid(.data[["scenario"]] ~ .data[["version"]]) +
           scale_y_continuous(switch(by, Carrier = "EJ/yr"), expand = c(0, 0, 0.05, 0)) +
           scale_x_continuous(NULL, expand = c(0, 0)) +
-          scale_fill_manual(values = colors[[by]], name = by) +
+          scale_fill_manual(values = colorScale[[by]], name = by) +
           ggtitle(switch(by, Carrier = paste(toupper(enType), "demand")),
                   switch(by, Carrier = r)) +
           theme_bw() +

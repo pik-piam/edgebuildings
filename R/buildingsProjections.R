@@ -493,6 +493,9 @@ buildingsProjections <- function(config,
     ))
   }
 
+  # Add efficiency and energy carrier shares to output data frame
+  df <- rbind(df, prepareForOutput(feueEff, "efficiency"), prepareForOutput(feSharesEC, "share"))
+
 
   #--- Add RCP scenario to scenario name if existent
 
@@ -738,4 +741,22 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
       region = "GLO"
     ) %>%
     rbind(hp)
+}
+
+prepareForOutput <- function(dfAux, name) {
+  dfAuxAgg <- do.call(rbind, lapply(c("enduse", "carrier"), function(col) {
+    dfAux %>%
+      group_by(across(all_of(c("region", "period", "scenario", col)))) %>%
+      summarise(value = mean(.data[[name]]), .groups = "drop") %>%
+      mutate(variable = paste(.data[[col]], name, sep = "|")) %>%
+      select(-col)
+  }))
+
+  dfAux %>%
+    unite("variable", all_of(c("enduse", "carrier")), sep = ".") %>%
+    mutate(variable = paste(.data[["variable"]], name, sep = "|")) %>%
+    rename(value = name) %>%
+    rbind(dfAuxAgg) %>%
+    mutate(model = NA, unit = NA)
+
 }
