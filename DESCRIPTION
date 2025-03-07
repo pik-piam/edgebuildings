@@ -62,5 +62,5 @@ Suggests:
   rmarkdown,
   rprojroot,
   xmpdf
-Date: 2025-03-05
+Date: 2025-03-07
 VignetteBuilder: knitr

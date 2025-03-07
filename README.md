@@ -63,7 +63,7 @@ A BibTeX entry for LaTeX users is
 @Misc{,
   title = {edgebuildings: Model for the projection of global energy demand in the buildings sector - Version 0.4.4},
   author = {Antoine Levesque and Robin Hasse and Hagen Tockhorn and Ricarda Rosemann and Pascal Führlich},
-  date = {2025-03-05},
+  date = {2025-03-07},
   year = {2025},
 }
 ```

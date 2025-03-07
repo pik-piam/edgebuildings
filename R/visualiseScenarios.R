@@ -82,6 +82,11 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   eurRegions <- mapping %>%
     filter(.data[["RegionCode"]] == "EUR") %>%
     getElement("RegionCodeEUR")
+  
+  plottedRegions <- mapping %>%
+    select("RegionCode") %>%
+    unique() %>%
+    pull()
 
 
 
@@ -355,8 +360,8 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   bookmarks <- .addBookmark(bookmarks, "U-value", i, 1)
   pData <- data %>%
-    filter(.data[["variable"]] %in% c("gdppop", "uvalue")) %>%
-    .aggREMIND(recover = c("DEU", "GLO"), aggMethod = mean) %>%
+    filter(.data[["variable"]] %in% c("gdppop", "uvalue"),
+           .data[["region"]] %in% c(plottedRegions, "DEU", "GLO")) %>%
     pivot_wider(names_from = "variable")
 
 
@@ -386,8 +391,8 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   bookmarks <- .addBookmark(bookmarks, "HDD", i, 1)
   pData <- data %>%
-    filter(.data[["variable"]] == "HDD") %>%
-    .aggREMIND(recover = c("DEU", "GLO"), aggMethod = mean) %>%
+    filter(.data[["variable"]] == "HDD",
+           .data[["region"]] %in% c(plottedRegions, "DEU", "GLO")) %>%
     pivot_wider(names_from = "variable")
 
 
@@ -411,8 +416,8 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   bookmarks <- .addBookmark(bookmarks, "CDD", i, 1)
   pData <- data %>%
-    filter(.data[["variable"]] == "CDD") %>%
-    .aggREMIND(recover = c("DEU", "GLO"), aggMethod = mean) %>%
+    filter(.data[["variable"]] == "CDD",
+           .data[["region"]] %in% c(plottedRegions, "DEU", "GLO")) %>%
     pivot_wider(names_from = "variable")
 
 
