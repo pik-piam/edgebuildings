@@ -92,24 +92,32 @@ runEdgeBuildings <- function(config = "configEDGEscens.csv",
 
   # run folder ====
 
-  # named after config file name
+  # name after config file name and create the folder
   runfolder <- paste0(sub("^([^\\.]+)\\..+$", "\\1", basename(config)),
                       format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"))
+  runFolderDir <- file.path(outputDir, runfolder)
+  dir.create(runFolderDir)
 
+
+  # copy config ====
+
+  invisible(file.copy(config, runFolderDir))
+  cfgText <- c(paste("Edgebuildings version:", utils::packageVersion("edgebuildings")),
+               paste("Input revision:", inputdataRevision),
+               paste("Creation date:", format(Sys.time(), "%A %B %d %Y %H:%M:%S")))
+  write(cfgText, file = file.path(runFolderDir, "cfg.txt"))
 
   # copy projections ====
 
-  runFolderDir <- file.path(outputDir, runfolder)
-  dir.create(runFolderDir)
   scenarios <- rownames(readConfig(config = config, subtype = "scenario"))
   invisible(file.copy(
     file.path(getSystemFile(package = "edgebuildings"), "output",
               paste0("projections_", scenarios, ".csv")),
-    runFolderDir)
-  )
+    runFolderDir
+  ))
 
 
   if (!is.null(reporting)) {
-    reportResults(runFolderDir, reporting)
+    reportResults(runFolderDir, reporting, cfgText)
   }
 }
