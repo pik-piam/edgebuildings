@@ -3,16 +3,17 @@
 #' @param path character, path to run folder
 #' @param reporting reporting configuration, either a path to a file or the name
 #'   of an internal reporting configuration
+#' @param cfgText character, configuration description to be added to the output file
 #'
 #' @author Robin Hasse
 #'
 #' @importFrom yaml read_yaml
 #' @importFrom piamutils getSystemFile
-#' @importFrom utils tail write.csv
+#' @importFrom utils tail write.table
 #' @importFrom dplyr left_join filter .data %>% mutate summarise group_by
 #'   full_join
 
-reportResults <- function(path, reporting) {
+reportResults <- function(path, reporting, cfgText) {
 
   # READ -----------------------------------------------------------------------
 
@@ -45,7 +46,8 @@ reportResults <- function(path, reporting) {
       stop("The mapping file ", cfg[["mapping"]],
            " is missing the following columns: ",
            paste(missingCols, collapse = ", "))
-    }}
+    }
+  }
 
 
   ## EDGE-B results ====
@@ -71,7 +73,7 @@ reportResults <- function(path, reporting) {
         mutate(absErr = abs(.data[["value.y"]] - .data[["value.x"]]),
                relErr = .data[["absErr"]] / abs(.data[["value.x"]])) %>%
         filter(.data[["absErr"]] > 1E-4,
-               .data[["relErr"]] > 1E-2 )
+               .data[["relErr"]] > 1E-2)
       ncol(delta) == 0
     }))
   } else {
@@ -114,7 +116,8 @@ reportResults <- function(path, reporting) {
       select("edgeVariable", variable = "reportingVariable", "weight") %>%
       left_join(data, by = c(edgeVariable = "variable")) %>%
       group_by(across(all_of(
-        setdiff(colnames(data), c("value", "edgeVariable", "weight"))))) %>%
+        setdiff(colnames(data), c("value", "edgeVariable", "weight"))
+      ))) %>%
       summarise(value = signif(sum(.data[["weight"]] * .data[["value"]]), 4),
                 .groups = "drop")
 
@@ -147,7 +150,10 @@ reportResults <- function(path, reporting) {
 
   # WRITE ----------------------------------------------------------------------
 
-  write.csv(data, file.path(path, cfg[["fileName"]]), row.names = FALSE)
+  write(paste("*", cfgText), file.path(path, cfg[["fileName"]]))
+  # Need to suppress warnings as otherwise this warning would be given: "appending column names to file"
+  suppressWarnings(write.table(data, file.path(path, cfg[["fileName"]]), sep = ",",
+                               row.names = FALSE, append = TRUE))
 
   return(invisible(data))
 

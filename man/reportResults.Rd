@@ -4,13 +4,15 @@
 \alias{reportResults}
 \title{Create reporting file summarising EDGE-B runs}
 \usage{
-reportResults(path, reporting)
+reportResults(path, reporting, cfgText)
 }
 \arguments{
 \item{path}{character, path to run folder}
 
 \item{reporting}{reporting configuration, either a path to a file or the name
 of an internal reporting configuration}
+
+\item{cfgText}{character, configuration description to be added to the output file}
 }
 \description{
 Create reporting file summarising EDGE-B runs
