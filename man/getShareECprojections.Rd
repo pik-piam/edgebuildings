@@ -11,6 +11,7 @@ getShareECprojections(
   gdp,
   gdppop,
   scenAssumpFEShares,
+  refIncomeThresholdEC,
   regionalmap
 )
 }
@@ -26,6 +27,8 @@ getShareECprojections(
 \item{gdppop}{data.frame gdp per capita}
 
 \item{scenAssumpFEShares}{data.frame scenario-specific FE sare assumptions}
+
+\item{refIncomeThresholdEC}{data frame with reference income threshold for phaseout}
 
 \item{regionalmap}{data.frame regional mapping}
 }
