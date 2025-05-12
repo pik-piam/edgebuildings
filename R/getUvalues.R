@@ -96,51 +96,42 @@ getUValues <- function(config,
 
   # PROCESS DATA ---------------------------------------------------------------
 
-  # bind full data set
+  # obtain 5 year mean of last historical values to reduce bias of single data point
+  hddcddEOH <- hddcdd %>%
+    filter(.data$period %in% seq.int(endOfHistory - 4, endOfHistory)) %>%
+    group_by(across(all_of(c("region", "scenario", "variable")))) %>%
+    reframe(eohValue = mean(.data$value, na.rm = TRUE))
+
+
+  # prepare full data set for projections
   data <- hddcdd %>%
+    # calculate dampened future degree-days relative to EOH
+    left_join(hddcddEOH, by = c("region", "scenario", "variable")) %>%
+    left_join(climateElas, by = "region") %>%
+    mutate(value = ifelse(.data$period > endOfHistory,
+                          .data$eohValue * (.data$value / .data$eohValue)^.data$climateElas,
+                          .data$value)) %>%
+    select(-"eohValue", -"climateElas") %>%
+
+    # join GDP per capita and projection parameters
     rbind(gdppop) %>%
     filter(.data$period >= periodBegin) %>%
+    semi_join(lambda, by = "period") %>%
     pivot_wider(names_from = "variable", values_from = "value") %>%
     left_join(uvaluePars %>%
                 pivot_wider(names_from = "variable", values_from = "value"),
-              by = "region") %>%
-    semi_join(lambda, by = "period")
-
-
-  # obtain 5 year mean of last historical values to reduce bias of single data point
-  dataEOH <- data %>%
-    filter(.data$period %in% seq.int(endOfHistory - 4, endOfHistory)) %>%
-    group_by(across(all_of(c("region", "scenario")))) %>%
-    reframe(eohHDD    = mean(.data$HDD,    na.rm = TRUE),
-            eohCDD    = mean(.data$CDD,    na.rm = TRUE),
-            eohGDPPOP = mean(.data$gdppop, na.rm = TRUE))
+              by = "region")
 
 
   data <- data %>%
     # project historical and future u-values
-    left_join(dataEOH, by = c("region", "scenario")) %>%
-    left_join(climateElas, by = "region") %>%
-    mutate(uvalueProj = ifelse(.data$period <= endOfHistory,
-
-                               # Historical periods: use original regression formula
-                               exp(.data$parINTERCEPT +
-                                     .data$parHDD * .data$HDD +
-                                     .data$parCDD * .data$CDD +
-                                     .data$parGDPPOP * log(.data$gdppop + 1) +
-                                     .data$parHDDGDPPOP * .data$HDD * log(.data$gdppop + 1) +
-                                     .data$parCDDGDPPOP * .data$CDD * log(.data$gdppop + 1)) +
-                                 .data$minU,
-
-                               # Future periods: apply climate dampening
-                               exp(.data$parINTERCEPT +
-                                     .data$parHDD * (.data$eohHDD * (.data$HDD / .data$eohHDD)^.data$climateElas) +
-                                     .data$parCDD * (.data$eohCDD * (.data$CDD / .data$eohCDD)^.data$climateElas) +
-                                     .data$parGDPPOP * log(.data$gdppop + 1) +
-                                     .data$parHDDGDPPOP * (.data$eohHDD * (.data$HDD / .data$eohHDD)^.data$climateElas)
-                                     * log(.data$gdppop + 1) +
-                                     .data$parCDDGDPPOP * (.data$eohCDD * (.data$CDD / .data$eohCDD)^.data$climateElas)
-                                     * log(.data$gdppop + 1)) +
-                                 .data$minU)) %>%
+    mutate(uvalueProj = exp(.data$parINTERCEPT +
+                              .data$parHDD * .data$HDD +
+                              .data$parCDD * .data$CDD +
+                              .data$parGDPPOP * log(.data$gdppop + 1) +
+                              .data$parHDDGDPPOP * .data$HDD * log(.data$gdppop + 1) +
+                              .data$parCDDGDPPOP * .data$CDD * log(.data$gdppop + 1)) +
+             .data$minU) %>%
 
     # include scenario assumptions
     left_join(scenAssumpFactor, by = "region") %>%
@@ -155,10 +146,10 @@ getUValues <- function(config,
     mutate(uvalueSmooth  = ifelse(.data$period >= endOfHistory, .data$uvalue,  lowpass(.data$uvalue, i = 5))) %>%
     filter(!is.na(.data$uvalueSmooth)) %>%
 
-    # Find max historical value and period where it occurs
-    mutate(maxHistValue = max(.data$uvalueSmooth[.data$period <= endOfHistory], na.rm = TRUE),
-           periodMax    = .data$period[.data$period <= endOfHistory]
-           [which.max(.data$uvalueSmooth[.data$period <= endOfHistory])]) %>%
+    # find max historical value and period where it occurs
+    mutate(hist         = .data$period <= endOfHistory,
+           maxHistValue = max(.data$uvalueSmooth[.data$hist], na.rm = TRUE),
+           periodMax    = .data$period[.data$hist][which.max(.data$uvalueSmooth[.data$hist])]) %>%
 
     # enusure that u-values do not increase over time:
     #   1) periods before historical max: apply max value
@@ -166,10 +157,11 @@ getUValues <- function(config,
     #   3) apply cumulative min to full time-series
     arrange(.data$period) %>%
     mutate(uvalueCorrected = ifelse(.data$period < .data$periodMax, .data$maxHistValue, .data$uvalueSmooth),
-           uvalueMin       = cummin(.data$uvalueCorrected)) %>%
+           uvalueFalling   = cummin(.data$uvalueCorrected)) %>%
     ungroup() %>%
 
-    select("region", "period", "scenario", "uvalue" = "uvalueMin") %>%
+    select("region", "period", "scenario", "uvalueFalling") %>%
+    rename("uvalue" = "uvalueFalling") %>%
     pivot_longer(cols = "uvalue", names_to = "variable", values_to = "value")
 
 
