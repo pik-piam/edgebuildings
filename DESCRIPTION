@@ -1,6 +1,6 @@
 Package: edgebuildings
 Title: Model for the projection of global energy demand in the buildings sector
-Version: 0.4.6
+Version: 0.4.7
 Authors@R: c(
   person(given = "Antoine", family = "Levesque",
          role = c("aut")),
@@ -41,6 +41,7 @@ Imports:
   gms,
   lazyeval,
   madrat,
+  magclass,
   magrittr,
   piamutils,
   pkgload,
@@ -62,5 +63,5 @@ Suggests:
   rmarkdown,
   rprojroot,
   xmpdf
-Date: 2025-05-06
+Date: 2025-05-15
 VignetteBuilder: knitr
