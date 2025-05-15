@@ -82,7 +82,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   eurRegions <- mapping %>%
     filter(.data[["RegionCode"]] == "EUR") %>%
     getElement("RegionCodeEUR")
-  
+
   plottedRegions <- mapping %>%
     select("RegionCode") %>%
     unique() %>%
@@ -440,10 +440,18 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   ## carrier efficiency and shares ====
 
-  # Only generate these plots if only one path is given
-  if (length(linetypeScale) == 1) {
+  # Only generate these plots if only one path or only one scenario is given
+  if (length(linetypeScale) == 1 || length(unique(data$scenario)) == 1) {
 
     bookmarks <- .addBookmark(bookmarks, "Carrier projections", i, 1)
+
+    if (length(linetypeScale) == 1) {
+      linetypeCarrier <- "scenario"
+      linetypeScaleCarrier <- setNames(seq_along(unique(pData$scenario)), unique(pData$scenario))
+    } else {
+      linetypeCarrier <- "version"
+      linetypeScaleCarrier <- linetypeScale
+    }
 
     for (projType in c("efficiency", "share")) {
 
@@ -462,8 +470,8 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       linePlots(pData,
                 title = paste("Carrier", projType, "by end use"),
                 yAxisLabel = "",
-                linetype = "scenario",
-                linetypeScale = setNames(seq_along(unique(pData$scenario)), unique(pData$scenario)),
+                linetype = linetypeCarrier,
+                linetypeScale = linetypeScaleCarrier,
                 color = "carrier",
                 colorScale = colorScale[["Carrier"]],
                 facet = "enduse")
@@ -624,6 +632,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
           title = switch(x, period = paste(eu, toupper(enType), "demand per capita")),
           xAxisLabel = x,
           yAxisLabel = switch(x, period = "GJ/yr/cap"),
+          linetypeScale = linetypeScale,
           color = "region",
           facet = "scenario",
           x = x,
@@ -661,6 +670,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
           title = switch(x, period = paste(c, toupper(enType), "demand per capita")),
           xAxisLabel = x,
           yAxisLabel = switch(x, period = "GJ/yr/cap"),
+          linetypeScale = linetypeScale,
           color = "region",
           facet = "scenario",
           x = x,

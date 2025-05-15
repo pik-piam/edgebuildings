@@ -16,6 +16,7 @@
 #' @param gdp data.frame gdp data
 #' @param gdppop data.frame gdp per capita
 #' @param scenAssumpFEShares data.frame scenario-specific FE sare assumptions
+#' @param refIncomeThresholdEC data frame with reference income threshold for phaseout
 #' @param regionalmap data.frame regional mapping
 #'
 #' @returns data.frame
@@ -51,6 +52,7 @@ getShareECprojections <- function(config,
                                   gdp,
                                   gdppop,
                                   scenAssumpFEShares,
+                                  refIncomeThresholdEC,
                                   regionalmap) {
   # FUNCTIONS ------------------------------------------------------------------
 
@@ -214,12 +216,20 @@ getShareECprojections <- function(config,
   for (useCarrier in useCarrierPhaseOut) {
     fePhaseOut <- projectShares(df = fePhaseOut,
                                 var = useCarrier,
-                                xTar = incomeThresholdEC,
+                                xTar = refIncomeThresholdEC,
                                 yTar = 0.01,
                                 phaseOutMaxEnd = feShareSpeed,
                                 phaseOutStart = endOfData)
   }
-
+  fePhaseOut <- filter(fePhaseOut, .data[["period"]] <= endOfHistory | .data[["variable"]] %in% c("gdp", "gdppop"))
+  for (useCarrier in useCarrierPhaseOut) {
+    fePhaseOut <- projectShares(df = fePhaseOut,
+                                var = useCarrier,
+                                xTar = incomeThresholdEC,
+                                yTar = 0.01,
+                                phaseOutMaxEnd = feShareSpeed,
+                                phaseOutStart = endOfHistory)
+  }
 
   # save the projectShares and split the variable columns
   fePhaseOut <- fePhaseOut %>%

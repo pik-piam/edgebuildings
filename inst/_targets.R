@@ -220,6 +220,16 @@ list(
     read.csv(correctEfficiencies.csv, stringsAsFactors = FALSE)
   ),
 
+  # reference EC income threshold for phase-out
+  tar_target(
+    refIncomeThresholdEC,
+    config["SSP2", "incomeThresholdEC"] %>%
+      as.numeric() %>%
+      buildScenInput(subtype = "mapping",
+                     regionmap = regionmap,
+                     valueOnly = TRUE)
+  ),
+
 
   # Process Files---------------------------------------------------------------
 
@@ -498,6 +508,7 @@ list(
                             gdp = gdp,
                             gdppop = gdppop,
                             scenAssumpFEShares = scenAssumpFEshares,
+                            refIncomeThresholdEC = refIncomeThresholdEC,
                             regionalmap = regionmap)
     },
     pattern = map(config),
