@@ -20,6 +20,7 @@
 #' @param interpolate \code{logical} Use all historical points vs only latest (default TRUE)
 #' @param initCorrection \code{data.frame} Corrected parameters for non-scenario projections (optional)
 #' @param replacePars \code{logical} Replace fit parameters with scenario assumptions (optional)
+#' @param acOwnershipRates \code{data.frame} AC penetration reference values
 #'
 #' @return \code{data.frame} Combined input data and calculated projections
 #'
@@ -54,7 +55,8 @@ makeProjections <- function(df,
                             periodBegin = 1990,
                             interpolate = TRUE,
                             initCorrection = NULL,
-                            replacePars = FALSE) {
+                            replacePars = FALSE,
+                            acOwnershipRates = NULL) {
 
 
   # PARAMETERS------------------------------------------------------------------
@@ -78,10 +80,12 @@ makeProjections <- function(df,
 
   #--- Process input data
 
+  requiredVars <- if (!is.null(acOwnershipRates)) c(all.vars(formul), "coefCDD") else all.vars(formul)
+
   # Prepare data by removing NAs and extracting variables needed for formula
   fullData <- df %>%
     mutate(unit = NA) %>%
-    filter(.data[["variable"]] %in% all.vars(formul)) %>%
+    filter(.data[["variable"]] %in% requiredVars) %>%
     spread(key = "variable", value = "value")
 
   # Split historical and projection data
@@ -101,8 +105,10 @@ makeProjections <- function(df,
 
   # Filter to relevant projection periods
   projectionData <- projectionData %>%
-    filter(.data[["period"]] %in% getPeriods(lambda)) %>%
-    filter(.data[["period"]] > endOfHistory)
+    filter(.data[["period"]] %in% getPeriods(lambda),
+           .data[["period"]] > periodBegin)
+
+  projectionData$scenario <- unique(projectionData$scenario[projectionData$scenario != "history"])
 
 
 
@@ -167,6 +173,15 @@ makeProjections <- function(df,
   }
 
 
+  # Correct AC penetration rates (if specified)
+  if (!is.null(acOwnershipRates)) {
+    projectionData <- shiftACpenetration(data             = projectionData,
+                                         fitPars          = estimate$m$getPars(),
+                                         acOwnershipRates = acOwnershipRates,
+                                         dataCol          = "projectionReg")
+  }
+
+
   # Projections with scenario-specific assumptions
   projectionData <- .makeScenarioProjections(data                  = projectionData,
                                              fitModel              = estimate,
@@ -174,7 +189,8 @@ makeProjections <- function(df,
                                              lhs                   = lhs,
                                              transformVariableScen = transformVariableScen,
                                              applyScenFactor       = applyScenFactor,
-                                             replacePars           = replacePars)
+                                             replacePars           = replacePars,
+                                             acOwnershipRates      = acOwnershipRates)
 
 
   # Merge scenario projections with regression projections
@@ -182,7 +198,8 @@ makeProjections <- function(df,
     left_join(lambda, by = c("region", "period", "scenario")) %>%
     mutate(projection = .data[["projectionScen"]] * .data[["fullconv"]] +
              .data[["projectionReg"]] * (1 - .data[["fullconv"]])) %>%
-    select(-c("lambda", "fullconv"))
+    select(-c("lambda", "fullconv")) %>%
+    filter(.data$period > endOfHistory)
 
 
 
@@ -197,7 +214,8 @@ makeProjections <- function(df,
                                         convReg               = convReg,
                                         convFactor            = convFactor,
                                         transformVariable     = transformVariable,
-                                        transformVariableScen = transformVariableScen)
+                                        transformVariableScen = transformVariableScen,
+                                        acOwnershipRates      = acOwnershipRates)
 
 
 
@@ -439,6 +457,7 @@ makeProjections <- function(df,
 #'   or "fullconv" for fast logistic convergence
 #' @param transformVariable \code{character} Variable transformation to apply (optional)
 #' @param transformVariableScen \code{character} Scenario-specific variable transformation (optional)
+#' @param acOwnershipRates \code{data.frame} AC penetration reference values
 #'
 #' @return \code{data.frame} Historical data with gaps filled using corrected projections
 #'
@@ -460,7 +479,8 @@ makeProjections <- function(df,
                                 convReg = "absolute",
                                 convFactor = "lambda",
                                 transformVariable     = NULL,
-                                transformVariableScen = NULL) {
+                                transformVariableScen = NULL,
+                                acOwnershipRates = NULL) {
 
   # Truncate data set
   data <- data %>%
@@ -502,6 +522,15 @@ makeProjections <- function(df,
       data <- .transVar(data, transformVariableScen, col)
     }
   }
+
+  # Apply correction of AC penetration rate if specified
+  if (!is.null(acOwnershipRates)) {
+    data <- shiftACpenetration(data             = data,
+                               fitPars          = estimate$m$getPars(),
+                               acOwnershipRates = acOwnershipRates,
+                               dataCol          = "projection")
+  }
+
 
 
   # Get correction formulas to smooth deviations (delta) between empirical data and projections
@@ -552,6 +581,7 @@ makeProjections <- function(df,
 #' @param transformVariableScen \code{character} Optional scenario-specific variable transformation
 #' @param applyScenFactor \code{logical} Whether to apply scenario scaling factors (default FALSE)
 #' @param replacePars \code{logical} Replace parameters with scenario values vs scaling (default FALSE)
+#' @param acOwnershipRates \code{data.frame} AC penetration reference values
 #'
 #' @return \code{data.frame} Combined scenario projections with column 'projectionScen'
 #'         containing the scenario-specific projections. The original baseline projections
@@ -572,7 +602,8 @@ makeProjections <- function(df,
                                      lhs,
                                      transformVariableScen = NULL,
                                      applyScenFactor = FALSE,
-                                     replacePars = FALSE) {
+                                     replacePars = FALSE,
+                                     acOwnershipRates = NULL) {
 
   # PROCESS DATA ---------------------------------------------------------------
 
@@ -621,6 +652,15 @@ makeProjections <- function(df,
           }
         }
         currentScenario$projectionScen <- eval(formula, c(as.list(currentScenario), as.list(parameters)))
+
+        # Shift AC penetration rates (if specified)
+        if (!is.null(acOwnershipRates)) {
+          currentScenario <- shiftACpenetration(data             = currentScenario,
+                                                fitPars          = parameters,
+                                                acOwnershipRates = acOwnershipRates,
+                                                dataCol          = "projectionScen")
+        }
+
       } else {
         # Modify linear model coefficients based on scenario assumptions
         for (var in varNames) {

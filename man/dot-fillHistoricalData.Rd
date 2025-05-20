@@ -13,7 +13,8 @@
   convReg = "absolute",
   convFactor = "lambda",
   transformVariable = NULL,
-  transformVariableScen = NULL
+  transformVariableScen = NULL,
+  acOwnershipRates = NULL
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ or "fullconv" for fast logistic convergence}
 \item{transformVariable}{\code{character} Variable transformation to apply (optional)}
 
 \item{transformVariableScen}{\code{character} Scenario-specific variable transformation (optional)}
+
+\item{acOwnershipRates}{\code{data.frame} AC penetration reference values}
 }
 \value{
 \code{data.frame} Historical data with gaps filled using corrected projections
