@@ -17,7 +17,7 @@ buildingsProjections(
   regionmap,
   scenAssump,
   scenAssumpSpeed,
-  scenAssumpCorrect,
+  acOwnershipRates = NULL,
   outputDir = "output",
   hpCorrection = TRUE,
   lifestyle = NULL,
@@ -50,7 +50,7 @@ buildingsProjections(
 
 \item{scenAssumpSpeed}{long-term temporal scenario assumptions}
 
-\item{scenAssumpCorrect}{specific corrections}
+\item{acOwnershipRates}{AC penetration reference values}
 
 \item{outputDir}{output directory}
 

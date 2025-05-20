@@ -23,7 +23,8 @@ makeProjections(
   periodBegin = 1990,
   interpolate = TRUE,
   initCorrection = NULL,
-  replacePars = FALSE
+  replacePars = FALSE,
+  acOwnershipRates = NULL
 )
 }
 \arguments{
@@ -65,6 +66,8 @@ or "fullconv" for fast logistic convergence}
 \item{initCorrection}{\code{data.frame} Corrected parameters for non-scenario projections (optional)}
 
 \item{replacePars}{\code{logical} Replace fit parameters with scenario assumptions (optional)}
+
+\item{acOwnershipRates}{\code{data.frame} AC penetration reference values}
 }
 \value{
 \code{data.frame} Combined input data and calculated projections

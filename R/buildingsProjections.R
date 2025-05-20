@@ -20,7 +20,7 @@
 #' @param regionmap regional mapping
 #' @param scenAssump carrier/enduse-specific scenario assumptions
 #' @param scenAssumpSpeed long-term temporal scenario assumptions
-#' @param scenAssumpCorrect specific corrections
+#' @param acOwnershipRates AC penetration reference values
 #' @param outputDir output directory
 #' @param hpCorrection heatpump correction for electric space heating
 #' @param lifestyle lifestyle parameter
@@ -49,7 +49,7 @@ buildingsProjections <- function(config,
                                  regionmap,
                                  scenAssump,
                                  scenAssumpSpeed,
-                                 scenAssumpCorrect,
+                                 acOwnershipRates = NULL,
                                  outputDir = "output",
                                  hpCorrection = TRUE,
                                  lifestyle = NULL,
@@ -289,7 +289,8 @@ buildingsProjections <- function(config,
                         outliers = c("RUS", "EUR", "OCD", setdiff(eurCountries, c("ESP", "PRT", "GRC", "ITA"))),
                         avoidLowValues = TRUE,
                         periodBegin = periodBegin,
-                        endOfHistory = endOfHistory)
+                        endOfHistory = endOfHistory,
+                        acOwnershipRates = acOwnershipRates)
 
 
   # correct short- to midterm space heating adoption activity
