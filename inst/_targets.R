@@ -300,7 +300,7 @@ list(
     hddcdd,
     {
       read.csv(hddcdd.cs4r, header = FALSE, comment.char = "*",
-               col.names = c("period", "region", "scenario", "variable", "value")) %>%
+               col.names = c("period", "region", "variable", "tlim", "ssp", "rcp", "value")) %>%
 
         # converge limit temperatures
         prepHDDCDD(config, regionmap)
