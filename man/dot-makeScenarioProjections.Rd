@@ -11,8 +11,7 @@
   lhs,
   transformVariableScen = NULL,
   applyScenFactor = FALSE,
-  replacePars = FALSE,
-  acOwnershipRates = NULL
+  replacePars = FALSE
 )
 }
 \arguments{
@@ -31,8 +30,6 @@ uncorrected model fit, as well as columns 'scenario' and 'region'}
 \item{applyScenFactor}{\code{logical} Whether to apply scenario scaling factors (default FALSE)}
 
 \item{replacePars}{\code{logical} Replace parameters with scenario values vs scaling (default FALSE)}
-
-\item{acOwnershipRates}{\code{data.frame} AC penetration reference values}
 }
 \value{
 \code{data.frame} Combined scenario projections with column 'projectionScen'
