@@ -4,12 +4,18 @@
 \alias{projectSpaceCooling}
 \title{Project Space Cooling Energy Demand}
 \usage{
-projectSpaceCooling(data, acOwnershipRates, endOfHistory)
+projectSpaceCooling(data, config, acOwnershipRates, endOfHistory, lambda)
 }
 \arguments{
 \item{data}{data frame with historical and scenario data}
 
+\item{config}{data frame specifying scenario settings}
+
 \item{acOwnershipRates}{data frame with historical AC penetration rates}
+
+\item{endOfHistory}{last period of historical data}
+
+\item{lambda}{data frame with convergence factors (0 to 1) over time for scenario transitions}
 }
 \value{
 A data frame with the same structure as the input \code{data}, but with
@@ -31,16 +37,16 @@ The AC penetration rate component follows the logistic formula:
 The model incorporates two key assumptions:
 \enumerate{
 \item All regional penetration curves originate from the same point at
-gdppop = 0
+gdppop = 0 and CDD = 0
 \item The curve elongation parameter (\eqn{\phi_3}) decreases monotonically
 with rising CDDs to account for dampened/accelerated technology adoption
 due to regional climate
 }
 
 For regions with historical data, regional beta coefficients are derived to
-match the last historical reference point. The scaling parameter (\eqn{\phi_1})
-is adjusted to match historical useful energy demand and maintain consistency
-in future projections.
+match the last historical reference point. The regional scaling parameter (\eqn{\phi_1}),
+or cooling activity, is derived from a linear fit on historical data and boosted
+over time for selected regions where an increase in cooling activity is expected.
 
 The function assumes that the input \code{data} contains a single non-"history"
 scenario.
