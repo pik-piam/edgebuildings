@@ -33,6 +33,7 @@
 #' @importFrom quitte as.quitte mutate_text
 #' @importFrom tidyselect any_of all_of one_of
 #' @importFrom magrittr %>%
+#' @importFrom minpack.lm nlsLM
 
 
 makeProjections <- function(df,
@@ -120,11 +121,19 @@ makeProjections <- function(df,
   }
 
   # Create either non-linear or linear model based on formula structure
-  estimate <- if (any(grepl("\\SS", formul))) {
+  estimate <- if (any(grepl("\\SS", formul)) || lhs == "space_cooling.elec") {
     # Replace zeros with small values to avoid infinity issues in non-linear model
     modelData[modelData[lhs] == 0, lhs] <- min(modelData[modelData[lhs] != 0, lhs]) / 10
 
-    nls(formul, modelData, control = list(maxiter = 500), trace = FALSE)
+    if (lhs == "space_cooling.elec") {
+      nlsLM(formul, modelData, control = list(maxiter = 500), trace = FALSE,
+            start = list(k = 0.0001, x0 = 1000))
+    } else {
+      if (lhs == "water_heating.elec") {
+        modelData$gdppop <- modelData$gdppop / 1000
+      }
+      nls(formul, modelData, control = list(maxiter = 500), trace = FALSE)
+    }
   } else {
     lm(formul, modelData)
   }
@@ -594,9 +603,16 @@ makeProjections <- function(df,
         formula    <- currentFitModel$m$formula()[[3L]]
 
         for (var in varNames) {
-          correctionValue <- scenAssump %>%
-            filter(.data[["scenario"]] == scen, .data[["region"]] == reg) %>%
-            pull(paste0(lhs, "_X_", var))
+          if (var == "max") {
+            currentScenario[[var]] <- scenAssump %>%
+              filter(.data[["scenario"]] == scen, .data[["region"]] == reg) %>%
+              pull(paste0(lhs, "_X_", var))
+          } else {
+            correctionValue <- scenAssump %>%
+              filter(.data[["scenario"]] == scen, .data[["region"]] == reg) %>%
+              pull(paste0(lhs, "_X_", var))
+          }
+
 
           if (replacePars) {
             parameters[var] <- correctionValue
