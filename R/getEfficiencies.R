@@ -61,6 +61,11 @@ getEfficiencies <- function(config,
   endOfHistory <- config[scen, "endOfHistory"] %>%
     unlist()
 
+  # Weight given to log(gdppop) for space_cooling.elec input variable
+  #   -> x = log(gdppop) * weight + period * (1 - weight)
+  gdppopWeight <- config[scen, "gdppopWeight"] %>%
+    unlist()
+
 
 
   # PRE-PROCESS DATA------------------------------------------------------------
@@ -150,7 +155,7 @@ getEfficiencies <- function(config,
       inputData <- data %>%
         filter(.data$variable == "gdppop") %>%
         rename("gdppop" = "value") %>%
-        mutate(value = log(.data$gdppop) * 0.95 + .data$period * 0.05,
+        mutate(value = log(.data$gdppop) * gdppopWeight + .data$period * (1 - gdppopWeight),
                variable = "x") %>%
         select(colnames(data))
 

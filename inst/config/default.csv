@@ -1,75 +1,78 @@
-parameter;parameterComment;history;default
-popScen;population scenario;NA;SSP2
-gdpScen;gdp scenario;NA;SSP2
-gdppopScen;gdppop scenario;NA;SSP2
-urbanisationScen;urbanisation scenario;NA;SSP2
-densityScen;density scenario;NA;SSP2
-floorScen;floorspace scenario;NA;SSP2
-uvalueScen;uvalue scenario;NA;picontrol
-hddcddScen;;NA;SSP2
-rcpScen;RCP scenario;NA;4.5
-tlimHist_HDD;historical set point temperature for space heating in degC;14;14
-tlimHist_CDD;historical set point temperature for space cooling in degC;20;20
-tlimTarget_HDD;set point temperature target for space heating in degC;14;14
-tlimTarget_CDD;set point temperature target for space cooling in degC;20;20
-speed_HDD;year in which HDD limit temperature target will be reached;NA;2100
-speed_CDD;year in which CDD limit temperature target will be reached;NA;2100
-econCoef_floorspace;elasticity correction factor for floorspace;1;0.7
-econCoef_space_heating_m2_Uval_X_HDD;elasticity correction factor for floor-space specific space heating use w.r.t. U value and HDD;1;1
-econCoef_appliances_light_pop_X_gdppop;elasticity correction factor for appliances and lighting use per capita w.r.t. Gdp per capita;1;1
-econCoef_appliances_light_elas_FACTOR;elasticity correction factor for appliances and lighting use per capita w.r.t. Gdp per capita;1;1
-econCoef_cooking_pop_X_(Intercept);intercept correction for cooking use per capita;1;1
-econCoef_water_heating_pop_X_Asym;asymptote correction for water heating use per capita;1;0.6
-econCoef_space_cooling_m2_CDD_Uval_X_Asym;asymptote correction for floor-space specific cooling use w.r.t. U value and CDD;1;1
-econCoef_uvalues_X_min;minimal U value in W/m2.K?;1;0.7
-econCoef_biotrad;elasticity correction factor for traditional biomass use?;1;1
-econCoef_space_heating.elecHP_eff_X_Asym;maximal FE-UE efficiency of space heating with heat pumps;1;5
-econCoef_space_heating.elecHP_share_X_Asym;maximal share of heat pumps in space heating with electricity;1;0.5
-econCoef_space_heating.elec_X_lrc;rate parameter of FE-UE efficiency of space heating with electricity;1;-10.33475
-econCoef_space_cooling.elec_X_Asym;maximal FE-UE efficiency of space cooling with electricity;1;5
-econCoef_space_cooling.elec_X_lrc;rate parameter of FE-UE efficiency of space cooling with electricity;1;-10.51707
-econCoef_water_heating.elecHP_eff_X_Asym;maximal FE-UE efficiency of water heating with heat pumps;1;5
-econCoef_water_heating.elecHP_share_X_Asym;maximal share of heat pumps in water heating with electricity;1;0.5
-econCoef_water_heating.elec_X_lrc;rate parameter of FE-UE efficiency of water heating with electricity;1;-10.51707
-econCoef_appliances_light.elec_X_Asym;maximal FE-UE efficiency of appliances and lighting with electricity;1;0.9
-feShare_space_heating_natgas;FE share of natural gas in space heating in percent;NA;35
-feShare_space_heating_elec;FE share of electricity in space heating in percent;NA;40
-feShare_space_heating_heat;FE share of district heating in space heating in percent;NA;15
-feShare_space_heating_petrol;FE share of petrol in space heating in percent;NA;5
-feShare_space_heating_biomod;FE share of modern biomass in space heating in percent;NA;5
-feShare_water_heating_natgas;FE share of natural gas in water heating in percent;NA;35
-feShare_water_heating_elec;FE share of electricity in water heating in percent;NA;40
-feShare_water_heating_heat;FE share of district heating in water heating in percent;NA;15
-feShare_water_heating_petrol;FE share of petrol in water heating in percent;NA;5
-feShare_water_heating_biomod;FE share of modern biomass in water heating in percent;NA;5
-feShare_cooking_natgas;FE share of natural gas in cooking in percent;NA;45
-feShare_cooking_elec;FE share of electricity in cooking in percent;NA;50
-feShare_cooking_heat;FE share of district heating in cooking in percent;NA;0
-feShare_cooking_petrol;FE share of petrol in cooking in percent;NA;5
-feShare_cooking_biomod;FE share of modern biomass in cooking in percent;NA;0
-feShare_appliances_light_elec;FE share of electricity in appliances and lighting in percent;NA;100
-feShare_appliances_light_natgas;FE share of natural gas in appliances and lighting in percent;NA;0
-feShare_appliances_light_biomod;FE share of modern biomass in appliances and lighting in percent;NA;0
-feShare_space_cooling_elec;FE share of electricity in space cooling in percent;NA;90
-feShare_space_cooling_natgas;FE share of natural gas in space cooling in percent;NA;0
-feShare_space_cooling_heat;FE share of district heating in space cooling in percent;NA;10
-feShare_space_cooling_biomod;FE share of modern biomass in space cooling in percent;NA;0
-speed;year in which long-term target values are reached;NA;2300
-speed_fullconv;year in which mid-term target values are reached;NA;2070
-floorspaceCap;cap on floorspace per capita in m2;NA;NULL
-incomeThresholdEC;income threshold above which low-affluence energy carrier end use combiations are phased out in USD2017/cap;NA;24628
-incomeThresholdUvalue;between zero and this threshold in USD2017/cap, the factor between global U-values estimates and local values decrease from multiUValue to one;NA;24628
-multiUValue;multiple of the global Uvalue estimate that is assumed for low-income regions;NA;1.5
-gdpBoost;artificial GDP boost to push advancement;0;0
-UvalHCDfix;fix the heating and cooling degree day assumptions in the calculation of U value projections;NA;FALSE
-interpolate;?;TRUE;TRUE
-speed_feShare;year in which long-term target values are reached;NA;2150
-speed_feShare_ariadneFix;year in which long-term target values are reached;NA;2100
-ariadneFix;?;NA;FALSE
-periodBegin;lower temporal boundary;NA;1990
-endOfHistory;lower temporal boundary of scenario data;NA;2025
-thresInert;Inert technologies can only reach half the target shares if their current FE share is below this threshold;NA;0.02
-thresDh;District space and water heating cannot gain shares if current HDD are below this threshold;;1000
-deltaDecayRate;Factor defining the fraction of initial growth rate of delta for space heating projections at deltaTargetYear;NA;0.05
-deltaTargetYear;Year by which delta converges to a fraction of its initial growth rate for space heating projections;NA;2040
-uvalues_climateElas;Elasticity by which future marginal (relative) climate changes are scaled as impact on u-value projections;NA;0.5
+"parameter";"parameterComment";"history";"default"
+"popScen";"population scenario";"NA";"SSP2"
+"gdpScen";"gdp scenario";"NA";"SSP2"
+"gdppopScen";"gdppop scenario";"NA";"SSP2"
+"urbanisationScen";"urbanisation scenario";"NA";"SSP2"
+"densityScen";"density scenario";"NA";"SSP2"
+"floorScen";"floorspace scenario";"NA";"SSP2"
+"uvalueScen";"uvalue scenario";"NA";"picontrol"
+"hddcddScen";"";"NA";"SSP2"
+"rcpScen";"RCP scenario";"NA";"4.5"
+"tlimHist_HDD";"historical set point temperature for space heating in degC";"14";"14"
+"tlimHist_CDD";"historical set point temperature for space cooling in degC";"20";"20"
+"tlimTarget_HDD";"set point temperature target for space heating in degC";"14";"14"
+"tlimTarget_CDD";"set point temperature target for space cooling in degC";"20";"20"
+"speed_HDD";"year in which HDD limit temperature target will be reached";"NA";"2100"
+"speed_CDD";"year in which CDD limit temperature target will be reached";"NA";"2100"
+"econCoef_floorspace";"elasticity correction factor for floorspace";"1";"0.7"
+"econCoef_space_heating_m2_Uval_X_HDD";"elasticity correction factor for floor-space specific space heating use w.r.t. U value and HDD";"1";"1"
+"econCoef_appliances_light_pop_X_gdppop";"elasticity correction factor for appliances and lighting use per capita w.r.t. Gdp per capita";"1";"1"
+"econCoef_appliances_light_elas_FACTOR";"elasticity correction factor for appliances and lighting use per capita w.r.t. Gdp per capita";"1";"1"
+"econCoef_cooking_pop_X_(Intercept)";"intercept correction for cooking use per capita";"1";"1"
+"econCoef_water_heating_pop_X_Asym";"asymptote correction for water heating use per capita";"1";"0.6"
+"econCoef_space_cooling_m2_CDD_Uval_X_Asym";"asymptote correction for floor-space specific cooling use w.r.t. U value and CDD";"1";"1"
+"econCoef_uvalues_X_min";"minimal U value in W/m2.K?";"1";"0.7"
+"econCoef_biotrad";"elasticity correction factor for traditional biomass use?";"1";"1"
+"econCoef_space_heating.elecHP_eff_X_Asym";"maximal FE-UE efficiency of space heating with heat pumps";"1";"5"
+"econCoef_space_heating.elecHP_share_X_Asym";"maximal share of heat pumps in space heating with electricity";"1";"0.5"
+"econCoef_space_heating.elec_X_lrc";"rate parameter of FE-UE efficiency of space heating with electricity";"1";"-10.33475"
+"econCoef_space_cooling.elec_X_Asym";"maximal FE-UE efficiency of space cooling with electricity";"1";"5"
+"econCoef_space_cooling.elec_X_lrc";"rate parameter of FE-UE efficiency of space cooling with electricity";"1";"-10.51707"
+"econCoef_space_cooling.elec_X_max";"";"7";"7"
+"econCoef_water_heating.elecHP_eff_X_Asym";"maximal FE-UE efficiency of water heating with heat pumps";"1";"5"
+"econCoef_water_heating.elecHP_share_X_Asym";"maximal share of heat pumps in water heating with electricity";"1";"0.5"
+"econCoef_water_heating.elec_X_lrc";"rate parameter of FE-UE efficiency of water heating with electricity";"1";"-10.51707"
+"econCoef_appliances_light.elec_X_Asym";"maximal FE-UE efficiency of appliances and lighting with electricity";"1";"0.9"
+"feShare_space_heating_natgas";"FE share of natural gas in space heating in percent";"NA";"35"
+"feShare_space_heating_elec";"FE share of electricity in space heating in percent";"NA";"40"
+"feShare_space_heating_heat";"FE share of district heating in space heating in percent";"NA";"15"
+"feShare_space_heating_petrol";"FE share of petrol in space heating in percent";"NA";"5"
+"feShare_space_heating_biomod";"FE share of modern biomass in space heating in percent";"NA";"5"
+"feShare_water_heating_natgas";"FE share of natural gas in water heating in percent";"NA";"35"
+"feShare_water_heating_elec";"FE share of electricity in water heating in percent";"NA";"40"
+"feShare_water_heating_heat";"FE share of district heating in water heating in percent";"NA";"15"
+"feShare_water_heating_petrol";"FE share of petrol in water heating in percent";"NA";"5"
+"feShare_water_heating_biomod";"FE share of modern biomass in water heating in percent";"NA";"5"
+"feShare_cooking_natgas";"FE share of natural gas in cooking in percent";"NA";"45"
+"feShare_cooking_elec";"FE share of electricity in cooking in percent";"NA";"50"
+"feShare_cooking_heat";"FE share of district heating in cooking in percent";"NA";"0"
+"feShare_cooking_petrol";"FE share of petrol in cooking in percent";"NA";"5"
+"feShare_cooking_biomod";"FE share of modern biomass in cooking in percent";"NA";"0"
+"feShare_appliances_light_elec";"FE share of electricity in appliances and lighting in percent";"NA";"100"
+"feShare_appliances_light_natgas";"FE share of natural gas in appliances and lighting in percent";"NA";"0"
+"feShare_appliances_light_biomod";"FE share of modern biomass in appliances and lighting in percent";"NA";"0"
+"feShare_space_cooling_elec";"FE share of electricity in space cooling in percent";"NA";"90"
+"feShare_space_cooling_natgas";"FE share of natural gas in space cooling in percent";"NA";"0"
+"feShare_space_cooling_heat";"FE share of district heating in space cooling in percent";"NA";"10"
+"feShare_space_cooling_biomod";"FE share of modern biomass in space cooling in percent";"NA";"0"
+"speed";"year in which long-term target values are reached";"NA";"2300"
+"speed_fullconv";"year in which mid-term target values are reached";"NA";"2070"
+"speed_boost";"";"NA";"2050"
+"floorspaceCap";"cap on floorspace per capita in m2";"NA";"NULL"
+"incomeThresholdEC";"income threshold above which low-affluence energy carrier end use combiations are phased out in USD2017/cap";"NA";"24628"
+"incomeThresholdUvalue";"between zero and this threshold in USD2017/cap, the factor between global U-values estimates and local values decrease from multiUValue to one";"NA";"24628"
+"multiUValue";"multiple of the global Uvalue estimate that is assumed for low-income regions";"NA";"1.5"
+"gdpBoost";"artificial GDP boost to push advancement";"0";"0"
+"UvalHCDfix";"fix the heating and cooling degree day assumptions in the calculation of U value projections";"NA";"FALSE"
+"interpolate";"?";"TRUE";"TRUE"
+"speed_feShare";"year in which long-term target values are reached";"NA";"2150"
+"speed_feShare_ariadneFix";"year in which long-term target values are reached";"NA";"2100"
+"ariadneFix";"?";"NA";"FALSE"
+"periodBegin";"lower temporal boundary";"NA";"1990"
+"endOfHistory";"lower temporal boundary of scenario data";"NA";"2025"
+"thresInert";"Inert technologies can only reach half the target shares if their current FE share is below this threshold";"NA";"0.02"
+"thresDh";"District space and water heating cannot gain shares if current HDD are below this threshold";"";"1000"
+"deltaDecayRate";"Factor defining the fraction of initial growth rate of delta for space heating projections at deltaTargetYear";"NA";"0.05"
+"deltaTargetYear";"Year by which delta converges to a fraction of its initial growth rate for space heating projections";"NA";"2040"
+"uvalues_climateElas";"Elasticity by which future marginal (relative) climate changes are scaled as impact on u-value projections";"NA";"0.5"
+"gdppopWeight";"Relative weight given to log(gdppop) compared to period in input data of AC efficiency projection";"NA";"0.95"
