@@ -227,10 +227,10 @@ predictFullDelta <- function(fullData,
     left_join(scenAssump, by = c("region", "scenario")) %>%
     left_join(lambda, by = c("region", "period", "scenario")) %>%
     mutate(coefLogGdp = .data[["fullconv"]] * (coefLogGdpEstimate * .data[["floorspace"]])
-                        + (1 - .data[["fullconv"]]) * coefLogGdpEstimate,
+           + (1 - .data[["fullconv"]]) * coefLogGdpEstimate,
            coefLogDensity = coefLogDensityEstimate,
            intercept = interceptEstimate) %>%
-    select(-"floorspace", -"lambda", -"fullconv")
+    select(-"floorspace", -"lambda", -"fullconv", -"boost")
 
   modelData <- fullData %>%
     filter(.data[["period"]] <= endOfData) %>%
@@ -300,7 +300,7 @@ capFloorProjections <- function(projectionData, capFloor, lambda, endOfHistory) 
                               pmin(.data[["capFloor"]], .data[["m2hatConv"]]),
                               # Historic floorspace already exceeds the cap
                               .data[["capFloor"]] + .data[["deltaFin"]])) %>%
-    select(-"deltaHist", -"deltaFin", -"capFloor", -"fullconv", -"lambda") %>%
+    select(-"deltaHist", -"deltaFin", -"capFloor", -"fullconv", -"lambda", -"boost") %>%
     ungroup() %>%
     rbind(histData)
 }

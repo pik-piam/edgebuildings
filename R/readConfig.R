@@ -95,12 +95,18 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
                        value = scenarioDefault)
 
       # change value of specified regions
+      # Process region groups first
       for (reg in names(lstVal)) {
         if (reg %in% regionGroupNames) {
           # region groups
-          df[df$region %in% df[regionGroups[[reg]], "region"], "value"] <-
+          df[df$region %in% regionGroups[regionGroups[[reg]], "region"], "value"] <-
             lstVal[reg]
-        } else if (reg %in% regions) {
+        }
+      }
+
+      # Then process individual regions (so they override region groups)
+      for (reg in names(lstVal)) {
+        if (reg %in% regions) {
           # individual regions
           df[reg == df$region, "value"] <- lstVal[reg]
         }
