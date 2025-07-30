@@ -33,6 +33,7 @@
 #' @param acOwnershipRates data frame with historical AC penetration rates
 #' @param endOfHistory last period of historical data
 #' @param lambda data frame with convergence factors (0 to 1) over time for scenario transitions
+#' @param outliers list of outlier regions where global beta parameter shall be applied
 #'
 #' @return A data frame with the same structure as the input \code{data}, but with
 #'   projected space cooling energy demand extending the
@@ -48,7 +49,8 @@ projectSpaceCooling <- function(data,
                                 config,
                                 acOwnershipRates,
                                 endOfHistory,
-                                lambda) {
+                                lambda,
+                                outliers = NULL) {
 
   # PARAMETERS -----------------------------------------------------------------
 
@@ -120,7 +122,9 @@ projectSpaceCooling <- function(data,
                by = "region") %>%
     mutate(betaReg = ifelse((is.na(.data$betaReg) | .data$betaReg < 0),
                             beta,
-                            betaReg)) %>%
+                            betaReg),
+           # use global beta for outlier regions
+           betaReg = ifelse(.data$region %in% outliers, beta, betaReg)) %>%
     select("region", "betaReg")
 
 
@@ -155,6 +159,7 @@ projectSpaceCooling <- function(data,
         filter(.data$region == reg)
     }
 
+    # linear fit to determine historical activity
     regEstimate <- lm("space_cooling ~ 0 + unscaledDemand",
                       data = regionalFitData)
 
@@ -166,6 +171,7 @@ projectSpaceCooling <- function(data,
 
     regEstimate$coefficients[["unscaledDemand"]] <- regEstimate$coefficients[["unscaledDemand"]] * boostFactor
 
+    # transition historical into scenario projections
     regionalData <- regionalData %>%
       left_join(lambda %>%
                   select("region", "period", "boost"),

@@ -272,7 +272,7 @@ buildingsProjections <- function(config,
                         periodBegin = periodBegin,
                         endOfHistory = endOfHistory)
 
-  df <- projectSpaceCooling(df, config, acOwnershipRates, endOfHistory, lambda)
+  df <- projectSpaceCooling(df, config, acOwnershipRates, endOfHistory, lambda, outliers = c("AFR"))
 
 
   # correct short- to midterm space heating adoption activity
