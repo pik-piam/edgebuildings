@@ -4,7 +4,14 @@
 \alias{projectSpaceCooling}
 \title{Project Space Cooling Energy Demand}
 \usage{
-projectSpaceCooling(data, config, acOwnershipRates, endOfHistory, lambda)
+projectSpaceCooling(
+  data,
+  config,
+  acOwnershipRates,
+  endOfHistory,
+  lambda,
+  outliers = NULL
+)
 }
 \arguments{
 \item{data}{data frame with historical and scenario data}
@@ -16,6 +23,8 @@ projectSpaceCooling(data, config, acOwnershipRates, endOfHistory, lambda)
 \item{endOfHistory}{last period of historical data}
 
 \item{lambda}{data frame with convergence factors (0 to 1) over time for scenario transitions}
+
+\item{outliers}{list of outlier regions where global beta parameter shall be applied}
 }
 \value{
 A data frame with the same structure as the input \code{data}, but with
