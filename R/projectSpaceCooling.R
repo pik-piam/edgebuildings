@@ -8,7 +8,7 @@
 #' \deqn{space\_cooling =  \phi_1 \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
 #'
 #' The AC penetration rate component follows the logistic formula:
-#' \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop \cdot CDD))}
+#' \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop^\gamma \cdot CDD^\delta))}
 #'
 #' The model incorporates two key assumptions:
 #' \enumerate{
@@ -33,7 +33,7 @@
 #' @param acOwnershipRates data frame with historical AC penetration rates
 #' @param endOfHistory last period of historical data
 #' @param lambda data frame with convergence factors (0 to 1) over time for scenario transitions
-#' @param outliers list of outlier regions where global beta parameter shall be applied
+#' @param outliers list or vector of outlier regions where global beta parameter shall be applied
 #'
 #' @return A data frame with the same structure as the input \code{data}, but with
 #'   projected space cooling energy demand extending the

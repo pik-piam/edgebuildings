@@ -24,7 +24,7 @@ projectSpaceCooling(
 
 \item{lambda}{data frame with convergence factors (0 to 1) over time for scenario transitions}
 
-\item{outliers}{list of outlier regions where global beta parameter shall be applied}
+\item{outliers}{list or vector of outlier regions where global beta parameter shall be applied}
 }
 \value{
 A data frame with the same structure as the input \code{data}, but with
@@ -41,7 +41,7 @@ Space cooling energy demand is calculated using:
 \deqn{space\_cooling =  \phi_1 \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
 
 The AC penetration rate component follows the logistic formula:
-\deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop \cdot CDD))}
+\deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop^\gamma \cdot CDD^\delta))}
 
 The model incorporates two key assumptions:
 \enumerate{
