@@ -1,6 +1,6 @@
 Package: edgebuildings
 Title: Model for the projection of global energy demand in the buildings sector
-Version: 0.4.12
+Version: 0.5.0
 Authors@R: c(
   person(given = "Antoine", family = "Levesque",
          role = c("aut")),
