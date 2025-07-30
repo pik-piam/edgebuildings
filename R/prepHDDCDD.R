@@ -112,7 +112,7 @@ prepHDDCDD <- function(hddcdd, config, regionmap) {
         filter(.data$region   ==   reg,
                .data$ssp      ==   socioScen,
                .data$variable ==   typeDD,
-               .data$rcp      %in% c("historical", climScen),
+               .data$rcp      %in% c("historical", sub("\\.", "_", climScen)),
                .data$tlim     %in% c(tlimHist, tlimTargetReg),
                !is.na(.data$value)) %>%
 
