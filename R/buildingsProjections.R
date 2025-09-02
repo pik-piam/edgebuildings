@@ -21,6 +21,7 @@
 #' @param scenAssump carrier/enduse-specific scenario assumptions
 #' @param scenAssumpSpeed long-term temporal scenario assumptions
 #' @param acOwnershipRates AC penetration reference values
+#' @param acOwnershipRegression data frame with regression parameters for AC penetration estimation
 #' @param outputDir output directory
 #' @param hpCorrection heatpump correction for electric space heating
 #' @param lifestyle lifestyle parameter
@@ -50,6 +51,7 @@ buildingsProjections <- function(config,
                                  scenAssump,
                                  scenAssumpSpeed,
                                  acOwnershipRates = NULL,
+                                 acOwnershipRegression = NULL,
                                  outputDir = "output",
                                  hpCorrection = TRUE,
                                  lifestyle = NULL,
@@ -272,7 +274,13 @@ buildingsProjections <- function(config,
                         periodBegin = periodBegin,
                         endOfHistory = endOfHistory)
 
-  df <- projectSpaceCooling(df, config, acOwnershipRates, endOfHistory, lambda, outliers = c("AFR"))
+  df <- projectSpaceCooling(df,
+                            config,
+                            acOwnershipRates,
+                            acOwnershipRegression,
+                            endOfHistory,
+                            lambda,
+                            outliers = c("AFR"))
 
 
   # correct short- to midterm space heating adoption activity

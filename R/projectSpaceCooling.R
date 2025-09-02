@@ -31,6 +31,7 @@
 #' @param data data frame with historical and scenario data
 #' @param config data frame specifying scenario settings
 #' @param acOwnershipRates data frame with historical AC penetration rates
+#' @param regPars data frame with regression parameters for AC penetration estimation
 #' @param endOfHistory last period of historical data
 #' @param lambda data frame with convergence factors (0 to 1) over time for scenario transitions
 #' @param outliers list or vector of outlier regions where global beta parameter shall be applied
@@ -48,6 +49,7 @@
 projectSpaceCooling <- function(data,
                                 config,
                                 acOwnershipRates,
+                                regPars,
                                 endOfHistory,
                                 lambda,
                                 outliers = NULL) {
@@ -69,9 +71,12 @@ projectSpaceCooling <- function(data,
 
   cols <- colnames(data)
 
+  regPars <- setNames(regPars$value, regPars$variable)
 
-  ## Create model estimate ====
 
+  ## Regional beta corrections ====
+
+  # full data set
   modelData <- acOwnershipRates %>%
     filter(!is.na(.data$value),
            .data$value != 0) %>%
@@ -85,27 +90,13 @@ projectSpaceCooling <- function(data,
                 pivot_wider(names_from = "variable", values_from = "value"),
               by = c("region", "period"))
 
-  # linear estimate to obtain start values for non-linear fit
-  estimateLin <- lm("log(1/penetration - 1) ~ gdppop:CDD", data = modelData)
 
-  # non-linear estimate
-  startValues <- list(a = estimateLin$coefficients[["(Intercept)"]],
-                      b = estimateLin$coefficients[["gdppop:CDD"]],
-                      c = 1,
-                      d = 1)
+  # extract global fit parameters
+  alpha <- regPars[["alpha"]]
+  beta  <- regPars[["beta"]]
+  gamma <- regPars[["gamma"]]
+  delta <- regPars[["delta"]]
 
-  estimateNonLin <- nls("penetration ~ 1 / (1 + exp(a + b * CDD^c * gdppop^d))",
-                        data = modelData,
-                        start = startValues,
-                        control = list(maxiter = 1000))
-
-
-  ## Regional beta corrections ====
-
-  alpha <- coef(estimateNonLin)[["a"]]
-  beta  <- (-1) * coef(estimateNonLin)[["b"]]
-  gamma <- coef(estimateNonLin)[["c"]]
-  delta <- coef(estimateNonLin)[["d"]]
 
   betaReg <- modelData %>%
     # match last historical data point
@@ -136,10 +127,10 @@ projectSpaceCooling <- function(data,
     select("region", "period", "variable", "value") %>%
     pivot_wider(names_from = "variable", values_from = "value") %>%
     left_join(betaReg, by = "region") %>%
-    mutate(penetrationProj = 1 / (1 + exp(alpha - .data$betaReg * .data$gdppop^delta * .data$CDD^gamma))) %>%
+    mutate(acPenetration = 1 / (1 + exp(alpha - .data$betaReg * .data$gdppop^delta * .data$CDD^gamma))) %>%
 
     # calculate unscaled demand to determine regional activity factors
-    mutate(unscaledDemand = .data$buildings * .data$uvalue * .data$CDD * day2sec * .data$penetrationProj / 1e12)
+    mutate(unscaledDemand = .data$buildings * .data$uvalue * .data$CDD * day2sec * .data$acPenetration / 1e12)
 
 
   # fit regional activity factors and project future UE demand
@@ -204,12 +195,11 @@ projectSpaceCooling <- function(data,
     left_join(lambda, by = c("region", "period")) %>%
     mutate(space_cooling = ifelse(is.na(.data[["space_cooling"]]),
                                   (.data$proj + delta) * (1 - .data$fullconv) + .data$proj * .data$fullconv,
-                                  .data[["space_cooling"]])) %>%
-    rename("value" = "space_cooling") %>%
-    mutate(variable = "space_cooling",
+                                  .data[["space_cooling"]]),
            scenario = ifelse(.data$period <= endOfHistory, "history", scen),
            unit = NA,
            model = NA) %>%
+    pivot_longer(cols = c("space_cooling", "acPenetration"), names_to = "variable", values_to = "value") %>%
     select(all_of(cols))
 
   # bind full dataset
