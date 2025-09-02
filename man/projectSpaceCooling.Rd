@@ -8,6 +8,7 @@ projectSpaceCooling(
   data,
   config,
   acOwnershipRates,
+  regPars,
   endOfHistory,
   lambda,
   outliers = NULL
@@ -19,6 +20,8 @@ projectSpaceCooling(
 \item{config}{data frame specifying scenario settings}
 
 \item{acOwnershipRates}{data frame with historical AC penetration rates}
+
+\item{regPars}{data frame with regression parameters for AC penetration estimation}
 
 \item{endOfHistory}{last period of historical data}
 

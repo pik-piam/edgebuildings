@@ -18,6 +18,7 @@ buildingsProjections(
   scenAssump,
   scenAssumpSpeed,
   acOwnershipRates = NULL,
+  acOwnershipRegression = NULL,
   outputDir = "output",
   hpCorrection = TRUE,
   lifestyle = NULL,
@@ -51,6 +52,8 @@ buildingsProjections(
 \item{scenAssumpSpeed}{long-term temporal scenario assumptions}
 
 \item{acOwnershipRates}{AC penetration reference values}
+
+\item{acOwnershipRegression}{data frame with regression parameters for AC penetration estimation}
 
 \item{outputDir}{output directory}
 

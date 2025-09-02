@@ -116,6 +116,12 @@ list(
     format = "file"
   ),
 
+  tar_target(
+    acOwnershipRegression.cs4r,
+    file.path(mrData, "f_acOwnershipRegression.cs4r"),
+    format = "file"
+  ),
+
 
   # mrdrivers------------------------------
 
@@ -333,6 +339,17 @@ list(
     {
       cols <- c("period", "region", "variable", "value")
       file <- acOwnershipRates.cs4r
+
+      read.csv2(file, skip = skiprow(file), sep = ",", header = FALSE, col.names = cols) %>%
+        mutate(value = as.numeric(.data[["value"]]))
+    }
+  ),
+
+  tar_target(
+    acOwnershipRegression,
+    {
+      cols <- c("variable", "value")
+      file <- acOwnershipRegression.cs4r
 
       read.csv2(file, skip = skiprow(file), sep = ",", header = FALSE, col.names = cols) %>%
         mutate(value = as.numeric(.data[["value"]]))
@@ -571,6 +588,7 @@ list(
                            scenAssump = scenAssump,
                            scenAssumpSpeed = scenAssumpSpeed,
                            acOwnershipRates = acOwnershipRates,
+                           acOwnershipRegression = acOwnershipRegression,
                            outputDir = output)
     },
     pattern = map(config),
