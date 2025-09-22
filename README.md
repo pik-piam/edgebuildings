@@ -2,7 +2,7 @@
 
 R package **edgebuildings**, version **0.4.8**
 
-[![CRAN status](https://www.r-pkg.org/badges/version/edgebuildings)](https://cran.r-project.org/package=edgebuildings) [![R build status](https://github.com/hagento/edgebuildings/workflows/check/badge.svg)](https://github.com/hagento/edgebuildings/actions) [![codecov](https://codecov.io/gh/hagento/edgebuildings/branch/master/graph/badge.svg)](https://app.codecov.io/gh/hagento/edgebuildings) [![r-universe](https://pik-piam.r-universe.dev/badges/edgebuildings)](https://pik-piam.r-universe.dev/builds)
+[![CRAN status](https://www.r-pkg.org/badges/version/edgebuildings)](https://cran.r-project.org/package=edgebuildings)  [![R build status](https://github.com/hagento/edgebuildings/workflows/check/badge.svg)](https://github.com/hagento/edgebuildings/actions) [![codecov](https://codecov.io/gh/hagento/edgebuildings/branch/master/graph/badge.svg)](https://app.codecov.io/gh/hagento/edgebuildings) [![r-universe](https://pik-piam.r-universe.dev/badges/edgebuildings)](https://pik-piam.r-universe.dev/builds)
 
 ## Purpose and Functionality
 
@@ -65,5 +65,6 @@ A BibTeX entry for LaTeX users is
   author = {Antoine Levesque and Robin Hasse and Hagen Tockhorn and Ricarda Rosemann and Pascal Führlich},
   date = {2025-05-26},
   year = {2025},
+  note = {R package version 0.4.6},
 }
 ```
