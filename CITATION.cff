@@ -3,7 +3,7 @@ message: If you use this software, please cite it using the metadata from this f
 type: software
 title: 'edgebuildings: Model for the projection of global energy demand in the buildings
   sector'
-version: 0.4.8
+version: 0.4.9
 date-released: '2025-09-22'
 abstract: 'The Energy Demand GEnerator projects energy demand for buildings both at
   the useful and final energy level. It covers the global demand and five energy services:
