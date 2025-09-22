@@ -41,7 +41,6 @@ Imports:
   gms,
   lazyeval,
   madrat,
-  magclass,
   magrittr,
   piamutils,
   pkgload,
