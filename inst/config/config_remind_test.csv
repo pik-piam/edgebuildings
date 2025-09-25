@@ -8,26 +8,26 @@ uvalueScen;;SSP1;SSP2;SSP3
 gdppopScen;;SSP1_boost;SSP2;SSP3
 hddcddScen;;SSP1;SSP2;SSP3
 rcpScen;;noCC;noCC;noCC
-tlimTarget_HDD;set point temperature target for space heating in degC;12;14;14
-tlimTarget_CDD;set point temperature target for space cooling in degC;23;20;20
+tlimTarget_HDD;set point temperature target for space heating in degC;13;14;14
+tlimTarget_CDD;set point temperature target for space cooling in degC;21;20;20
 speed_HDD;year in which HDD limit temperature target will be reached;2100;2100;2100
 speed_CDD;year in which CDD limit temperature target will be reached;2100;2100;2100
-econCoef_floorspace;RC people are happy with less space;0.25;0.7;0.8
+econCoef_floorspace;RC people are happy with less space;0.6;0.7;0.8
 econCoef_space_heating_m2_Uval_X_HDD;;1;1;1
-econCoef_appliances_light_pop_X_gdppop;RC people are happy with less light, MC stricter efficiency rules;0.7;1;1
-econCoef_appliances_light_elas_FACTOR;RC people are happy with less light, MC stricter efficiency rules;0.6,CHN:1;1,CHN:1.7;1.1,CHN:1.8
-econCoef_cooking_pop_X_(Intercept);not sure what the does but same logic as above;0.6;1;1.25
-econCoef_water_heating_pop_X_Asym;not sure what the does but same logic as above;0.3;0.6;1
+econCoef_appliances_light_pop_X_gdppop;RC people are happy with less light, MC stricter efficiency rules;0.95;1.2;1
+econCoef_appliances_light_elas_FACTOR;RC people are happy with less light, MC stricter efficiency rules;0.95,CHN:1.55;1.2,CHN:1.8;1.1,CHN:1.8
+econCoef_cooking_pop_X_(Intercept);not sure what the does but same logic as above;0.9;1;1.25
+econCoef_water_heating_pop_X_Asym;not sure what the does but same logic as above;0.5;0.6;1
 econCoef_space_cooling_m2_CDD_Uval_X_Asym;;1;1;1
-econCoef_uvalues_X_min;RC less good insulation, MC strong regulation leading to higher insulation;0.5;0.7;0.85
+econCoef_uvalues_X_min;RC less good insulation, MC strong regulation leading to higher insulation;0.65;0.7;0.85
 econCoef_biotrad;;2;1;0.25
 econCoef_space_heating.elecHP_eff_X_Asym;RC a little less efficient, MC more efficient;6;5;3.875
 econCoef_space_heating.elecHP_share_X_Asym;RC a little less efficient, MC more efficient;0.9;0.5,Europe:0.75;0.25
 econCoef_space_heating.elec_X_lrc;RC a little less efficient, MC more efficient;-10.67122;-10.33475,Europe:-10.20812;-9.823925
-econCoef_space_cooling.elec_X_Asym;RC a little less efficient, MC more efficient;10;5;3.875
+econCoef_space_cooling.elec_X_Asym;RC a little less efficient, MC more efficient;6;5;3.875
 econCoef_space_cooling.elec_X_lrc;;-10.51707;-10.51707;-10.33475
 econCoef_water_heating.elecHP_eff_X_Asym;;6;5;3.875
-econCoef_water_heating.elecHP_share_X_Asym;;0.9;0.5;0.25
+econCoef_water_heating.elecHP_share_X_Asym;;0.6;0.5;0.25
 econCoef_water_heating.elec_X_lrc;;-10.51707;-10.51707;-10.33475
 econCoef_appliances_light.elec_X_Asym;;0.9;0.9;0.75
 feShare_space_heating_natgas;;5;35,Europe:32;40
@@ -54,7 +54,7 @@ feShare_space_cooling_heat;;0;0;0
 feShare_space_cooling_biomod;;0;0;0
 speed;;2200;2300;2400
 speed_fullconv;;2070;2070;2070
-floorspaceCap;;50;NA;NA
+floorspaceCap;;60;NA;NA
 incomeThresholdEC;account for lower GDP/cap in RC and tighter regulation in MC;13545;24628;24628
 gdpBoost;;0,lowIncome:0.35,mediumIncome:0.2;0;0
 interpolate;;TRUE;TRUE;TRUE

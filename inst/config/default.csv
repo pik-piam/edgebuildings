@@ -72,4 +72,3 @@ thresInert;Inert technologies can only reach half the target shares if their cur
 thresDh;District space and water heating cannot gain shares if current HDD are below this threshold;;1000
 deltaDecayRate;Factor defining the fraction of initial growth rate of delta for space heating projections at deltaTargetYear;NA;0.05
 deltaTargetYear;Year by which delta converges to a fraction of its initial growth rate for space heating projections;NA;2040
-uvalues_climateElas;Elasticity by which future marginal (relative) climate changes are scaled as impact on u-value projections;NA;0.5
