@@ -121,15 +121,16 @@ projectSpaceCooling <- function(data,
 
   ## Projections ====
 
-  # project penetration rate
   projectionData <- data %>%
     filter(.data$variable %in% c("CDD", "gdppop", "space_cooling", "buildings", "uvalue")) %>%
     select("region", "period", "variable", "value") %>%
     pivot_wider(names_from = "variable", values_from = "value") %>%
     left_join(betaReg, by = "region") %>%
+
+    # project penetration rate
     mutate(acPenetration = 1 / (1 + exp(alpha - .data$betaReg * .data$gdppop^delta * .data$CDD^gamma))) %>%
 
-    # calculate unscaled demand to determine regional activity factors
+    # calculate unscaled demand (EJ/yr) to determine regional activity factors
     mutate(unscaledDemand = .data$buildings * .data$uvalue * .data$CDD * day2sec * .data$acPenetration / 1e12)
 
 
@@ -158,7 +159,11 @@ projectSpaceCooling <- function(data,
     regionalData$proj <- predict(regEstimate, newdata = regionalData)
 
     # temporally increase activity factor if specified in scenario assumptions
-    boostFactor <- activityBoost$value[activityBoost$region == reg]
+    boostFactor <- if ("region" %in% names(activityBoost)) {
+      activityBoost$value[activityBoost$region == reg]
+    } else {
+      activityBoost[[1]]
+    }
 
     regEstimate$coefficients[["unscaledDemand"]] <- regEstimate$coefficients[["unscaledDemand"]] * boostFactor
 
