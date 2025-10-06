@@ -4,7 +4,7 @@ type: software
 title: 'edgebuildings: Model for the projection of global energy demand in the buildings
   sector'
 version: 0.4.10
-date-released: '2025-09-25'
+date-released: '2025-10-06'
 abstract: 'The Energy Demand GEnerator projects energy demand for buildings both at
   the useful and final energy level. It covers the global demand and five energy services:
   space heating, space cooling, appliances and lighting (treated together) water heating

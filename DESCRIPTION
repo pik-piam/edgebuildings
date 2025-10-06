@@ -43,6 +43,7 @@ Imports:
   madrat,
   magclass,
   magrittr,
+  minpack.lm,
   piamutils,
   pkgload,
   purrr,
@@ -63,5 +64,5 @@ Suggests:
   rmarkdown,
   rprojroot,
   xmpdf
-Date: 2025-09-25
+Date: 2025-10-06
 VignetteBuilder: knitr
