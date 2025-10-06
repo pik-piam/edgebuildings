@@ -279,8 +279,7 @@ buildingsProjections <- function(config,
                             acOwnershipRates,
                             acOwnershipRegression,
                             endOfHistory,
-                            lambda,
-                            outliers = c("AFR"))
+                            lambda)
 
 
   # correct short- to midterm space heating adoption activity
