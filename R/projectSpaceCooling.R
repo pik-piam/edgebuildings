@@ -62,9 +62,8 @@ projectSpaceCooling <- function(data,
 
   day2sec <- 24 * 3600 # h/d * s/h
 
-  # assumed future relative growth of activity factor between EOH and 2070
-  activityBoost <- config[, "coolingActivityBoost"] %>%
-    as.data.frame()
+  # TODO: make this a config parameter
+  gdpThreshold <- 7e+04
 
 
   # PROCESS DATA ---------------------------------------------------------------
@@ -134,16 +133,19 @@ projectSpaceCooling <- function(data,
     mutate(unscaledDemand = .data$buildings * .data$uvalue * .data$CDD * day2sec * .data$acPenetration / 1e12)
 
 
+  fitData <- projectionData %>%
+    filter(!is.na(.data$space_cooling),
+           .data$space_cooling > 0)
+
+
   # fit regional activity factors and project future UE demand
   projections <- do.call(rbind, lapply(unique(projectionData$region), function(reg) {
-    # regional data
     regionalData <- projectionData %>%
       filter(.data$region == reg)
 
     # regional fit data
-    regionalFitData <- regionalData %>%
-      filter(!is.na(.data$space_cooling),
-             .data$space_cooling > 0)
+    regionalFitData <- fitData %>%
+      filter(.data$region == reg)
 
     # check if any data remains after filtering
     if (nrow(regionalFitData) == 0) {
@@ -155,31 +157,49 @@ projectSpaceCooling <- function(data,
     regEstimate <- lm("space_cooling ~ 0 + unscaledDemand",
                       data = regionalFitData)
 
-    # project UE space_cooling demand from historical trends
-    regionalData$proj <- predict(regEstimate, newdata = regionalData)
-
-    # temporally increase activity factor if specified in scenario assumptions
-    boostFactor <- if ("region" %in% names(activityBoost)) {
-      activityBoost$value[activityBoost$region == reg]
-    } else {
-      activityBoost[[1]]
-    }
-
-    regEstimate$coefficients[["unscaledDemand"]] <- regEstimate$coefficients[["unscaledDemand"]] * boostFactor
-
-    # transition historical into scenario projections
-    regionalData <- regionalData %>%
-      left_join(lambda %>%
-                  select("region", "period", "boost"),
-                by = c("region", "period")) %>%
-      mutate(projScen = predict(regEstimate, newdata = regionalData),
-             proj = .data$proj * (1 - .data$boost) + .data$projScen * .data$boost) %>%
-      select(-"projScen", -"boost")
-
+    # extract regional value
+    regionalData$activityReg <- regEstimate$coefficients[["unscaledDemand"]]
 
     return(regionalData)
-
   }))
+
+
+  # extract global activity value
+  estimate <- lm("space_cooling ~ 0 + unscaledDemand",
+                 data = fitData %>%
+
+                   # China shows initially comparable activities to other regions, then lower ...
+                   filter(.data$region != "CHN"))
+
+
+  projections$activityGlo <- estimate$coefficients[["unscaledDemand"]]
+
+
+  projections <- projections %>%
+    # if regional > global, remain at fixed regional activity; else converge regional into global value
+    mutate(activityGlo = ifelse(.data$activityReg > .data$activityGlo, .data$activityReg, .data$activityGlo)) %>%
+    left_join(lambda %>%
+                select("region", "period", "fullconv"),
+              by = c("region", "period")) %>%
+    group_by(across(all_of("region"))) %>%
+    mutate(
+      # convergence timeline w.r.t. GDP/cap
+      lambdaGDP = (.data$gdppop - .data$gdppop[.data$period == endOfHistory]) /
+        (gdpThreshold - .data$gdppop[.data$period == endOfHistory]),
+      lambdaGDP = ifelse(.data$lambdaGDP < 0, 0, ifelse(.data$lambdaGDP > 1, 1, .data$lambdaGDP)),
+
+      # merge temporal and income-driven convergence timelines
+      lambda = pmin(1, pmin(.data$fullconv, .data$lambdaGDP)),
+
+      # merge regional to global activity
+      activityGlo = .data$activityReg * (1 - .data$lambda) + .data$activityGlo * .data$lambda
+    ) %>%
+    ungroup() %>%
+
+    # project future cooling UE demands
+    mutate(proj = .data$activity * .data$unscaledDemand) %>%
+    select(-"activityReg", -"activityGlo", -"fullconv", -"lambda", -"lambdaGDP")
+
 
 
   ## Prepare Output ====
@@ -199,7 +219,7 @@ projectSpaceCooling <- function(data,
     left_join(delta, by = "region") %>%
     left_join(lambda, by = c("region", "period")) %>%
     mutate(space_cooling = ifelse(is.na(.data[["space_cooling"]]),
-                                  (.data$proj + delta) * (1 - .data$fullconv) + .data$proj * .data$fullconv,
+                                  (.data$proj + .data$delta) * (1 - .data$fullconv) + .data$proj * .data$fullconv,
                                   .data[["space_cooling"]]),
            scenario = ifelse(.data$period <= endOfHistory, "history", scen),
            unit = NA,
