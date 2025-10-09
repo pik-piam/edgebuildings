@@ -85,7 +85,7 @@ list(
   # hddcdd
   tar_target(
     hddcdd.cs4r,
-    file.path(mrData, "f_hddcdd.cs4r"),
+    file.path(mrData, "f_hddcdd_test.cs4r"),
     format = "file"
   ),
 

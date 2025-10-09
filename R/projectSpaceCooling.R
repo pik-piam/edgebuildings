@@ -192,7 +192,7 @@ projectSpaceCooling <- function(data,
       lambda = pmin(1, pmin(.data$fullconv, .data$lambdaGDP)),
 
       # merge regional to global activity
-      activityGlo = .data$activityReg * (1 - .data$lambda) + .data$activityGlo * .data$lambda
+      activity = .data$activityReg * (1 - .data$lambda) + .data$activityGlo * .data$lambda
     ) %>%
     ungroup() %>%
 
