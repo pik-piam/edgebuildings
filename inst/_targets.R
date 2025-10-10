@@ -103,6 +103,13 @@ list(
     format = "file"
   ),
 
+  # u-value fit parameters
+  tar_target(
+    uvaluePars.cs4r,
+    file.path(mrData, "f_uvaluePars.cs4r"),
+    format = "file"
+  ),
+
 
   # mrdrivers------------------------------
 
@@ -124,19 +131,6 @@ list(
   tar_target(
     urbanshare.cs4r,
     file.path(mrData, "f_urban.cs4r"),
-    format = "file"
-  ),
-
-  # uvalues
-  tar_target(
-    uvaluesResCom.cs4r,
-    file.path(mrData, "f_uvalues_rescom.cs4r"),
-    format = "file"
-  ),
-
-  tar_target(
-    uvaluesETSAP.cs4r,
-    file.path(mrData, "f_uvalues_etsap.cs4r"),
     format = "file"
   ),
 
@@ -306,7 +300,7 @@ list(
     hddcdd,
     {
       read.csv(hddcdd.cs4r, header = FALSE, comment.char = "*",
-               col.names = c("period", "region", "scenario", "variable", "value")) %>%
+               col.names = c("period", "region", "variable", "tlim", "ssp", "rcp", "value")) %>%
 
         # converge limit temperatures
         prepHDDCDD(config, regionmap)
@@ -315,23 +309,14 @@ list(
     iteration = "vector"
   ),
 
-  # uvalues
+  # u-value fit parameter
   tar_target(
-    uvaluesResCom,
-    {
-      cols <- c("period", "region", "variable", "value")
-      file <- uvaluesResCom.cs4r
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
-        mutate(value = as.numeric(.data[["value"]]))
-    }
-  ),
-
-  tar_target(
-    uvaluesETSAP,
+    uvaluePars,
     {
       cols <- c("region", "variable", "value")
-      file <- uvaluesETSAP.cs4r
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
+      file <- uvaluePars.cs4r
+
+      read.csv2(file, skip = skiprow(file), sep = ",", header = FALSE, col.names = cols) %>%
         mutate(value = as.numeric(.data[["value"]]))
     }
   ),
@@ -521,12 +506,10 @@ list(
   tar_target(
     uvalue,
     {
-      getUvalues(config = config,
-                 uvaluesResCom = uvaluesResCom,
-                 uvaluesETSAP = uvaluesETSAP,
+      getUValues(config = config,
+                 uvaluePars = uvaluePars,
                  gdppop = gdppop,
                  hddcdd = hddcdd,
-                 pop = pop,
                  regionalmap = regionmap,
                  scenAssumpSpeed = scenAssumpSpeed)
     },
