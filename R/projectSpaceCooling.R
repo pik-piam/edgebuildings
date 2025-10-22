@@ -35,6 +35,7 @@
 #' @param regPars data frame with regression parameters for AC penetration estimation
 #' @param endOfHistory last period of historical data
 #' @param lambda data frame with convergence factors (0 to 1) over time for scenario transitions
+#' @param scenAssump data frame with scenario-specific parameter assumptions (optional)
 #' @param outliers list or vector of outlier regions where global beta parameter shall be applied
 #'
 #' @return A data frame with the same structure as the input \code{data}, but with
@@ -53,6 +54,7 @@ projectSpaceCooling <- function(data,
                                 regPars,
                                 endOfHistory,
                                 lambda,
+                                scenAssump = NULL,
                                 outliers = NULL) {
 
   # PARAMETERS -----------------------------------------------------------------
@@ -65,8 +67,8 @@ projectSpaceCooling <- function(data,
   day2sec <- 24 * 3600 # h/d * s/h
 
   # GDP per capita threshold for activity convergence [USD/cap]
-  # TODO: make this a config parameter
-  gdpThreshold <- 7e+04
+  incomeThresholdCooling <- config[scen, "incomeThresholdCooling"] %>%
+    unlist()
 
 
   # PROCESS DATA ---------------------------------------------------------------
@@ -77,10 +79,34 @@ projectSpaceCooling <- function(data,
   # Convert regression parameters to named vector for easy access
   regPars <- setNames(regPars$value, regPars$variable)
 
+  # Extract global fit parameters from logistic regression
+  alpha <- regPars[["alpha"]]  # Intercept parameter
+  beta  <- regPars[["beta"]]   # Global scaling coefficient
+  gamma <- regPars[["gamma"]]  # CDD exponent
+  delta <- regPars[["delta"]]  # GDP per capita exponent
+
+
+  ## Extract correction parameters ====
+  # Extract correction parameters from scenAssump if provided
+  if (!is.null(scenAssump)) {
+    # Select correction parameters for AC penetration
+    correctionParams <- scenAssump %>%
+      select("region",
+             gammaFactor = "acPenetration_gamma",
+             deltaFactor = "acPenetration_delta")
+  } else {
+    # Use default values (1) if scenAssump is not provided
+    correctionParams <- data %>%
+      select("region") %>%
+      unique() %>%
+      mutate(gammaFactor = 1,
+             deltaFactor = 1)
+  }
+
 
   ## Regional beta corrections ====
   # Calculate region-specific beta coefficients to match historical AC penetration
-  # rates at the last observed data point
+  # rates at the last observed data point, using corrected gamma and delta exponents
 
   # Prepare model data with historical AC penetration, GDP per capita, and CDD
   modelData <- acOwnershipRates %>%
@@ -95,20 +121,17 @@ projectSpaceCooling <- function(data,
                 pivot_wider(names_from = "variable", values_from = "value"),
               by = c("region", "period"))
 
-  # Extract global fit parameters from logistic regression
-  alpha <- regPars[["alpha"]]  # Intercept parameter
-  beta  <- regPars[["beta"]]   # Global scaling coefficient
-  gamma <- regPars[["gamma"]]  # CDD exponent
-  delta <- regPars[["delta"]]  # GDP per capita exponent
-
-  # Calculate region-specific beta coefficients
+  # Calculate region-specific beta coefficients using corrected exponents
   betaReg <- modelData %>%
     # For each region, use the most recent historical data point
     group_by(across(all_of(c("region")))) %>%
     slice_max(order_by = .data$period, n = 1, with_ties = FALSE) %>%
     ungroup() %>%
-    # Derive regional beta by inverting the logistic function
-    mutate(betaReg = (alpha - log(1 / .data$penetration - 1)) / (.data$gdppop^delta * .data$CDD^gamma),
+    # Join correction parameters
+    left_join(correctionParams, by = "region") %>%
+    # Derive regional beta by inverting the logistic function with corrected exponents
+    mutate(betaReg = (alpha - log(1 / .data$penetration - 1)) /
+             (.data$gdppop^(delta * .data$deltaFactor) * .data$CDD^(gamma * .data$gammaFactor)),
            betaReg = ifelse(.data$betaReg < 0, NA, .data$betaReg)) %>%
     # Ensure all regions are represented
     right_join(data %>%
@@ -123,18 +146,19 @@ projectSpaceCooling <- function(data,
            betaReg = ifelse(.data$region %in% outliers, beta, .data$betaReg)) %>%
     select("region", "betaReg")
 
-
   ## Projections ====
   # Project AC penetration rates and calculate unscaled cooling demand
 
   projectionData <- data %>%
     filter(.data$variable %in% c("CDD", "gdppop", "space_cooling", "buildings", "uvalue")) %>%
-    select("region", "period", "variable", "value") %>%
+    select("region", "period", "scenario", "variable", "value") %>%
     pivot_wider(names_from = "variable", values_from = "value") %>%
     left_join(betaReg, by = "region") %>%
+    left_join(correctionParams, by = c("region")) %>%
     mutate(
-      # Project AC penetration rate using logistic function with regional beta
-      acPenetration = 1 / (1 + exp(alpha - .data$betaReg * .data$gdppop^delta * .data$CDD^gamma)),
+      # Project corrected AC penetration rate with correction parameters
+      acPenetration = 1 / (1 + exp(alpha - .data$betaReg * .data$gdppop^(delta * .data$deltaFactor)
+                                   * .data$CDD^(gamma * .data$gammaFactor))),
 
       # Calculate unscaled demand [EJ/yr] to determine regional activity factors
       # Formula: floor space [m²] * U-value [W/m²/K] * CDD [K·days] * conversion to EJ
@@ -174,7 +198,7 @@ projectSpaceCooling <- function(data,
       select("region", "period", "activityReg")
   }))
 
-  # Calculate global activity factor (excluding China due to comparitively low values)
+  # Calculate global activity factor (excluding China due to comparitively low values + unreliable data)
   estimate <- lm("space_cooling ~ 0 + unscaledDemand",
                  data = fitData %>%
                    filter(.data$region != "CHN"))
@@ -187,7 +211,9 @@ projectSpaceCooling <- function(data,
       activityGlo = estimate$coefficients[["unscaledDemand"]],
       # If regional activity exceeds global, maintain regional value (no convergence)
       # Otherwise, allow convergence to global activity
-      activityGlo = ifelse(.data$activityReg > .data$activityGlo, .data$activityReg, .data$activityGlo)
+      activityGlo = ifelse(.data$activityReg > .data$activityGlo | .data$activityReg == 0,
+                           .data$activityReg,
+                           .data$activityGlo)
     ) %>%
     left_join(lambda %>%
                 select("region", "period", "fullconv"),
@@ -198,12 +224,12 @@ projectSpaceCooling <- function(data,
     group_by(across(all_of("region"))) %>%
     mutate(
       # Calculate GDP-driven convergence factor (0 to 1)
-      lambdaGDP = (.data$gdppop - .data$gdppop[.data$period == endOfHistory]) /
-        (gdpThreshold - .data$gdppop[.data$period == endOfHistory]),
-      lambdaGDP = ifelse(.data$lambdaGDP < 0, 0, ifelse(.data$lambdaGDP > 1, 1, .data$lambdaGDP)),
+      lambdaGDP = pmin(1, pmax(0,
+                               (.data$gdppop - .data$gdppop[.data$period == endOfHistory]) /
+                                 pmax(incomeThresholdCooling - .data$gdppop[.data$period == endOfHistory], 1))),
 
       # Combine temporal and income-driven convergence
-      lambda = pmin(1, pmin(.data$fullconv, .data$lambdaGDP)),
+      lambda = pmin(.data$fullconv, .data$lambdaGDP),
 
       # Interpolate between regional and global activity based on convergence factor
       activity = .data$activityReg * (1 - .data$lambda) + .data$activityGlo * .data$lambda
