@@ -102,15 +102,15 @@ getEfficiencies <- function(config,
 
 
   # electric space cooling COP boundaries
-  coolingBounds <- toolGetMapping("coolingEfficiencyBoundaries.csv",
-                                  type = "sectoral",
-                                  where = "mredgebuildings")
+  coolingPars <- toolGetMapping("coolingEfficiencyParameters.csv",
+                                type = "sectoral",
+                                where = "mredgebuildings")
 
 
 
   # PROCESS DATA ---------------------------------------------------------------
 
-  coolingBounds <- coolingBounds %>%
+  coolingPars <- coolingPars %>%
     select("variable", "value") %>%
     pivot_wider(names_from = "variable", values_from = "value")
 
@@ -164,7 +164,7 @@ getEfficiencies <- function(config,
 
       data <- data %>%
         rbind(inputData) %>%
-        cross_join(coolingBounds)
+        cross_join(coolingPars)
     } else {
       formul <- paste0(euec, " ~ SSasymp(gdppop, Asym, R0, lrc)") %>%
         as.formula()
@@ -190,7 +190,7 @@ getEfficiencies <- function(config,
 
     if (euec == "space_cooling.elec") {
       euecProjection <- euecProjection %>%
-        select(-"max", -"min")
+        select(-tolower(colnames(coolingPars)))
     }
 
     return(euecProjection)
