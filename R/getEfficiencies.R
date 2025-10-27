@@ -28,7 +28,7 @@
 #' De Stercke, S. (2014). Dynamics of Energy Systems: A Useful Perspective
 #' (Interim Report, p. 68). IIASA. http://pure.iiasa.ac.at/id/eprint/11254/1/IR-14-013.pdf
 #'
-#' @importFrom dplyr filter mutate select bind_rows ungroup
+#' @importFrom dplyr filter mutate select bind_rows ungroup cross_join
 #' @importFrom tidyr pivot_wider unite separate separate unite
 #' @importFrom magrittr %>%
 #' @importFrom stats as.formula
@@ -59,6 +59,11 @@ getEfficiencies <- function(config,
 
   # upper temporal boundary of historical data
   endOfHistory <- config[scen, "endOfHistory"] %>%
+    unlist()
+
+  # Weight given to log(gdppop) for space_cooling.elec input variable
+  #   -> x = log(gdppop) * weight + period * (1 - weight)
+  gdppopWeight <- config[scen, "gdppopWeight"] %>%
     unlist()
 
 
@@ -96,8 +101,18 @@ getEfficiencies <- function(config,
                                 lastIdenticalYear = endOfHistory)
 
 
+  # electric space cooling COP boundaries
+  coolingPars <- toolGetMapping("coolingEfficiencyParameters.csv",
+                                type = "sectoral",
+                                where = "mredgebuildings")
+
+
 
   # PROCESS DATA ---------------------------------------------------------------
+
+  coolingPars <- coolingPars %>%
+    select("variable", "value") %>%
+    pivot_wider(names_from = "variable", values_from = "value")
 
   # bring regression parameters into correct form
   regPars <- regPars %>%
@@ -135,12 +150,29 @@ getEfficiencies <- function(config,
   efficiencyProjections <- do.call("rbind", lapply(euecCombinations, function(euec) {
 
     # define projection formula
-    formul <- paste0(euec, " ~ SSasymp(gdppop, Asym, R0, lrc)") %>%
-      as.formula()
+    if (euec == "space_cooling.elec") {
+
+      inputData <- data %>%
+        filter(.data$variable == "gdppop") %>%
+        rename("gdppop" = "value") %>%
+        mutate(value = log(.data$gdppop) * gdppopWeight + .data$period * (1 - gdppopWeight),
+               variable = "x") %>%
+        select(colnames(data))
+
+      formul <- paste0(euec, " ~ min + (max - min) / (1 + exp(-k * (x + x0)))") %>%
+        as.formula()
+
+      data <- data %>%
+        rbind(inputData) %>%
+        cross_join(coolingPars)
+    } else {
+      formul <- paste0(euec, " ~ SSasymp(gdppop, Asym, R0, lrc)") %>%
+        as.formula()
+    }
 
     # make projections
     euecProjection <- data %>%
-      filter(.data[["variable"]] %in% c(euec, "gdppop")) %>%
+      filter(.data[["variable"]] %in% c(euec, "gdppop", "x")) %>%
 
       makeProjections(formul           = formul,
                       scenAssump       = scenAssump,
@@ -155,6 +187,11 @@ getEfficiencies <- function(config,
       filter(.data[["variable"]] != "gdppop") %>%
       separate(col = "variable", into = c("enduse", "carrier"), sep = "\\.") %>%
       mutate(scenario = scen)
+
+    if (euec == "space_cooling.elec") {
+      euecProjection <- euecProjection %>%
+        select(-tolower(colnames(coolingPars)))
+    }
 
     return(euecProjection)
   }))
