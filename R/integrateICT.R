@@ -87,7 +87,8 @@ integrateICT <- function(ict, fe, config) {
             mutate(scenario = scen)) %>%
     mutate(variable = "ict.elec|fe") %>%
     select(-"enduse", -"carrier") %>%
-    as.quitte()
+    as.quitte() %>%
+    missingToNA()
 
   # Subtract ICT from AL electricity demand
   appliancesElec <- appliancesElec %>%
