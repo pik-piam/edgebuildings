@@ -15,6 +15,7 @@
 #' @param gdppop historical and future gdp per capita
 #' @param uvalue historical and future building insulation values
 #' @param fe historical final and useful energy data
+#' @param feICT historical and (exogenous) scenario final energy data for ICT electricity demand
 #' @param feueEff historical and future FE->UE conversion efficiencies
 #' @param feSharesEC historical and future final energy carrier shares
 #' @param regionmap regional mapping
@@ -45,6 +46,7 @@ buildingsProjections <- function(config,
                                  gdppop,
                                  uvalue,
                                  fe,
+                                 feICT,
                                  feueEff,
                                  feSharesEC,
                                  regionmap,
@@ -172,12 +174,15 @@ buildingsProjections <- function(config,
                                 sharpnessExp = sharpnessExp)
 
 
-
   # PROCESS DATA----------------------------------------------------------------
+
+  # Integrate ICT electricity demand into historical demands
+  feDemand <- integrateICT(feICT, fe, config)
+
 
   #--- Convert Final to Useful Energy ------------------------------------------
 
-  ue <- fe %>%
+  ue <- feDemand$fe %>%
     # join efficiencies and convert final to useful energy
     left_join(feueEff, by = c("region", "period", "enduse", "carrier", "scenario")) %>%
     mutate(value = .data[["value"]] * .data[["efficiency"]]) %>%
@@ -332,6 +337,9 @@ buildingsProjections <- function(config,
                            eff     = feueEff,
                            shares  = feSharesEC,
                            enduses = enduses)
+
+  # Integrate FE ICT electricity demands into full data set
+  df <- rbind(df, feDemand$feICT)
 
 
   # global values
