@@ -6,6 +6,7 @@ urbanisationScen;urbanisation scenario;NA;SSP2
 densityScen;density scenario;NA;SSP2
 floorScen;floorspace scenario;NA;SSP2
 uvalueScen;uvalue scenario;NA;picontrol
+techScen;digital technology scenario (<SSP>_<lower/mean/central/upper>);NA;SSP2_central
 hddcddScen;;NA;SSP2
 rcpScen;RCP scenario;NA;4.5
 tlimHist_HDD;historical set point temperature for space heating in degC;14;14
