@@ -1,13 +1,13 @@
 #' full EDGE-B processing pipeline
 #' @author Hagen Tockhorn, Robin Hasse
 
-library(targets)
+library(targets) # nolint: undesirable_function_linter.
 
 # load EDGE-B either from installation or development version
 # TODO: there has to be a better way of doing this
 edgebVer <- Sys.getenv("edgebVer")
 if (edgebVer == "0") {
-  library(edgebuildings)
+  library(edgebuildings) # nolint: undesirable_function_linter.
 } else {
   devtools::load_all(edgebVer)
 }
@@ -300,7 +300,7 @@ list(
     hddcdd,
     {
       read.csv(hddcdd.cs4r, header = FALSE, comment.char = "*",
-               col.names = c("period", "region", "variable", "tlim", "ssp", "rcp", "value")) %>%
+               col.names = c("period", "region", "variable", "tlim", "rcp", "ssp", "value")) %>%
 
         # converge limit temperatures
         prepHDDCDD(config, regionmap)

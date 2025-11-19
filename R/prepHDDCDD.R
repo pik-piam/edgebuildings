@@ -113,7 +113,7 @@ prepHDDCDD <- function(hddcdd, config, regionmap) {
                .data$ssp      ==   socioScen,
                .data$variable ==   typeDD,
                .data$rcp      %in% c("historical", climScen),
-               .data$tlim     %in% c(tlimHist, tlimTargetReg),
+               .data$tlim     %in% c(tlimHist[[typeDD]], tlimTargetReg),
                !is.na(.data$value)) %>%
 
         # unite "historical" and ...

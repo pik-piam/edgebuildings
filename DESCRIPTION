@@ -1,6 +1,6 @@
 Package: edgebuildings
 Title: Model for the projection of global energy demand in the buildings sector
-Version: 0.4.11
+Version: 0.4.12
 Authors@R: c(
   person(given = "Antoine", family = "Levesque",
          role = c("aut")),
@@ -29,7 +29,7 @@ License: AGPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends: R (>= 3.5.0)
 Imports:
   data.table,
@@ -64,5 +64,5 @@ Suggests:
   rmarkdown,
   rprojroot,
   xmpdf
-Date: 2025-10-27
+Date: 2025-11-13
 VignetteBuilder: knitr
