@@ -26,9 +26,7 @@ econCoef_biotrad;elasticity correction factor for traditional biomass use?;1;1
 econCoef_space_heating.elecHP_eff_X_Asym;maximal FE-UE efficiency of space heating with heat pumps;1;5
 econCoef_space_heating.elecHP_share_X_Asym;maximal share of heat pumps in space heating with electricity;1;0.5
 econCoef_space_heating.elec_X_lrc;rate parameter of FE-UE efficiency of space heating with electricity;1;-10.33475
-econCoef_space_cooling.elec_X_Asym;maximal FE-UE efficiency of space cooling with electricity;1;5
-econCoef_space_cooling.elec_X_lrc;rate parameter of FE-UE efficiency of space cooling with electricity;1;-10.51707
-econCoef_space_cooling.elec_X_max;;7;7
+econCoef_space_cooling.elec_X_max;maximal FE-UE efficiency of space cooling with electricity;7;7
 econCoef_water_heating.elecHP_eff_X_Asym;maximal FE-UE efficiency of water heating with heat pumps;1;5
 econCoef_water_heating.elecHP_share_X_Asym;maximal share of heat pumps in water heating with electricity;1;0.5
 econCoef_water_heating.elec_X_lrc;rate parameter of FE-UE efficiency of water heating with electricity;1;-10.51707

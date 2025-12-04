@@ -167,7 +167,6 @@ makeProjections <- function(df,
   }
 
 
-
   # Projections with scenario-specific assumptions
   projectionData <- .makeScenarioProjections(data                  = projectionData,
                                              fitModel              = estimate,

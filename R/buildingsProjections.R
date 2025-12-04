@@ -231,6 +231,8 @@ buildingsProjections <- function(config,
   # change lambda according to lifestyle scenario assumptions
   lambdaDifferentiated <- lapply(setNames(nm = enduseVars), function(x) lambda)
 
+
+
   #--- Make Projections
   print("Start projections")
 
