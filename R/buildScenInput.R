@@ -67,10 +67,9 @@ buildScenInput <- function(config,
 
     ## temporal convergence assumptions ====
 
-    .expandToRegions(config, regions, switches = c("speed", "speed_fullconv", "speed_boost")) %>%
+    .expandToRegions(config, regions, switches = c("speed", "speed_fullconv")) %>%
       rename(lambda = "speed",
-             fullconv = "speed_fullconv",
-             boost = "speed_boost")
+             fullconv = "speed_fullconv")
 
 
   } else if (subtype == "fe_shares") {

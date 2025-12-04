@@ -184,13 +184,13 @@ projectSpaceCooling <- function(data,
     mutate(
       activityGlo = estimate$coefficients[["unscaledDemand"]] * coolingActivityGloFactor,
 
-      # Calculate distance-based convergence for both higher and lower than global fit
+      # Calculate relative distance between regional and global activity
       ratio = .data$activityReg / .data$activityGlo,
 
       # Get binned tolerance
       tolerance = .getTolerance(.data$ratio, toleranceTable),
 
-      # Apply tolerance
+      # Calculate adjusted global activity with tolerance scaling
       activityGlo = .data$activityGlo * .data$tolerance
     ) %>%
     left_join(lambda %>%
@@ -217,12 +217,10 @@ projectSpaceCooling <- function(data,
 
 
   ### Project UE cooling demand ====
-  # Calculate final cooling useful energy demand by applying activity factors
+  # Calculate final cooling useful energy demand in [EJ/yr]
 
   projections <- projectionData %>%
     left_join(coolingActivity, by = c("region", "period")) %>%
-
-    # Project future cooling useful energy demands [EJ/yr]
     mutate(proj = .data$activity * .data$unscaledDemand)
 
 
