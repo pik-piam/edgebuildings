@@ -59,6 +59,13 @@ list(
     format = "file"
   ),
 
+  # cooling activity tolerance bands
+  tar_target(
+    coolingActivityTolerances.csv,
+    piamutils::getSystemFile("data_internal/mappings/coolingActivityTolerances.csv", package = "edgebuildings"),
+    format = "file"
+  ),
+
   # mredgebuildings-----------------------------
 
   # surface area
@@ -224,6 +231,12 @@ list(
   tar_target(
     correctEfficiencies,
     read.csv(correctEfficiencies.csv, stringsAsFactors = FALSE)
+  ),
+
+  # cooling activity tolerance table
+  tar_target(
+    toleranceTable,
+    read.csv(coolingActivityTolerances.csv, stringsAsFactors = FALSE)
   ),
 
   # reference EC income threshold for phase-out
@@ -589,6 +602,7 @@ list(
                            scenAssumpSpeed = scenAssumpSpeed,
                            acOwnershipRates = acOwnershipRates,
                            acOwnershipRegression = acOwnershipRegression,
+                           toleranceTable = toleranceTable,
                            outputDir = output)
     },
     pattern = map(config),

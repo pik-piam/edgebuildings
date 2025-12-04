@@ -11,7 +11,7 @@ projectSpaceCooling(
   regPars,
   endOfHistory,
   lambda,
-  outliers = NULL
+  toleranceTable = NULL
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ projectSpaceCooling(
 
 \item{lambda}{data frame with convergence factors (0 to 1) over time for scenario transitions}
 
-\item{outliers}{list or vector of outlier regions where global beta parameter shall be applied}
+\item{toleranceTable}{data frame with tolerance bands for regional to global activity convergence}
 }
 \value{
 A data frame with the same structure as the input \code{data}, but with
@@ -44,21 +44,21 @@ Space cooling energy demand is calculated using:
 \deqn{space\_cooling =  \phi_1 \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
 
 The AC penetration rate component follows the logistic formula:
-\deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop^\gamma \cdot CDD^\delta))}
+\deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop^\delta \cdot CDD^\gamma))}
 
-The model incorporates two key assumptions:
-\enumerate{
-\item All regional penetration curves originate from the same point at
-gdppop = 0 and CDD = 0
-\item The curve elongation parameter (\eqn{\phi_3}) decreases monotonically
-with rising CDDs to account for dampened/accelerated technology adoption
-due to regional climate
-}
+The model incorporates regional adjustments through region-specific beta
+coefficients (\eqn{\beta_{reg}}) that are calibrated to match historical
+AC penetration rates. This allows for regional variations in adoption patterns
+while maintaining the global functional form of the penetration curve.
 
 For regions with historical data, regional beta coefficients are derived to
 match the last historical reference point. The regional scaling parameter (\eqn{\phi_1}),
-or cooling activity, is derived from a linear fit on historical data and boosted
-over time for selected regions where an increase in cooling activity is expected.
+or cooling activity, is derived from a linear fit on historical data. Regional
+activity factors converge toward a globally-derived activity factor over time,
+controlled by GDP per capita thresholds and time-based convergence factors. The
+global convergence target is adjusted by tolerance bands that scale the deviation
+based on how far the regional value differs from the global estimate, allowing
+for more gradual convergence for extreme regional deviations.
 
 The function assumes that the input \code{data} contains a single non-"history"
 scenario.
