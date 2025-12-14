@@ -337,8 +337,10 @@ buildingsProjections <- function(config,
                            shares  = feSharesEC,
                            enduses = enduses)
 
-  # Integrate FE ICT electricity demands into full data set
-  df <- rbind(df, feDemand$feICT)
+
+
+  # Integrate and extrapolate FE ICT electricity demands
+  df <- integrateICT(ict = feDemand$feICT, fe = df, config, expandProjections = TRUE)
 
 
   # global values
