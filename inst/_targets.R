@@ -110,6 +110,13 @@ list(
     format = "file"
   ),
 
+  # ICT electricity demands
+  tar_target(
+    feICT.cs4r,
+    file.path(mrData, "f_elecICT.cs4r"),
+    format = "file"
+  ),
+
 
   # mrdrivers------------------------------
 
@@ -299,9 +306,10 @@ list(
   tar_target(
     hddcdd,
     {
-      read.csv(hddcdd.cs4r, header = FALSE, comment.char = "*",
-               col.names = c("period", "region", "variable", "tlim", "rcp", "ssp", "value")) %>%
+      cols <- c("period", "region", "variable", "tlim", "rcp", "ssp", "value")
+      file <- hddcdd.cs4r
 
+      read.csv(file, header = FALSE, comment.char = "*", col.names = cols) %>%
         # converge limit temperatures
         prepHDDCDD(config, regionmap)
     },
@@ -326,6 +334,18 @@ list(
     floor0,
     read.csv(floor0.cs4r, header = FALSE, comment.char = "*",
              col.names = c("period", "region", "variable", "unit", "value"))
+  ),
+
+  # ICT electricity demand
+  tar_target(
+    feICT,
+    {
+      cols <- c("period", "region", "scenario", "variable", "carrier", "enduse", "value")
+      file <- feICT.cs4r
+
+      read.csv(file, skip = skiprow(file), col.names = cols) %>%
+        filter(!is.na(.data$value))
+    }
   ),
 
 
@@ -547,6 +567,7 @@ list(
                            gdppop = gdppop,
                            uvalue = uvalue,
                            fe = fe,
+                           feICT = feICT,
                            feueEff = feueEfficiencies,
                            feSharesEC = feSharesEC,
                            regionmap = regionmap,

@@ -12,6 +12,7 @@ buildingsProjections(
   gdppop,
   uvalue,
   fe,
+  feICT,
   feueEff,
   feSharesEC,
   regionmap,
@@ -39,6 +40,8 @@ buildingsProjections(
 \item{uvalue}{historical and future building insulation values}
 
 \item{fe}{historical final and useful energy data}
+
+\item{feICT}{historical and (exogenous) scenario final energy data for ICT electricity demand}
 
 \item{feueEff}{historical and future FE->UE conversion efficiencies}
 
