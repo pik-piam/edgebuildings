@@ -23,7 +23,7 @@
 #' @importFrom dplyr filter select mutate left_join right_join .data %>%
 #' @importFrom quitte as.quitte interpolate_missing_periods
 
-integrateICT <- function(ict, fe, config) {
+integrateICT <- function(ict, fe, config, expandProjections = FALSE) {
 
   # PARAMETERS -----------------------------------------------------------------
 
@@ -50,61 +50,88 @@ integrateICT <- function(ict, fe, config) {
 
   # PROCESS DATA ---------------------------------------------------------------
 
-  # Extract AL electricity demand
-  appliancesElec <- fe %>%
-    filter(.data$enduse == "appliances_light", .data$carrier == "elec")
+  ## Extrapolate historical ICT demand and correct appliances_light fe demand ====
 
-  # Filter ICT data and calculate historical shares
-  ictDemand <- ict %>%
-    filter(.data$scenario %in% c("history", ictScen$ssp),
-           .data$variable == ictScen$estimate)
+  if (isFALSE(expandProjections)) {
 
-  # Calculate historical ICT/appliances share
-  ictShares <- ictDemand %>%
-    filter(.data$scenario == "history") %>%
-    select(.data$region, .data$period, .data$value) %>%
-    right_join(appliancesElec, by = c("region", "period"), suffix = c("ICT", "App")) %>%
-    mutate(share = .data$valueICT / .data$valueApp) %>%
-    select("region", "period", "share") %>%
+    # Extract AL electricity demand
+    appliancesElec <- fe %>%
+      filter(.data$enduse == "appliances_light", .data$carrier == "elec")
 
-    # extrapolate missing entries w/ constant historical share
-    interpolate_missing_periods(value = "share", expand.values = TRUE)
+    # Filter ICT data and calculate historical shares
+    ictDemand <- ict %>%
+      filter(.data$scenario %in% c("history", ictScen$ssp),
+             .data$variable == ictScen$estimate)
 
+    # Calculate historical ICT/appliances share
+    ictShares <- ictDemand %>%
+      filter(.data$scenario == "history") %>%
+      select(.data$region, .data$period, .data$value) %>%
+      right_join(appliancesElec, by = c("region", "period"), suffix = c("ICT", "App")) %>%
+      mutate(share = .data$valueICT / .data$valueApp) %>%
+      select("region", "period", "share") %>%
 
-  # Fill historical ICT demands and combine with future scenarios
-  ictComplete <- ictDemand %>%
-    filter(.data$scenario == "history") %>%
-    interpolate_missing_periods(periodBegin:endOfHistory) %>%
-    left_join(ictShares, by = c("region", "period")) %>%
-    left_join(appliancesElec %>%
-                select("region", "period", "value"),
-              by = c("region", "period"),
-              suffix = c("ICT", "Total")) %>%
-    mutate(value = ifelse(!is.na(.data$valueICT), .data$valueICT, .data$valueTotal * .data$share),
-           .keep = "unused") %>%
-    rbind(ictDemand %>%
-            filter(.data$scenario != "history") %>%
-            mutate(scenario = scen)) %>%
-    mutate(variable = "ict.elec|fe") %>%
-    select(-"enduse", -"carrier") %>%
-    as.quitte() %>%
-    missingToNA()
-
-  # Subtract ICT from AL electricity demand
-  appliancesElec <- appliancesElec %>%
-    left_join(ictComplete %>% select(.data$region, .data$period, .data$value),
-              by = c("region", "period"),
-              suffix = c("", "ICT")) %>%
-    mutate(value = .data$value - .data$valueICT, .keep = "unused")
-
-  # Rebuild final energy data without ICT in appliances
-  fe <- fe %>%
-    filter(!(.data$enduse == "appliances_light" & .data$carrier == "elec")) %>%
-    rbind(appliancesElec)
+      # extrapolate missing entries w/ constant historical share
+      interpolate_missing_periods(value = "share", expand.values = TRUE)
 
 
-  # OUTPUT ---------------------------------------------------------------------
+    # Fill historical ICT demands and combine with future scenarios
+    ictComplete <- ictDemand %>%
+      filter(.data$scenario == "history") %>%
+      interpolate_missing_periods(periodBegin:endOfHistory) %>%
+      left_join(ictShares, by = c("region", "period")) %>%
+      left_join(appliancesElec %>%
+                  select("region", "period", "value"),
+                by = c("region", "period"),
+                suffix = c("ICT", "Total")) %>%
+      mutate(value = ifelse(!is.na(.data$valueICT), .data$valueICT, .data$valueTotal * .data$share),
+             .keep = "unused") %>%
+      rbind(ictDemand %>%
+              filter(.data$scenario != "history") %>%
+              mutate(scenario = scen)) %>%
+      mutate(variable = "ict.elec|fe") %>%
+      select(-"enduse", -"carrier") %>%
+      as.quitte() %>%
+      missingToNA()
 
-  return(list(fe = fe,
-              feICT = ictComplete))
+    # Subtract ICT from AL electricity demand
+    appliancesElec <- appliancesElec %>%
+      left_join(ictComplete %>% select(.data$region, .data$period, .data$value),
+                by = c("region", "period"),
+                suffix = c("", "ICT")) %>%
+      mutate(value = .data$value - .data$valueICT, .keep = "unused")
+
+    # Rebuild final energy data without ICT in appliances
+    fe <- fe %>%
+      filter(!(.data$enduse == "appliances_light" & .data$carrier == "elec")) %>%
+      rbind(appliancesElec)
+
+
+    return(list(fe = fe,
+                feICT = ictComplete))
+
+  } else {
+
+    ## Extrapolate future ICT demand with constant 2050 demand ====
+
+    extrapolatedDemand <- fe %>%
+      filter(.data$variable == "appliances_light.elec|fe") %>%
+      rbind(ict) %>%
+      pivot_wider(names_from = "variable", values_from = "value") %>%
+      arrange("region", "period") %>%
+      group_by(across(all_of(c("region", "scenario")))) %>%
+      fill(.data[["ict.elec|fe"]], .direction = "down") %>%
+      ungroup() %>%
+      pivot_longer(cols = c("ict.elec|fe", "appliances_light.elec|fe"),
+                   names_to = "variable",
+                   values_to = "value")
+
+    fe <- fe %>%
+      filter(.data$variable != "appliances_light.elec|fe") %>%
+      rbind(extrapolatedDemand)
+
+    return(fe)
+  }
+
+
 }
