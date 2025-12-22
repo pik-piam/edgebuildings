@@ -59,7 +59,7 @@ buildScenInput <- function(config,
 
     ## general scenario parameter assumptions ====
 
-    scenAssump <- .expandToRegions(config, regions, prefix = "econCoef_") %>%
+    .expandToRegions(config, regions, prefix = "econCoef_") %>%
       .deriveElecHeatingAssump()
 
 
@@ -67,20 +67,21 @@ buildScenInput <- function(config,
 
     ## temporal convergence assumptions ====
 
-    .expandToRegions(config, regions, switches = c("speed", "speed_fullconv")) %>%
+    .expandToRegions(config, regions, switches = c("speed", "speed_fullconv", "speed_expconv")) %>%
       rename(lambda = "speed",
-             fullconv = "speed_fullconv")
+             fullconv = "speed_fullconv",
+             expconv = "speed_expconv")
 
 
   } else if (subtype == "fe_shares") {
 
     ## final energy shares ====
 
-  .expandToRegions(config, regions, prefix = "feShare_") %>%
-    pivot_longer(-c("scenario", "region"),
-                 names_to = "variable", values_to = "obj_share") %>%
-    mutate(variable = sub("^(.+)_([a-z]+)$", "\\1.\\2", .data[["variable"]]),
-           obj_share = .data[["obj_share"]] / 100)
+    .expandToRegions(config, regions, prefix = "feShare_") %>%
+      pivot_longer(-c("scenario", "region"),
+                   names_to = "variable", values_to = "obj_share") %>%
+      mutate(variable = sub("^(.+)_([a-z]+)$", "\\1.\\2", .data[["variable"]]),
+             obj_share = .data[["obj_share"]] / 100)
 
 
   } else if (subtype == "mapping") {

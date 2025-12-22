@@ -227,7 +227,7 @@ predictFullDelta <- function(fullData,
     left_join(scenAssump, by = c("region", "scenario")) %>%
     left_join(lambda, by = c("region", "period", "scenario")) %>%
     mutate(coefLogGdp = .data[["fullconv"]] * (coefLogGdpEstimate * .data[["floorspace"]])
-                        + (1 - .data[["fullconv"]]) * coefLogGdpEstimate,
+           + (1 - .data[["fullconv"]]) * coefLogGdpEstimate,
            coefLogDensity = coefLogDensityEstimate,
            intercept = interceptEstimate) %>%
     select(-"floorspace", -"lambda", -"fullconv")

@@ -20,7 +20,9 @@
 #' @param regionmap regional mapping
 #' @param scenAssump carrier/enduse-specific scenario assumptions
 #' @param scenAssumpSpeed long-term temporal scenario assumptions
-#' @param scenAssumpCorrect specific corrections
+#' @param acOwnershipRates AC penetration reference values
+#' @param acOwnershipRegression data frame with regression parameters for AC penetration estimation
+#' @param toleranceKeyPoints data frame with tolerance bands for regional to global activity convergence
 #' @param outputDir output directory
 #' @param hpCorrection heatpump correction for electric space heating
 #' @param lifestyle lifestyle parameter
@@ -49,7 +51,9 @@ buildingsProjections <- function(config,
                                  regionmap,
                                  scenAssump,
                                  scenAssumpSpeed,
-                                 scenAssumpCorrect,
+                                 acOwnershipRates = NULL,
+                                 acOwnershipRegression = NULL,
+                                 toleranceKeyPoints = NULL,
                                  outputDir = "output",
                                  hpCorrection = TRUE,
                                  lifestyle = NULL,
@@ -155,9 +159,19 @@ buildingsProjections <- function(config,
   scenAssump <- scenAssump %>%
     filter(.data[["scenario"]] == scen)
 
+  # Extract sharpness parameter for exponential convergence from config
+  sharpnessExp <- config[scen, "sharpness_expconv"] %>% unlist()
+
   # temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory)
-  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory + 10)
+  lambda <- compLambdaScen(scenAssumpSpeed,
+                           startYearVector = 1960,
+                           lastIdenticalYear = endOfHistory,
+                           sharpnessExp = sharpnessExp)
+
+  lambdaDelta <- compLambdaScen(scenAssumpSpeed,
+                                startYearVector = 1960,
+                                lastIdenticalYear = endOfHistory + 10,
+                                sharpnessExp = sharpnessExp)
 
 
 
@@ -202,8 +216,6 @@ buildingsProjections <- function(config,
   # derive variables of historic data for projection
   df <- df %>%
     calc_addVariable("rvalue" = "1/uvalue") %>%
-    calc_addVariable("coefCDD" = "(1 - 0.949 * exp(-0.00187 * CDD * 1.26))",
-                     units = NA) %>%
     filter(!is.na(.data[["value"]])) %>%
     calc_addVariable("space_heating_m2_Uval" = "space_heating * 1e6 / (buildings * uvalue)",
                      factor = 1e6,
@@ -214,10 +226,6 @@ buildingsProjections <- function(config,
     calc_addRatio("cooking_pop", "cooking", "pop",
                   factor = 1e3,
                   units = "GJ/cap") %>%
-
-    # equation from McNeil(2007) Future Air conditioning energy consumption
-    calc_addVariable("space_cooling_m2_CDD_Uval" = "space_cooling / (buildings * uvalue * CDD * coefCDD) * 1e6",
-                     units = "Space Cooling Demand [MJ/((W/K)*f(CDD))]") %>%
     calc_addVariable("appliances_light_elas" = "log(I(appliances_light / pop)) - 0.3*log(gdppop)",
                      units = NA) %>%
     filter(!is.na(.data[["value"]]))
@@ -228,8 +236,7 @@ buildingsProjections <- function(config,
   enduseVars <- c("space_heating_m2_Uval",
                   "appliances_light_elas_FACTOR",
                   "water_heating_pop",
-                  "cooking_pop",
-                  "space_cooling_m2_CDD_Uval")
+                  "cooking_pop")
 
   # change lambda according to lifestyle scenario assumptions
   lambdaDifferentiated <- lapply(setNames(nm = enduseVars), function(x) lambda)
@@ -281,15 +288,13 @@ buildingsProjections <- function(config,
                         periodBegin = periodBegin,
                         endOfHistory = endOfHistory)
 
-  df <- makeProjections(df,
-                        formul = as.formula("space_cooling_m2_CDD_Uval ~ SSlogis(gdppop, Asym,phi2,phi3)"),
-                        scenAssump = scenAssump,
-                        lambda = lambdaDifferentiated["space_cooling_m2_CDD_Uval"][[1]],
-                        lambdaDelta = lambdaDelta,
-                        outliers = c("RUS", "EUR", "OCD", setdiff(eurCountries, c("ESP", "PRT", "GRC", "ITA"))),
-                        avoidLowValues = TRUE,
-                        periodBegin = periodBegin,
-                        endOfHistory = endOfHistory)
+  df <- projectSpaceCooling(df,
+                            config,
+                            acOwnershipRates,
+                            acOwnershipRegression,
+                            endOfHistory,
+                            lambda,
+                            toleranceKeyPoints)
 
 
   # correct short- to midterm space heating adoption activity
@@ -298,13 +303,12 @@ buildingsProjections <- function(config,
 
   df <- df %>%
     # define enduse variables from projected variables
-    calc_addVariable_(list( # nolint start
+    calc_addVariable_(list(
       "space_heating"    = c("space_heating_m2_Uval/1e6 * buildings * uvalue", NA),
       "appliances_light" = c("appliances_light_elas* pop/1e3", NA),
       "water_heating"    = c("water_heating_pop  / 1e3 * pop", NA),
-      "cooking"          = c("cooking_pop  / 1e3 * pop", NA),
-      "space_cooling"    = c("space_cooling_m2_CDD_Uval/1e6 * (buildings*uvalue*CDD*coefCDD)", NA))) %>%
-    # nolint end
+      "cooking"          = c("cooking_pop  / 1e3 * pop", NA)
+    )) %>%
 
     # filter unwanted entries
     anti_join(df, by = c("scenario", "period", "region", "variable")) %>%

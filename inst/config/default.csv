@@ -26,9 +26,7 @@ econCoef_biotrad;elasticity correction factor for traditional biomass use?;1;1
 econCoef_space_heating.elecHP_eff_X_Asym;maximal FE-UE efficiency of space heating with heat pumps;1;5
 econCoef_space_heating.elecHP_share_X_Asym;maximal share of heat pumps in space heating with electricity;1;0.5
 econCoef_space_heating.elec_X_lrc;rate parameter of FE-UE efficiency of space heating with electricity;1;-10.33475
-econCoef_space_cooling.elec_X_Asym;maximal FE-UE efficiency of space cooling with electricity;1;5
-econCoef_space_cooling.elec_X_lrc;rate parameter of FE-UE efficiency of space cooling with electricity;1;-10.51707
-econCoef_space_cooling.elec_X_max;;7;7
+econCoef_space_cooling.elec_X_max;maximal FE-UE efficiency of space cooling with electricity;7;7
 econCoef_water_heating.elecHP_eff_X_Asym;maximal FE-UE efficiency of water heating with heat pumps;1;5
 econCoef_water_heating.elecHP_share_X_Asym;maximal share of heat pumps in water heating with electricity;1;0.5
 econCoef_water_heating.elec_X_lrc;rate parameter of FE-UE efficiency of water heating with electricity;1;-10.51707
@@ -57,7 +55,8 @@ feShare_space_cooling_heat;FE share of district heating in space cooling in perc
 feShare_space_cooling_biomod;FE share of modern biomass in space cooling in percent;NA;0
 speed;year in which long-term target values are reached;NA;2300
 speed_fullconv;year in which mid-term target values are reached;NA;2070
-speed_boost;;NA;2050
+speed_expconv;year in which exponential convergence is reached for regional activities above global;NA;2070
+sharpness_expconv;sharpness parameter for exponential convergence curve (higher = steeper initial rise);NA;1.8
 floorspaceCap;cap on floorspace per capita in m2;NA;NULL
 incomeThresholdEC;income threshold above which low-affluence energy carrier end use combiations are phased out in USD2017/cap;NA;24628
 incomeThresholdUvalue;between zero and this threshold in USD2017/cap, the factor between global U-values estimates and local values decrease from multiUValue to one;NA;24628
@@ -76,3 +75,5 @@ deltaDecayRate;Factor defining the fraction of initial growth rate of delta for 
 deltaTargetYear;Year by which delta converges to a fraction of its initial growth rate for space heating projections;NA;2040
 uvalues_climateElas;Elasticity by which future marginal (relative) climate changes are scaled as impact on u-value projections;NA;0.5
 gdppopWeight;Relative weight given to log(gdppop) compared to period in input data of AC efficiency projection;NA;0.95
+incomeThresholdCooling;GDP per capita threshold for regional to global activity convergence in USD2017/cap;NA;36941
+coolingActivityGloFactor;Global activity scaling factor for convergence target;1;1
