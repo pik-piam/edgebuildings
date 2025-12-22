@@ -19,8 +19,21 @@
 #' The regional scaling parameter (\eqn{\phi_1}),
 #' or cooling activity, is derived from a linear fit on historical data. Regional
 #' activity factors converge toward a globally-derived activity factor over time,
-#' controlled by GDP per capita thresholds and time-based convergence factors. The
-#' global convergence target is adjusted by a continuous tolerance function that
+#' controlled by GDP per capita thresholds and time-based convergence factors.
+#'
+#' The convergence process uses two different interpolation curves depending on whether
+#' regional activity is above or below the global target:
+#' \itemize{
+#'   \item For regions where \eqn{activity_{regional} < activity_{global}} (ratio < 1):
+#'         Uses \code{fullconv} (logistic S-curve) for traditional slow-fast-slow convergence
+#'   \item For regions where \eqn{activity_{regional} \ge activity_{global}} (ratio >= 1):
+#'         Uses \code{expconv} (exponential approach) with formula
+#'         \eqn{f(x) = (1 - \exp(-sharpness \cdot x)) / (1 - \exp(-sharpness))}
+#'         to provide quick initial departure from extreme values followed by smooth
+#'         asymptotic approach to the global target, avoiding wave-like demand patterns
+#' }
+#'
+#' The global convergence target is adjusted by a continuous tolerance function that
 #' scales the deviation based on how far the regional value differs from the global
 #' estimate, allowing for more gradual convergence for extreme regional deviations.
 #'
