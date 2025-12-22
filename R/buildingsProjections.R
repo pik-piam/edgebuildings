@@ -159,9 +159,19 @@ buildingsProjections <- function(config,
   scenAssump <- scenAssump %>%
     filter(.data[["scenario"]] == scen)
 
+  # Extract sharpness parameter for exponential convergence from config
+  sharpnessExp <- config[scen, "sharpness_expconv"] %>% unlist()
+
   # temporal convergence shares
-  lambda <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory)
-  lambdaDelta <- compLambdaScen(scenAssumpSpeed, startYearVector = 1960, lastIdenticalYear = endOfHistory + 10)
+  lambda <- compLambdaScen(scenAssumpSpeed,
+                           startYearVector = 1960,
+                           lastIdenticalYear = endOfHistory,
+                           sharpnessExp = sharpnessExp)
+
+  lambdaDelta <- compLambdaScen(scenAssumpSpeed,
+                                startYearVector = 1960,
+                                lastIdenticalYear = endOfHistory + 10,
+                                sharpnessExp = sharpnessExp)
 
 
 

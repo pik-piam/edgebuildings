@@ -1,17 +1,18 @@
-#' Calculate time series of share parameter describing a linear or logistic
-#' transition
+#' Calculate time series of share parameter describing a linear, logistic, or
+#' exponential transition
 #'
 #' @param lastIdenticalYear first year of transition
 #' @param endYear last year of transition
 #' @param lambdaEnd final value of share parameter (0 ... 1)
-#' @param type interpolation function c('logit', 'linear')
+#' @param type interpolation function c('logit', 'linear', 'exp')
 #' @param scaleLogit scale parameter of logistic function
+#' @param sharpnessExp sharpness parameter for exponential function (higher = steeper initial rise)
 #' @param startYearVector year from which to prepend yearly steps until
 #'        \code{lastIdenticalYear}
 #' @param step numeric time step to determine for which years lambda is computed
 #' @returns list with time series of share parameter
 #'
-#' @author Antoine Levesque
+#' @author Antoine Levesque, Hagen Tockhorn
 #'
 #' @importFrom stats plogis qlogis
 
@@ -20,6 +21,7 @@ calcLambda <- function(lastIdenticalYear,
                        lambdaEnd,
                        type = "logit",
                        scaleLogit = 0.15,
+                       sharpnessExp = 1.8,
                        startYearVector = 2005,
                        step = 5) {
   # Internal Functions ---------------------------------------------------------
@@ -56,8 +58,17 @@ calcLambda <- function(lastIdenticalYear,
 
   } else if (type == "linear") {
 
-    lambda <- c(seq(from = 0, to = lambdaEnd, length.out = length(lambdaYears)),  # start with a non 0 value
+    lambda <- c(seq(from = 0, to = lambdaEnd, length.out = length(lambdaYears)),
                 rep(lambdaEnd, max(0, (2100 - endYear) / step)))
+
+  } else if (type == "exp") {
+    # Exponential approach: 1 - exp(-sharpness * x)
+    # Rises quickly at first, then slowly approaches 1
+    # Normalized to go from 0 to 1
+    x <- seq(0, 1, length.out = length(lambdaYears))
+    lambda <- c((1 - exp(-sharpnessExp * x)) / (1 - exp(-sharpnessExp)) * lambdaEnd,
+                rep(lambdaEnd, max(0, (2100 - endYear) / step)))
+    lambda[lambda < eps] <- 0
   }
 
 
@@ -84,6 +95,7 @@ calcLambda <- function(lastIdenticalYear,
 #'        (e.g. full convergence in 2075 and \code{varySpeed = 2} leads to
 #'        full convergence in 2045)
 #' @param startYearVector year from which to start time series (yearly steps)
+#' @param sharpnessExp sharpness parameter for exponential convergence (default: 1.8)
 #'
 #' @return data.frame with region-wise convergence shares
 #'
@@ -96,7 +108,8 @@ calcLambda <- function(lastIdenticalYear,
 compLambdaScen <- function(scenAssumpSpeed,
                            lastIdenticalYear,
                            varySpeed = 1,
-                           startYearVector = 2005) {
+                           startYearVector = 2005,
+                           sharpnessExp = 1.8) {
   # Internal Functions ---------------------------------------------------------
 
   compEvolutionShares <- function(type, reg) {
@@ -110,7 +123,9 @@ compLambdaScen <- function(scenAssumpSpeed,
 
     # calc convergence shares
     tmp <- calcLambda(lastIdenticalYear, endYear, 1,
-                      type = ifelse(type == "fullconv", "logit", "linear"),
+                      type = ifelse(type == "fullconv", "logit",
+                                    ifelse(type == "expconv", "exp", "linear")),
+                      sharpnessExp = sharpnessExp,
                       startYearVector = startYearVector)
 
     tmp <- tmp[names(tmp) <= 2100]
