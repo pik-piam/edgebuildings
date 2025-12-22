@@ -38,22 +38,22 @@ historical "space_cooling" variable data.
 \description{
 This function projects future space cooling useful energy demand and models air
 conditioner (AC) penetration rates as a function of GDP per capita and cooling degree
-days (CDD) using a logistic function with climate-adjusted parameters.
+days (CDD) using a logistic function.
 }
 \details{
 Space cooling energy demand is calculated using:
 \deqn{space\_cooling =  \phi_1 \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
 
 The AC penetration rate component follows the logistic formula:
-\deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop^\delta \cdot CDD^\gamma))}
+\deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot (gdppop - gdppopShift)^\delta \cdot CDD^\gamma))}
 
-The model incorporates regional adjustments through region-specific beta
-coefficients (\eqn{\beta_{reg}}) that are calibrated to match historical
-AC penetration rates. This allows for regional variations in adoption patterns
-while maintaining the global functional form of the penetration curve.
+The model incorporates regional adjustments through region-specific GDP per capita
+shifts (\eqn{gdppopShift}) that are calibrated to match historical AC penetration
+rates. This allows for regional variations in adoption patterns while maintaining
+the global functional form of the penetration curve with global parameters
+(\eqn{\alpha}, \eqn{\beta}, \eqn{\gamma}, \eqn{\delta}).
 
-For regions with historical data, regional beta coefficients are derived to
-match the last historical reference point. The regional scaling parameter (\eqn{\phi_1}),
+The regional scaling parameter (\eqn{\phi_1}),
 or cooling activity, is derived from a linear fit on historical data. Regional
 activity factors converge toward a globally-derived activity factor over time,
 controlled by GDP per capita thresholds and time-based convergence factors. The
