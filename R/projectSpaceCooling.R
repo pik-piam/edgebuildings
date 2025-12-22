@@ -20,9 +20,9 @@
 #' or cooling activity, is derived from a linear fit on historical data. Regional
 #' activity factors converge toward a globally-derived activity factor over time,
 #' controlled by GDP per capita thresholds and time-based convergence factors. The
-#' global convergence target is adjusted by tolerance bands that scale the deviation
-#' based on how far the regional value differs from the global estimate, allowing
-#' for more gradual convergence for extreme regional deviations.
+#' global convergence target is adjusted by a continuous tolerance function that
+#' scales the deviation based on how far the regional value differs from the global
+#' estimate, allowing for more gradual convergence for extreme regional deviations.
 #'
 #' The function assumes that the input \code{data} contains a single non-"history"
 #' scenario.
@@ -34,7 +34,8 @@
 #' @param regPars data frame with regression parameters for AC penetration estimation
 #' @param endOfHistory last period of historical data
 #' @param lambda data frame with convergence factors (0 to 1) over time for scenario transitions
-#' @param toleranceTable data frame with tolerance bands for regional to global activity convergence
+#' @param toleranceKeyPoints data frame with key points (ratio, tolerance) for continuous
+#'   tolerance interpolation in regional to global activity convergence
 #'
 #' @returns A data frame with the same structure as the input \code{data}, but with
 #'   projected space cooling energy demand extending the
@@ -52,7 +53,7 @@ projectSpaceCooling <- function(data,
                                 regPars,
                                 endOfHistory,
                                 lambda,
-                                toleranceTable = NULL) {
+                                toleranceKeyPoints = NULL) {
 
   # PARAMETERS -----------------------------------------------------------------
 
@@ -187,8 +188,12 @@ projectSpaceCooling <- function(data,
       # Calculate relative distance between regional and global activity
       ratio = .data$activityReg / .data$activityGlo,
 
-      # Get binned tolerance
-      tolerance = .getTolerance(.data$ratio, toleranceTable),
+      # Get continuous tolerance using spline interpolation
+      tolerance = approx(x = toleranceKeyPoints$ratio,
+                         y = toleranceKeyPoints$tolerance,
+                         xout = .data$ratio,
+                         method = "linear",
+                         rule = 2)$y,
 
       # Calculate adjusted global activity with tolerance scaling
       activityGlo = .data$activityGlo * .data$tolerance

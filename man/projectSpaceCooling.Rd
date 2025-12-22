@@ -11,7 +11,7 @@ projectSpaceCooling(
   regPars,
   endOfHistory,
   lambda,
-  toleranceTable = NULL
+  toleranceKeyPoints = NULL
 )
 }
 \arguments{
@@ -27,7 +27,8 @@ projectSpaceCooling(
 
 \item{lambda}{data frame with convergence factors (0 to 1) over time for scenario transitions}
 
-\item{toleranceTable}{data frame with tolerance bands for regional to global activity convergence}
+\item{toleranceKeyPoints}{data frame with key points (ratio, tolerance) for continuous
+tolerance interpolation in regional to global activity convergence}
 }
 \value{
 A data frame with the same structure as the input \code{data}, but with
@@ -56,9 +57,9 @@ match the last historical reference point. The regional scaling parameter (\eqn{
 or cooling activity, is derived from a linear fit on historical data. Regional
 activity factors converge toward a globally-derived activity factor over time,
 controlled by GDP per capita thresholds and time-based convergence factors. The
-global convergence target is adjusted by tolerance bands that scale the deviation
-based on how far the regional value differs from the global estimate, allowing
-for more gradual convergence for extreme regional deviations.
+global convergence target is adjusted by a continuous tolerance function that
+scales the deviation based on how far the regional value differs from the global
+estimate, allowing for more gradual convergence for extreme regional deviations.
 
 The function assumes that the input \code{data} contains a single non-"history"
 scenario.

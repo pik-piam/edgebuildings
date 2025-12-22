@@ -19,7 +19,7 @@ buildingsProjections(
   scenAssumpSpeed,
   acOwnershipRates = NULL,
   acOwnershipRegression = NULL,
-  toleranceTable = NULL,
+  toleranceKeyPoints = NULL,
   outputDir = "output",
   hpCorrection = TRUE,
   lifestyle = NULL,
@@ -56,7 +56,7 @@ buildingsProjections(
 
 \item{acOwnershipRegression}{data frame with regression parameters for AC penetration estimation}
 
-\item{toleranceTable}{data frame with tolerance bands for regional to global activity convergence}
+\item{toleranceKeyPoints}{data frame with tolerance bands for regional to global activity convergence}
 
 \item{outputDir}{output directory}
 
