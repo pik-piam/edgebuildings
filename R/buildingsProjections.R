@@ -22,7 +22,7 @@
 #' @param scenAssumpSpeed long-term temporal scenario assumptions
 #' @param acOwnershipRates AC penetration reference values
 #' @param acOwnershipRegression data frame with regression parameters for AC penetration estimation
-#' @param toleranceTable data frame with tolerance bands for regional to global activity convergence
+#' @param toleranceKeyPoints data frame with tolerance bands for regional to global activity convergence
 #' @param outputDir output directory
 #' @param hpCorrection heatpump correction for electric space heating
 #' @param lifestyle lifestyle parameter
@@ -53,7 +53,7 @@ buildingsProjections <- function(config,
                                  scenAssumpSpeed,
                                  acOwnershipRates = NULL,
                                  acOwnershipRegression = NULL,
-                                 toleranceTable = NULL,
+                                 toleranceKeyPoints = NULL,
                                  outputDir = "output",
                                  hpCorrection = TRUE,
                                  lifestyle = NULL,
@@ -284,7 +284,7 @@ buildingsProjections <- function(config,
                             acOwnershipRegression,
                             endOfHistory,
                             lambda,
-                            toleranceTable)
+                            toleranceKeyPoints)
 
 
   # correct short- to midterm space heating adoption activity
