@@ -212,7 +212,7 @@ projectSpaceCooling <- function(data,
       activityGlo = .data$activityGlo * .data$tolerance
     ) %>%
     left_join(lambda %>%
-                select("region", "period", "fullconv"),
+                select("region", "period", "fullconv", "expconv"),
               by = c("region", "period")) %>%
     left_join(projectionData %>%
                 select("region", "period", "gdppop"),
@@ -224,8 +224,15 @@ projectSpaceCooling <- function(data,
                                (.data$gdppop - .data$gdppop[.data$period == endOfHistory]) /
                                  pmax(incomeThresholdCooling - .data$gdppop[.data$period == endOfHistory], 1))),
 
+      # Select convergence type based on ratio of regional to global activity
+      # If ratio < 1 (regional below global): use fullconv (S-curve)
+      # If ratio >= 1 (regional above global): use expconv (exponential approach)
+      lambdaConv = ifelse(.data$ratio < 1,
+                          .data$fullconv,
+                          .data$expconv),
+
       # Combine temporal and income-driven convergence
-      lambda = pmin(.data$fullconv, .data$lambdaGDP),
+      lambda = pmin(.data$lambdaConv, .data$lambdaGDP),
 
       # Interpolate between regional and global activity based on convergence factor
       activity = .data$activityReg * (1 - .data$lambda) + .data$activityGlo * .data$lambda
