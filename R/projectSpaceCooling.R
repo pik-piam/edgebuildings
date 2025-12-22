@@ -2,21 +2,21 @@
 #'
 #' This function projects future space cooling useful energy demand and models air
 #' conditioner (AC) penetration rates as a function of GDP per capita and cooling degree
-#' days (CDD) using a logistic function with climate-adjusted parameters.
+#' days (CDD) using a logistic function.
 #'
 #' Space cooling energy demand is calculated using:
 #' \deqn{space\_cooling =  \phi_1 \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
 #'
 #' The AC penetration rate component follows the logistic formula:
-#' \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot gdppop^\delta \cdot CDD^\gamma))}
+#' \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot (gdppop - gdppopShift)^\delta \cdot CDD^\gamma))}
 #'
-#' The model incorporates regional adjustments through region-specific beta
-#' coefficients (\eqn{\beta_{reg}}) that are calibrated to match historical
-#' AC penetration rates. This allows for regional variations in adoption patterns
-#' while maintaining the global functional form of the penetration curve.
+#' The model incorporates regional adjustments through region-specific GDP per capita
+#' shifts (\eqn{gdppopShift}) that are calibrated to match historical AC penetration
+#' rates. This allows for regional variations in adoption patterns while maintaining
+#' the global functional form of the penetration curve with global parameters
+#' (\eqn{\alpha}, \eqn{\beta}, \eqn{\gamma}, \eqn{\delta}).
 #'
-#' For regions with historical data, regional beta coefficients are derived to
-#' match the last historical reference point. The regional scaling parameter (\eqn{\phi_1}),
+#' The regional scaling parameter (\eqn{\phi_1}),
 #' or cooling activity, is derived from a linear fit on historical data. Regional
 #' activity factors converge toward a globally-derived activity factor over time,
 #' controlled by GDP per capita thresholds and time-based convergence factors. The
@@ -43,9 +43,10 @@
 #'
 #' @author Hagen Tockhorn
 #'
-#' @importFrom dplyr filter select rename left_join group_by
-#'   slice_max ungroup mutate right_join anti_join across all_of .data %>%
+#' @importFrom dplyr filter select rename left_join group_by slice_max
+#'   ungroup mutate right_join anti_join across all_of .data %>%
 #' @importFrom tidyr pivot_wider pivot_longer
+#' @importFrom stats lm setNames
 
 projectSpaceCooling <- function(data,
                                 config,
@@ -89,9 +90,9 @@ projectSpaceCooling <- function(data,
   delta <- regPars[["delta"]]  # GDP per capita exponent
 
 
-  ## Regional beta corrections ====
-  # Calculate region-specific beta coefficients to match historical AC penetration
-  # rates at the last observed data point, using corrected gamma and delta exponents
+  ## Regional GDP per Capita Shifts ====
+  # Calculate region-specific gdppop shifts to match historical AC penetration
+  # rates at the last observed data point, by shifting the global S-curve horizontally
 
   # Prepare model data with historical AC penetration, GDP per capita, and CDD
   modelData <- acOwnershipRates %>%
@@ -99,6 +100,7 @@ projectSpaceCooling <- function(data,
            .data$value != 0) %>%
     select("region", "period", "value") %>%
     rename("penetration" = "value") %>%
+
     # Join GDP per capita and CDD data
     left_join(data %>%
                 filter(.data$variable %in% c("CDD", "gdppop")) %>%
@@ -106,25 +108,29 @@ projectSpaceCooling <- function(data,
                 pivot_wider(names_from = "variable", values_from = "value"),
               by = c("region", "period"))
 
-  # Calculate region-specific beta coefficients using corrected exponents
-  betaReg <- modelData %>%
+
+  # Calculate region-specific GDP per capita shifts
+  gdppopShift <- modelData %>%
+
     # For each region, use the most recent historical data point
     group_by(across(all_of(c("region")))) %>%
     slice_max(order_by = .data$period, n = 1, with_ties = FALSE) %>%
     ungroup() %>%
-    # Derive regional beta by inverting the logistic function with corrected exponents
-    mutate(betaReg = (alpha - log(1 / .data$penetration - 1)) / (.data$gdppop^(delta) * .data$CDD^(gamma)),
-           betaReg = ifelse(.data$betaReg < 0, NA, .data$betaReg)) %>%
+
+    # Derive gdppopShift by inverting the logistic function to find required shift
+    mutate(gdppopShift = .data$gdppop - ((alpha - log(1 / .data$penetration - 1)) /
+                                           (beta * .data$CDD^gamma))^(1 / delta)) %>%
+
     # Ensure all regions are represented
     right_join(data %>%
                  select("region") %>%
                  unique(),
                by = "region") %>%
-    mutate(# Use global beta for regions without valid historical data
-           betaReg = ifelse((is.na(.data$betaReg) | .data$betaReg < 0),
-                            beta,
-                            .data$betaReg)) %>%
-    select("region", "betaReg")
+
+    # Use zero shift for regions without valid historical data (use global curve as-is)
+    mutate(gdppopShift = ifelse(is.na(.data$gdppopShift) | is.infinite(.data$gdppopShift), 0, .data$gdppopShift)) %>%
+    select("region", "gdppopShift")
+
 
   ## Projections ====
   # Project AC penetration rates and calculate unscaled cooling demand
@@ -133,11 +139,17 @@ projectSpaceCooling <- function(data,
     filter(.data$variable %in% c("CDD", "gdppop", "space_cooling", "buildings", "uvalue")) %>%
     select("region", "period", "scenario", "variable", "value") %>%
     pivot_wider(names_from = "variable", values_from = "value") %>%
-    left_join(betaReg, by = "region") %>%
+    left_join(gdppopShift, by = "region") %>%
     mutate(
-      # Project corrected AC penetration rate with correction parameters
-      acPenetration = 1 / (1 + exp(alpha - .data$betaReg * .data$gdppop^(delta)
-                                   * .data$CDD^(gamma))),
+      # Project AC penetration rate with global parameters and regional gdppop shift
+      acPenetration = ifelse(
+        .data$gdppopShift < .data$gdppop,
+        1 / (1 + exp(alpha - beta * (.data$gdppop - .data$gdppopShift)^delta * .data$CDD^gamma)),
+        # extrapolation towards really low adoption values if GDP shift exceed GDP
+        # increases monotonously with GDP and continues the actual formula above
+        # otherwise arbitrary, but only affects adoption values close to zero
+        1 / (1 + exp(alpha)) / (1 - (.data$gdppop - .data$gdppopShift) / 10000)
+      ),
 
       # Calculate unscaled demand [EJ/yr] to determine regional activity factors
       # Formula: floor space [m²] * U-value [W/m²/K] * CDD [K·days] * conversion to EJ
@@ -147,6 +159,7 @@ projectSpaceCooling <- function(data,
   # Extract historical data points for fitting activity factors
   fitData <- projectionData %>%
     filter(!is.na(.data$space_cooling),
+           !is.na(.data$unscaledDemand),
            .data$space_cooling > 0)
 
 
@@ -243,12 +256,11 @@ projectSpaceCooling <- function(data,
     mutate(delta = .data$space_cooling - .data$proj) %>%
     select("region", "delta")
 
-  # Merge historical and projected data with smooth convergence
+  # Merge historical and projected data
   mergedData <- projections %>%
     left_join(delta, by = "region") %>%
     left_join(lambda, by = c("region", "period")) %>%
     mutate(
-      # For some regions the offset needs to be decreased, otherwise demands drop below zero
       space_cooling = ifelse(is.na(.data[["space_cooling"]]),
                              .data$proj + .data$delta * (1 - .data$fullconv),
                              .data[["space_cooling"]]),
@@ -265,26 +277,4 @@ projectSpaceCooling <- function(data,
     rbind(mergedData)
 
   return(data)
-}
-
-
-
-#' Get Tolerance Value from Tolerance Table
-#'
-#' Looks up the tolerance value for a given ratio based on the tolerance table
-#' which defines tolerance bands for regional to global activity convergence.
-#'
-#' @param ratio numeric vector of activity ratios (regional/global)
-#' @param tolTable data frame with columns ratio_min, ratio_max, and tolerance
-#'
-#' @returns numeric vector of tolerance values
-
-.getTolerance <- function(ratio, tolTable) {
-  # Use findInterval for efficient bin assignment
-  breaks <- c(tolTable$ratio_min, Inf)
-  indices <- findInterval(ratio, breaks, rightmost.closed = FALSE)
-
-  # Map indices to tolerance values (add 1.0 as default for out-of-bounds)
-  tolerances <- c(tolTable$tolerance, 1.0)
-  return(tolerances[indices])
 }
