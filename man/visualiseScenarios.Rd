@@ -4,7 +4,7 @@
 \alias{visualiseScenarios}
 \title{Visualise scenarios}
 \usage{
-visualiseScenarios(path, outputFile = NULL)
+visualiseScenarios(path, outputFile = NULL, recoverRegions = "DEU")
 }
 \arguments{
 \item{path}{character, path to run folder or named vector of paths with
@@ -12,6 +12,9 @@ version tags as names}
 
 \item{outputFile}{path character, path to pdf that is created. If NULL, the
 file projection.pdf is created in the first path provided in \code{path}.}
+
+\item{recoverRegions}{character, edgebuildings regions to be recovered from
+aggregated regions in order to plot them separately.}
 }
 \description{
 This function should be replaced by a mif reporting and mip plotting at some
