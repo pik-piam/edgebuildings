@@ -9,6 +9,8 @@
 #'   version tags as names
 #' @param outputFile path character, path to pdf that is created. If NULL, the
 #'   file projection.pdf is created in the first path provided in \code{path}.
+#' @param recoverRegions character, edgebuildings regions to be recovered from
+#'   aggregated regions in order to plot them separately.
 #'
 #' @importFrom madrat toolGetMapping
 #' @importFrom dplyr %>% .data filter group_by across summarise
@@ -24,7 +26,7 @@
 #'   element_text geom_tile coord_equal theme_classic
 #' @export
 
-visualiseScenarios <- function(path, outputFile = NULL) {
+visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") {
 
 
   # READ -----------------------------------------------------------------------
@@ -286,7 +288,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   pData <- data %>%
     filter(.data[["variable"]] == "buildings") %>%
     mutate(value = .data[["value"]] / 1000) %>%  # million m2 -> billion m2
-    .aggREMIND(recover = c("DEU", "GLO"))
+    .aggREMIND(recover = c(recoverRegions, "GLO"))
 
   linePlots(pData,
             title = "Floor space",
@@ -303,7 +305,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   pData <- data %>%
     filter(.data[["variable"]] %in% c("buildings", "pop", "gdp")) %>%
-    .aggREMIND(recover = "DEU") %>%
+    .aggREMIND(recover = recoverRegions) %>%
     select(-"unit") %>%
     pivot_wider(names_from = "variable") %>%
     mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
@@ -361,7 +363,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   bookmarks <- .addBookmark(bookmarks, "U-value", i, 1)
   pData <- data %>%
     filter(.data[["variable"]] %in% c("gdppop", "uvalue"),
-           .data[["region"]] %in% c(plottedRegions, "DEU", "GLO")) %>%
+           .data[["region"]] %in% c(plottedRegions, recoverRegions, "GLO")) %>%
     pivot_wider(names_from = "variable")
 
 
@@ -392,7 +394,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   bookmarks <- .addBookmark(bookmarks, "HDD", i, 1)
   pData <- data %>%
     filter(.data[["variable"]] == "HDD",
-           .data[["region"]] %in% c(plottedRegions, "DEU", "GLO")) %>%
+           .data[["region"]] %in% c(plottedRegions, recoverRegions, "GLO")) %>%
     pivot_wider(names_from = "variable")
 
 
@@ -417,7 +419,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
   bookmarks <- .addBookmark(bookmarks, "CDD", i, 1)
   pData <- data %>%
     filter(.data[["variable"]] == "CDD",
-           .data[["region"]] %in% c(plottedRegions, "DEU", "GLO")) %>%
+           .data[["region"]] %in% c(plottedRegions, recoverRegions, "GLO")) %>%
     pivot_wider(names_from = "variable")
 
 
@@ -464,7 +466,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
         filter(grepl(paste0("(", paste(uses, collapse = "|"), ")\\.(",
                             paste(carriers, collapse = "|"), ")\\|", projType),
                      .data[["variable"]])) %>%
-        .aggREMIND(recover = c("GLO", "DEU"), aggMethod = mean) %>%
+        .aggREMIND(recover = c("GLO", recoverRegions), aggMethod = mean) %>%
         tidyr::separate_wider_delim("variable", delim = ".", names = c("enduse", "carrier")) %>%
         mutate(carrier = sub(paste0("\\|", projType), "", .data[["carrier"]]))
       linePlots(pData,
@@ -495,7 +497,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
     pData <- data %>%
       filter(.data[["variable"]] == enType) %>%
-      .aggREMIND(recover = c("GLO", "DEU"))
+      .aggREMIND(recover = c("GLO", recoverRegions))
 
     linePlots(pData,
               title = paste("Total", toupper(enType), "demand"),
@@ -513,7 +515,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       filter(.data[["variable"]] %in% paste(uses, enType, sep = "|")) %>%
       mutate(variable = sub(paste0("^(.*)\\|", enType, "$"), "\\1",
                             .data[["variable"]])) %>%
-      .aggREMIND(recover = c("GLO", "DEU"))
+      .aggREMIND(recover = c("GLO", recoverRegions))
     linePlots(pData,
               title = paste(toupper(enType), "demand by end use"),
               yAxisLabel = "EJ/yr",
@@ -531,7 +533,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       filter(.data[["variable"]] %in% paste(carriers, enType, sep = "|")) %>%
       mutate(variable = sub(paste0("^(.*)\\|", enType, "$"), "\\1",
                             .data[["variable"]])) %>%
-      .aggREMIND(recover = c("GLO", "DEU"))
+      .aggREMIND(recover = c("GLO", recoverRegions))
     linePlots(pData,
               title = paste(toupper(enType), "demand by carrier"),
               yAxisLabel = "EJ/yr",
@@ -550,12 +552,12 @@ visualiseScenarios <- function(path, outputFile = NULL) {
 
   pData <- data %>%
     filter(.data[["variable"]] %in% c("fe", "ue", "pop", "gdp")) %>%
-    .aggREMIND(recover = "DEU") %>%
+    .aggREMIND(recover = recoverRegions) %>%
     select(-"unit") %>%
     pivot_wider(names_from = "variable") %>%
     mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
-           ue_pop = .data[["ue"]] * 1000 / .data[["pop"]], # EJ/millioncap -> GJ/cap
-           fe_pop = .data[["fe"]] * 1000 / .data[["pop"]]) # EJ/millioncap -> GJ/cap
+           ue_pop = .data[["ue"]] * 1000 / .data[["pop"]], # unit conversion: EJ/millioncap -> GJ/cap
+           fe_pop = .data[["fe"]] * 1000 / .data[["pop"]]) # unit conversion: EJ/millioncap -> GJ/cap
 
   for (enType in c("fe", "ue")) {
 
@@ -618,11 +620,11 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       # Filter for relevant variables
       filter(.data[["variable"]] %in% c("gdp", "pop", paste(uses, enType, sep = "|"))) %>%
       select(-"unit") %>%
-      .aggREMIND(recover = "DEU") %>%
+      .aggREMIND(recover = recoverRegions) %>%
       pivot_wider(names_from = "variable") %>%
       mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
              across(.cols = matches("^[^|]+\\|[^|]+$"),
-                    .fns = ~ .x * 1e3 / .data[["pop"]],  # EJ/yr/cap -> GJ/yr/cap
+                    .fns = ~ .x * 1e3 / .data[["pop"]],  # unit conversion: EJ/yr/cap -> GJ/yr/cap
                     .names = "{.col}_pop"))
 
     for (eu in uses) {
@@ -656,11 +658,11 @@ visualiseScenarios <- function(path, outputFile = NULL) {
       # Filter for relevant variables
       filter(.data[["variable"]] %in% c("gdp", "pop", paste(carriers, enType, sep = "|"))) %>%
       select(-"unit") %>%
-      .aggREMIND(recover = "DEU") %>%
+      .aggREMIND(recover = recoverRegions) %>%
       pivot_wider(names_from = "variable") %>%
       mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
              across(.cols = matches("^[^|]+\\|[^|]+$"),
-                    .fns = ~ .x * 1e3 / .data[["pop"]],  # EJ/yr/cap -> GJ/yr/cap
+                    .fns = ~ .x * 1e3 / .data[["pop"]],  # unit conversion: EJ/yr/cap -> GJ/yr/cap
                     .names = "{.col}_pop"))
 
     for (c in carriers) {
@@ -718,7 +720,7 @@ visualiseScenarios <- function(path, outputFile = NULL) {
                .data[["period"]] %% 5 == 0) %>%
         mutate(variable = sub(paste0("^(.*)\\|", enType, "$"), "\\1",
                               .data[["variable"]])) %>%
-        .aggREMIND(recover = c("GLO", "DEU"))
+        .aggREMIND(recover = c("GLO", recoverRegions))
 
       if (isTRUE(perCapita)) {
         allVars <- c(uses, carriers)

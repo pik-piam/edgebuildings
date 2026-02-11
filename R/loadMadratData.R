@@ -52,8 +52,9 @@ loadMadratData <- function(inputdataRevision,
     )
 
     # delete all files but source_files.log
-    file.remove(grep("source_files.log", list.files(inputDir, full.names = TRUE),
-                     value = TRUE, invert = TRUE))
+    unlink(grep("source_files.log", list.files(inputDir, full.names = TRUE),
+                value = TRUE, invert = TRUE),
+           force = TRUE)
 
     # directory to look for the madrat tgz file
     repositories <- list(NULL)
