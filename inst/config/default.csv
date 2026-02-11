@@ -66,6 +66,7 @@ UvalHCDfix;fix the heating and cooling degree day assumptions in the calculation
 interpolate;?;TRUE;TRUE
 speed_feShare;year in which long-term target values are reached;NA;2150
 speed_feShare_ariadneFix;year in which long-term target values are reached;NA;2100
+speed_uvalue;year in which long-term uvalue target values are reached;;NULL
 ariadneFix;?;NA;FALSE
 periodBegin;lower temporal boundary;NA;1990
 endOfHistory;lower temporal boundary of scenario data;NA;2025
