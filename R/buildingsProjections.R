@@ -293,8 +293,7 @@ buildingsProjections <- function(config,
                             acOwnershipRates,
                             acOwnershipRegression,
                             endOfHistory,
-                            lambda,
-                            toleranceKeyPoints)
+                            lambda)
 
 
   # correct short- to midterm space heating adoption activity

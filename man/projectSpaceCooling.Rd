@@ -10,8 +10,7 @@ projectSpaceCooling(
   acOwnershipRates,
   regPars,
   endOfHistory,
-  lambda,
-  toleranceKeyPoints = NULL
+  lambda
 )
 }
 \arguments{
@@ -26,9 +25,6 @@ projectSpaceCooling(
 \item{endOfHistory}{last period of historical data}
 
 \item{lambda}{data frame with convergence factors (0 to 1) over time for scenario transitions}
-
-\item{toleranceKeyPoints}{data frame with key points (ratio, tolerance) for continuous
-tolerance interpolation in regional to global activity convergence}
 }
 \value{
 A data frame with the same structure as the input \code{data}, but with
@@ -42,10 +38,17 @@ days (CDD) using a logistic function.
 }
 \details{
 Space cooling energy demand is calculated using:
-\deqn{space\_cooling =  \phi_1 \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
+\deqn{space\_cooling = baseline + activity \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
+
+where \eqn{baseline} is the regional climate-independent baseline demand (intercept)
+and \eqn{activity} is the regional cooling activity factor.
 
 The AC penetration rate component follows the logistic formula:
 \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot (gdppop - gdppopShift)^\delta \cdot CDD^\gamma))}
+
+For cases where GDP per capita falls below the region-specific shift
+(\eqn{gdppop < gdppopShift}), an extrapolation formula is used to avoid numerical
+issues while maintaining monotonic behavior with GDP.
 
 The model incorporates regional adjustments through region-specific GDP per capita
 shifts (\eqn{gdppopShift}) that are calibrated to match historical AC penetration
@@ -53,10 +56,11 @@ rates. This allows for regional variations in adoption patterns while maintainin
 the global functional form of the penetration curve with global parameters
 (\eqn{\alpha}, \eqn{\beta}, \eqn{\gamma}, \eqn{\delta}).
 
-The regional scaling parameter (\eqn{\phi_1}),
-or cooling activity, is derived from a linear fit on historical data. Regional
-activity factors converge toward a globally-derived activity factor over time,
-controlled by GDP per capita thresholds and time-based convergence factors.
+Both the regional cooling activity and the climate-independent baseline demand are
+derived from a linear fit on historical data. The cooling activity factor converges
+toward a globally-derived activity factor over time, controlled by GDP per capita
+thresholds and time-based convergence factors. The baseline demand component remains
+fixed at regional values without convergence.
 
 The convergence process uses two different interpolation curves depending on whether
 regional activity is above or below the global target:
@@ -73,6 +77,12 @@ asymptotic approach to the global target, avoiding wave-like demand patterns
 The global convergence target is adjusted by a continuous tolerance function that
 scales the deviation based on how far the regional value differs from the global
 estimate, allowing for more gradual convergence for extreme regional deviations.
+The tolerance function uses asymmetric bounds: \code{lowerBound = 0.8} (ensuring
+at most 20\% deviation below the global target) and \code{upperBoundFactor = 0.5}
+(preserving 50\% of the relative deviation for regions above the global target).
+The convergence to this tolerance-adjusted global target then follows the same
+asymmetric interpolation curves as described above (logistic for below-target regions,
+exponential for above-target regions).
 
 The function assumes that the input \code{data} contains a single non-"history"
 scenario.

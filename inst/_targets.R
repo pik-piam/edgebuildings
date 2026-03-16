@@ -602,7 +602,6 @@ list(
                            scenAssumpSpeed = scenAssumpSpeed,
                            acOwnershipRates = acOwnershipRates,
                            acOwnershipRegression = acOwnershipRegression,
-                           toleranceKeyPoints = toleranceKeyPoints,
                            outputDir = output)
     },
     pattern = map(config),

@@ -5,10 +5,17 @@
 #' days (CDD) using a logistic function.
 #'
 #' Space cooling energy demand is calculated using:
-#' \deqn{space\_cooling =  \phi_1 \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
+#' \deqn{space\_cooling = baseline + activity \cdot floor space \cdot uvalue \cdot CDD \cdot penetration rate}
+#'
+#' where \eqn{baseline} is the regional climate-independent baseline demand (intercept)
+#' and \eqn{activity} is the regional cooling activity factor.
 #'
 #' The AC penetration rate component follows the logistic formula:
 #' \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot (gdppop - gdppopShift)^\delta \cdot CDD^\gamma))}
+#'
+#' For cases where GDP per capita falls below the region-specific shift
+#' (\eqn{gdppop < gdppopShift}), an extrapolation formula is used to avoid numerical
+#' issues while maintaining monotonic behavior with GDP.
 #'
 #' The model incorporates regional adjustments through region-specific GDP per capita
 #' shifts (\eqn{gdppopShift}) that are calibrated to match historical AC penetration
@@ -16,10 +23,11 @@
 #' the global functional form of the penetration curve with global parameters
 #' (\eqn{\alpha}, \eqn{\beta}, \eqn{\gamma}, \eqn{\delta}).
 #'
-#' The regional scaling parameter (\eqn{\phi_1}),
-#' or cooling activity, is derived from a linear fit on historical data. Regional
-#' activity factors converge toward a globally-derived activity factor over time,
-#' controlled by GDP per capita thresholds and time-based convergence factors.
+#' Both the regional cooling activity and the climate-independent baseline demand are
+#' derived from a linear fit on historical data. The cooling activity factor converges
+#' toward a globally-derived activity factor over time, controlled by GDP per capita
+#' thresholds and time-based convergence factors. The baseline demand component remains
+#' fixed at regional values without convergence.
 #'
 #' The convergence process uses two different interpolation curves depending on whether
 #' regional activity is above or below the global target:
@@ -36,6 +44,12 @@
 #' The global convergence target is adjusted by a continuous tolerance function that
 #' scales the deviation based on how far the regional value differs from the global
 #' estimate, allowing for more gradual convergence for extreme regional deviations.
+#' The tolerance function uses asymmetric bounds: \code{lowerBound = 0.8} (ensuring
+#' at most 20% deviation below the global target) and \code{upperBoundFactor = 0.5}
+#' (preserving 50% of the relative deviation for regions above the global target).
+#' The convergence to this tolerance-adjusted global target then follows the same
+#' asymmetric interpolation curves as described above (logistic for below-target regions,
+#' exponential for above-target regions).
 #'
 #' The function assumes that the input \code{data} contains a single non-"history"
 #' scenario.
@@ -47,8 +61,6 @@
 #' @param regPars data frame with regression parameters for AC penetration estimation
 #' @param endOfHistory last period of historical data
 #' @param lambda data frame with convergence factors (0 to 1) over time for scenario transitions
-#' @param toleranceKeyPoints data frame with key points (ratio, tolerance) for continuous
-#'   tolerance interpolation in regional to global activity convergence
 #'
 #' @returns A data frame with the same structure as the input \code{data}, but with
 #'   projected space cooling energy demand extending the
@@ -66,8 +78,7 @@ projectSpaceCooling <- function(data,
                                 acOwnershipRates,
                                 regPars,
                                 endOfHistory,
-                                lambda,
-                                toleranceKeyPoints = NULL) {
+                                lambda) {
 
   # PARAMETERS -----------------------------------------------------------------
 
@@ -85,6 +96,29 @@ projectSpaceCooling <- function(data,
   # Global activity scaling factor for convergence target
   coolingActivityGloFactor <- config[scen, "coolingActivityGloFactor"] %>%
     unlist()
+
+
+  # HELPER FUNCTIONS -----------------------------------------------------------
+
+  # Calculate asymmetric tolerance factor to allow gradual convergence when regional
+  # activity deviates strongly from global target. Scales the global target based on
+  # the ratio of regional to global activity:
+  # - ratio < 1: polynomial decay toward lowerBound (stronger convergence below target)
+  # - ratio ≥ 1: exponential approach preserving upperBoundFactor of deviation (gentler)
+  # - ratio = 1: tolerance = 1.0 (no adjustment needed)
+  calculateContinuousTolerance <- function(ratio, lowerBound = 0.8, upperBoundFactor = 0.5) {
+    ifelse(
+      ratio < 1,
+      # Below target: tolerance is the adjusted target itself
+      # Formula: tolerance = 1 - (1 - lowerBound) x (1 - ratio)^0.5
+      1 - (1 - lowerBound) * (1 - ratio)^0.5,
+
+      # Above target: tolerance preserves a fraction of the relative deviation
+      # Formula: tolerance = 1 + smoothed_factor × (ratio - 1)
+      # where smoothed_factor approaches upperBoundFactor as ratio increases
+      1 + (1 - exp(-0.5 * (ratio - 1))) * upperBoundFactor * (ratio - 1)
+    )
+  }
 
 
   # PROCESS DATA ---------------------------------------------------------------
@@ -177,10 +211,9 @@ projectSpaceCooling <- function(data,
 
 
   ### Activity factors ====
-  # Derive regional cooling activity factors (phi_1) from historical data using
-  # linear regression, then converge towards global activity over time
+  # Calculate regional cooling activity factors from historical fit
+  # allowing for a baseline demand independent of climate (flexible y-intercept)
 
-  # Calculate regional activity factors from historical fit
   coolingActivity <- do.call(rbind, lapply(unique(projectionData$region), function(reg) {
     # Extract regional historical data
     regionalFitData <- fitData %>%
@@ -192,34 +225,50 @@ projectSpaceCooling <- function(data,
         filter(.data$region == reg)
     }
 
-    estimate <- lm("space_cooling ~ 0 + unscaledDemand", data = regionalFitData)
+    # Germany shows a significant jump in the historical data, hence only data beyond this is used
+    if (reg == "DEU") {
+      regionalFitData <- regionalFitData %>%
+        filter(.data$period >= 2015)
+    }
+
+    # Fit with flexible intercept (no "0 +" constraint)
+    estimate <- lm("space_cooling ~ unscaledDemand", data = regionalFitData)
+
+    if (estimate$coef[["(Intercept)"]] < 0) {
+      estimate <- lm("space_cooling ~ 0 + unscaledDemand", data = regionalFitData)
+    }
+
+    # Extract coefficients
+    activityCoef <- estimate$coef[["unscaledDemand"]]
+    interceptCoef <- if ("(Intercept)" %in% names(estimate$coef)) estimate$coef[["(Intercept)"]] else 0
 
     projectionData %>%
       filter(.data$region == reg) %>%
-      mutate(activityReg = estimate$coef[["unscaledDemand"]]) %>%
-      select("region", "period", "activityReg")
+      mutate(
+        activityReg = activityCoef,
+        interceptReg = interceptCoef
+      ) %>%
+      select("region", "period", "activityReg", "interceptReg")
   }))
 
   # Calculate global activity factor (excluding China due to comparitively low values + unreliable data)
-  estimate <- lm("space_cooling ~ 0 + unscaledDemand",
-                 data = fitData %>%
-                   filter(!.data$region %in% c("CHN", "OAS")))
+  # Note: still using flexible intercept for global fit
+  estimateGlobal <- lm("space_cooling ~ 0 + unscaledDemand",
+                       data = fitData %>%
+                         filter(!.data$region %in% c("CHN", "OAS")))
 
 
   # Implement convergence of regional to global activity factors
+  # Keep regional intercepts fixed (no convergence for baseline demand)
   coolingActivity <- coolingActivity %>%
     mutate(
-      activityGlo = estimate$coefficients[["unscaledDemand"]] * coolingActivityGloFactor,
+      activityGlo = estimateGlobal$coefficients[["unscaledDemand"]] * coolingActivityGloFactor,
 
       # Calculate relative distance between regional and global activity
       ratio = .data$activityReg / .data$activityGlo,
 
-      # Get continuous tolerance using spline interpolation
-      tolerance = approx(x = toleranceKeyPoints$ratio,
-                         y = toleranceKeyPoints$tolerance,
-                         xout = .data$ratio,
-                         method = "linear",
-                         rule = 2)$y,
+      # Calculate tolerance factor using continuous asymmetric tolerance function
+      tolerance = calculateContinuousTolerance(.data$ratio, lowerBound = 0.8, upperBoundFactor = 0.5),
 
       # Calculate adjusted global activity with tolerance scaling
       activityGlo = .data$activityGlo * .data$tolerance
@@ -248,18 +297,21 @@ projectSpaceCooling <- function(data,
       lambda = pmin(.data$lambdaConv, .data$lambdaGDP),
 
       # Interpolate between regional and global activity based on convergence factor
-      activity = .data$activityReg * (1 - .data$lambda) + .data$activityGlo * .data$lambda
+      # Note: only activity (slope) converges, intercept remains regional
+      activity = .data$activityReg * (1 - .data$lambda) + .data$activityGlo * .data$lambda,
+      intercept = .data$interceptReg
     ) %>%
     ungroup() %>%
-    select("region", "period", "activity")
+    select("region", "period", "activity", "intercept")
 
 
   ### Project UE cooling demand ====
   # Calculate final cooling useful energy demand in [EJ/yr]
+  # Now includes intercept term for baseline demand
 
   projections <- projectionData %>%
     left_join(coolingActivity, by = c("region", "period")) %>%
-    mutate(proj = .data$activity * .data$unscaledDemand)
+    mutate(proj = .data$intercept + .data$activity * .data$unscaledDemand)
 
 
   ## Prepare Output ====
