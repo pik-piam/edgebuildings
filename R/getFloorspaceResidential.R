@@ -300,7 +300,7 @@ capFloorProjections <- function(projectionData, capFloor, lambda, endOfHistory) 
                               pmin(.data[["capFloor"]], .data[["m2hatConv"]]),
                               # Historic floorspace already exceeds the cap
                               .data[["capFloor"]] + .data[["deltaFin"]])) %>%
-    select(-"deltaHist", -"deltaFin", -"capFloor", -"fullconv", -"lambda") %>%
+    select(-"deltaHist", -"deltaFin", -"capFloor", -"fullconv", -"lambda", -"expconv") %>%
     ungroup() %>%
     rbind(histData)
 }
