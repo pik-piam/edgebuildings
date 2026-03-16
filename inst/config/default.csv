@@ -56,7 +56,7 @@ feShare_space_cooling_biomod;FE share of modern biomass in space cooling in perc
 speed;year in which long-term target values are reached;NA;2300
 speed_fullconv;year in which mid-term target values are reached;NA;2070
 speed_expconv;year in which exponential convergence is reached for regional activities above global;NA;2070
-sharpness_expconv;sharpness parameter for exponential convergence curve (higher = steeper initial rise);NA;1.8
+sharpness_expconv;sharpness parameter for exponential convergence curve (higher = steeper initial rise);NA;2.5
 floorspaceCap;cap on floorspace per capita in m2;NA;NULL
 incomeThresholdEC;income threshold above which low-affluence energy carrier end use combiations are phased out in USD2017/cap;NA;24628
 incomeThresholdUvalue;between zero and this threshold in USD2017/cap, the factor between global U-values estimates and local values decrease from multiUValue to one;NA;24628
