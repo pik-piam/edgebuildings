@@ -22,7 +22,6 @@
 #' @param scenAssumpSpeed long-term temporal scenario assumptions
 #' @param acOwnershipRates AC penetration reference values
 #' @param acOwnershipRegression data frame with regression parameters for AC penetration estimation
-#' @param toleranceKeyPoints data frame with tolerance bands for regional to global activity convergence
 #' @param outputDir output directory
 #' @param hpCorrection heatpump correction for electric space heating
 #' @param lifestyle lifestyle parameter
@@ -53,7 +52,6 @@ buildingsProjections <- function(config,
                                  scenAssumpSpeed,
                                  acOwnershipRates = NULL,
                                  acOwnershipRegression = NULL,
-                                 toleranceKeyPoints = NULL,
                                  outputDir = "output",
                                  hpCorrection = TRUE,
                                  lifestyle = NULL,

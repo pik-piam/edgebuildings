@@ -59,13 +59,6 @@ list(
     format = "file"
   ),
 
-  # cooling activity tolerance key points (for spline interpolation)
-  tar_target(
-    toleranceKeyPoints.csv,
-    piamutils::getSystemFile("data_internal/mappings/toleranceKeyPoints.csv", package = "edgebuildings"),
-    format = "file"
-  ),
-
   # mredgebuildings-----------------------------
 
   # surface area
@@ -231,12 +224,6 @@ list(
   tar_target(
     correctEfficiencies,
     read.csv(correctEfficiencies.csv, stringsAsFactors = FALSE)
-  ),
-
-  # tolerance key points for spline interpolation
-  tar_target(
-    toleranceKeyPoints,
-    read.csv2(toleranceKeyPoints.csv, stringsAsFactors = FALSE)
   ),
 
   # reference EC income threshold for phase-out

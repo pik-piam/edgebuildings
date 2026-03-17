@@ -123,8 +123,9 @@ compLambdaScen <- function(scenAssumpSpeed,
 
     # calc convergence shares
     tmp <- calcLambda(lastIdenticalYear, endYear, 1,
-                      type = ifelse(type == "fullconv", "logit",
-                                    ifelse(type == "expconv", "exp", "linear")),
+                      type = case_when(type == "fullconv" ~ "logit",
+                                       type == "expconv" ~ "exp",
+                                       .default = "linear"),
                       sharpnessExp = sharpnessExp,
                       startYearVector = startYearVector)
 

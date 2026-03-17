@@ -14,8 +14,12 @@
 #' \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot (gdppop - gdppopShift)^\delta \cdot CDD^\gamma))}
 #'
 #' For cases where GDP per capita falls below the region-specific shift
-#' (\eqn{gdppop < gdppopShift}), an extrapolation formula is used to avoid numerical
-#' issues while maintaining monotonic behavior with GDP.
+#' (\eqn{gdppop < gdppopShift}), an extrapolation formula is used. While all
+#' historical reference values are above the lower penetration boundary
+#' \eqn{1/(1 + \exp(\alpha))}, projected values for regions with very low
+#' historical AC adoption can fall below this boundary. The extrapolation formula
+#' handles these cases while avoiding numerical issues and maintaining monotonic
+#' behavior with GDP growth.
 #'
 #' The model incorporates regional adjustments through region-specific GDP per capita
 #' shifts (\eqn{gdppopShift}) that are calibrated to match historical AC penetration
@@ -175,7 +179,7 @@ projectSpaceCooling <- function(data,
                by = "region") %>%
 
     # Use zero shift for regions without valid historical data (use global curve as-is)
-    mutate(gdppopShift = ifelse(is.na(.data$gdppopShift) | is.infinite(.data$gdppopShift), 0, .data$gdppopShift)) %>%
+    mutate(gdppopShift = ifelse(is.finite(.data$gdppopShift), .data$gdppopShift, 0)) %>%
     select("region", "gdppopShift")
 
 
@@ -252,13 +256,12 @@ projectSpaceCooling <- function(data,
   }))
 
   # Calculate global activity factor (excluding China due to comparitively low values + unreliable data)
-  # Note: still using flexible intercept for global fit
   estimateGlobal <- lm("space_cooling ~ 0 + unscaledDemand",
                        data = fitData %>%
                          filter(!.data$region %in% c("CHN", "OAS")))
 
 
-  # Implement convergence of regional to global activity factors
+  # Convergence of regional to global activity factors
   # Keep regional intercepts fixed (no convergence for baseline demand)
   coolingActivity <- coolingActivity %>%
     mutate(
