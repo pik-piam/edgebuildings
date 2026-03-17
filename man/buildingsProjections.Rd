@@ -17,7 +17,9 @@ buildingsProjections(
   regionmap,
   scenAssump,
   scenAssumpSpeed,
-  scenAssumpCorrect,
+  acOwnershipRates = NULL,
+  acOwnershipRegression = NULL,
+  toleranceKeyPoints = NULL,
   outputDir = "output",
   hpCorrection = TRUE,
   lifestyle = NULL,
@@ -50,7 +52,11 @@ buildingsProjections(
 
 \item{scenAssumpSpeed}{long-term temporal scenario assumptions}
 
-\item{scenAssumpCorrect}{specific corrections}
+\item{acOwnershipRates}{AC penetration reference values}
+
+\item{acOwnershipRegression}{data frame with regression parameters for AC penetration estimation}
+
+\item{toleranceKeyPoints}{data frame with tolerance bands for regional to global activity convergence}
 
 \item{outputDir}{output directory}
 

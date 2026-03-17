@@ -2,8 +2,8 @@
 % Please edit documentation in R/computeLambda.R
 \name{calcLambda}
 \alias{calcLambda}
-\title{Calculate time series of share parameter describing a linear or logistic
-transition}
+\title{Calculate time series of share parameter describing a linear, logistic, or
+exponential transition}
 \usage{
 calcLambda(
   lastIdenticalYear,
@@ -11,6 +11,7 @@ calcLambda(
   lambdaEnd,
   type = "logit",
   scaleLogit = 0.15,
+  sharpnessExp = 1.8,
   startYearVector = 2005,
   step = 5
 )
@@ -22,9 +23,11 @@ calcLambda(
 
 \item{lambdaEnd}{final value of share parameter (0 ... 1)}
 
-\item{type}{interpolation function c('logit', 'linear')}
+\item{type}{interpolation function c('logit', 'linear', 'exp')}
 
 \item{scaleLogit}{scale parameter of logistic function}
+
+\item{sharpnessExp}{sharpness parameter for exponential function (higher = steeper initial rise)}
 
 \item{startYearVector}{year from which to prepend yearly steps until
 \code{lastIdenticalYear}}
@@ -35,9 +38,9 @@ calcLambda(
 list with time series of share parameter
 }
 \description{
-Calculate time series of share parameter describing a linear or logistic
-transition
+Calculate time series of share parameter describing a linear, logistic, or
+exponential transition
 }
 \author{
-Antoine Levesque
+Antoine Levesque, Hagen Tockhorn
 }

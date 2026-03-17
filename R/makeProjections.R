@@ -611,13 +611,12 @@ makeProjections <- function(df,
             correctionValue <- scenAssump %>%
               filter(.data[["scenario"]] == scen, .data[["region"]] == reg) %>%
               pull(paste0(lhs, "_X_", var))
-          }
 
-
-          if (replacePars) {
-            parameters[var] <- correctionValue
-          } else {
-            parameters[var] <- parameters[var] * correctionValue
+            if (replacePars) {
+              parameters[var] <- correctionValue
+            } else {
+              parameters[var] <- parameters[var] * correctionValue
+            }
           }
         }
         currentScenario$projectionScen <- eval(formula, c(as.list(currentScenario), as.list(parameters)))

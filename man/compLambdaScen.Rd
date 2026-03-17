@@ -9,7 +9,8 @@ compLambdaScen(
   scenAssumpSpeed,
   lastIdenticalYear,
   varySpeed = 1,
-  startYearVector = 2005
+  startYearVector = 2005,
+  sharpnessExp = 1.8
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ compLambdaScen(
 full convergence in 2045)}
 
 \item{startYearVector}{year from which to start time series (yearly steps)}
+
+\item{sharpnessExp}{sharpness parameter for exponential convergence (default: 1.8)}
 }
 \value{
 data.frame with region-wise convergence shares
