@@ -47,8 +47,12 @@ The AC penetration rate component follows the logistic formula:
 \deqn{penetration = 1 / (1 + \exp(\alpha - \beta \cdot (gdppop - gdppopShift)^\delta \cdot CDD^\gamma))}
 
 For cases where GDP per capita falls below the region-specific shift
-(\eqn{gdppop < gdppopShift}), an extrapolation formula is used to avoid numerical
-issues while maintaining monotonic behavior with GDP.
+(\eqn{gdppop < gdppopShift}), an extrapolation formula is used. While all
+historical reference values are above the lower penetration boundary
+\eqn{1/(1 + \exp(\alpha))}, projected values for regions with very low
+historical AC adoption can fall below this boundary. The extrapolation formula
+handles these cases while avoiding numerical issues and maintaining monotonic
+behavior with GDP growth.
 
 The model incorporates regional adjustments through region-specific GDP per capita
 shifts (\eqn{gdppopShift}) that are calibrated to match historical AC penetration

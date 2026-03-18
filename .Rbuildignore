@@ -18,3 +18,5 @@
 ^tests/.lintr$
 ^codecov\.yml$
 ^.*CITATION.cff$
+^\.claude$
+^_pkgdown\.yml$
