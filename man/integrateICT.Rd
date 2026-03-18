@@ -4,7 +4,7 @@
 \alias{integrateICT}
 \title{Integrate Exogenous ICT Demand Projections}
 \usage{
-integrateICT(ict, fe, config)
+integrateICT(ict, fe, config, expandProjections = FALSE)
 }
 \arguments{
 \item{ict}{\code{data.frame} Exogenous ICT electricity demand data containing
@@ -13,6 +13,10 @@ historical and scenario projections.}
 \item{fe}{\code{data.frame} Historical final energy data}
 
 \item{config}{\code{data.frame} Configuration dataframe specifying scenario settings}
+
+\item{expandProjections}{\code{logical} If \code{FALSE} (default), integrates historical
+ICT data by subtracting it from A&L electricity demand. If \code{TRUE}, extrapolates
+ICT demand projections with constant values for missing future periods.}
 }
 \value{
 \code{list} A list with two elements:
