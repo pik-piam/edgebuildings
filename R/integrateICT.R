@@ -130,11 +130,11 @@ integrateICT <- function(ict, fe, config, expandProjections = FALSE) {
     extrapolatedDemand <- ict %>%
       interpolate_missing_periods(unique(fe$period), expand.values = TRUE)
 
-    fe <- fe %>%
-      rbind(extrapolatedDemand)
-
-    return(fe)
+    # assume equality between final and useful energy for the ICT sector
+    fe %>%
+      rbind(extrapolatedDemand,
+            extrapolatedDemand %>%
+              mutate(variable = sub("fe", "ue", .data$variable)))
   }
-
 
 }
