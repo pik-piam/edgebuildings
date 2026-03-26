@@ -7,12 +7,19 @@
 #' @param madratDir path to madrat root folder
 #' @param inputdataRevision character, revision of the EDGE-B input data
 #' @param forceDownload boolean, TRUE will force downloading the input data
+#' @param scenario character vector, subset of scenarios to run. If NULL (default),
+#'   all scenarios in the config file will be run. Scenario names correspond to
+#'   column names in the config file (e.g., c("SSP2", "SSP5")). Note: SSP2 is
+#'   always required and will be automatically included if not specified, as it
+#'   provides reference values and is used for carrier share extension between
+#'   historic data and scenario start.
 #'
 #' @author Falk Benke, Robin Hasse
 #'
 #' @importFrom piamutils getSystemFile
 #' @importFrom targets tar_make
 #' @importFrom pkgload is_dev_package
+#' @importFrom utils read.csv2 write.csv2
 #' @export
 
 runEdgeBuildings <- function(config = "configEDGEscens.csv",
@@ -20,7 +27,8 @@ runEdgeBuildings <- function(config = "configEDGEscens.csv",
                              reporting = NULL,
                              madratDir = NULL,
                              inputdataRevision = "0.5.9",
-                             forceDownload = FALSE) {
+                             forceDownload = FALSE,
+                             scenario = NULL) {
 
   # TODO: relocate data_internal
   # TODO: fix all warnings and errors (lucode2::buildLibrary)
@@ -42,13 +50,58 @@ runEdgeBuildings <- function(config = "configEDGEscens.csv",
   }
   message("using this config file: ", config)
 
+  # Store original config path for naming purposes
+  originalConfig <- config
 
-  # copy config to internal start folder ====
+  # filter scenarios if specified and copy config to internal start folder ====
 
-  file.copy(config,
-            file.path(getSystemFile("start", package = "edgebuildings"),
-                      "config.csv"),
-            overwrite = TRUE)
+  if (!is.null(scenario)) {
+    # Read config to get column names
+    configData <- read.csv2(config, stringsAsFactors = FALSE)
+    configCols <- names(configData)
+
+    # Available scenarios are all columns except 'parameter' and 'valueComment'
+    availableScenarios <- setdiff(configCols, c("parameter", "valueComment"))
+
+    # Validate requested scenarios
+    invalidScenarios <- setdiff(scenario, availableScenarios)
+    if (length(invalidScenarios) > 0) {
+      stop("Invalid scenario(s) requested: ", paste(invalidScenarios, collapse = ", "),
+           "\nAvailable scenarios in config: ", paste(availableScenarios, collapse = ", "))
+    }
+
+    # SSP2 is always required (for refIncomeThresholdEC and carrier share extension)
+    if (!"SSP2" %in% scenario) {
+      if (!"SSP2" %in% availableScenarios) {
+        stop("SSP2 scenario is required but not available in the config file.")
+      }
+      message("Note: SSP2 scenario has been automatically included.")
+      scenario <- c(scenario, "SSP2")
+    }
+
+    # Filter to requested scenarios
+    columnsToKeep <- c("parameter", "valueComment", scenario)
+    filteredConfig <- configData[, columnsToKeep, drop = FALSE]
+
+    # Write filtered config directly to start folder
+    filteredConfigPath <- file.path(getSystemFile("start", package = "edgebuildings"),
+                                     "config.csv")
+    write.csv2(filteredConfig,
+               filteredConfigPath,
+               row.names = FALSE,
+               quote = FALSE)
+
+    # Update config to point to filtered version for later use
+    config <- filteredConfigPath
+
+    message("Filtering to scenario(s): ", paste(scenario, collapse = ", "))
+  } else {
+    # Copy config to internal start folder without filtering
+    file.copy(config,
+              file.path(getSystemFile("start", package = "edgebuildings"),
+                        "config.csv"),
+              overwrite = TRUE)
+  }
 
 
 
@@ -93,14 +146,14 @@ runEdgeBuildings <- function(config = "configEDGEscens.csv",
   # run folder ====
 
   # name after config file name and create the folder
-  runfolder <- paste0(sub("^([^\\.]+)\\..+$", "\\1", basename(config)),
+  runfolder <- paste0(sub("^([^\\.]+)\\..+$", "\\1", basename(originalConfig)),
                       format(Sys.time(), "_%Y-%m-%d_%H.%M.%S"))
   runFolderDir <- file.path(outputDir, runfolder)
   dir.create(runFolderDir)
 
 
   # copy config ====
-
+  # Copy the filtered config that was actually used, not the original
   invisible(file.copy(config, runFolderDir))
   cfgText <- c(paste("Edgebuildings version:", utils::packageVersion("edgebuildings")),
                paste("Input revision:", inputdataRevision),

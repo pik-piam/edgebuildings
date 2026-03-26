@@ -10,7 +10,8 @@ runEdgeBuildings(
   reporting = NULL,
   madratDir = NULL,
   inputdataRevision = "0.5.9",
-  forceDownload = FALSE
+  forceDownload = FALSE,
+  scenario = NULL
 )
 }
 \arguments{
@@ -26,6 +27,10 @@ name of an internal config file.}
 \item{inputdataRevision}{character, revision of the EDGE-B input data}
 
 \item{forceDownload}{boolean, TRUE will force downloading the input data}
+
+\item{scenario}{character vector, subset of scenarios to run. If NULL (default),
+all scenarios in the config file will be run. Scenario names correspond to
+column names in the config file (e.g., c("SSP2", "SSP5")).}
 }
 \description{
 Run EDGE-Buildings
