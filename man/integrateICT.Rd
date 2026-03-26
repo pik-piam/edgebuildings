@@ -4,7 +4,7 @@
 \alias{integrateICT}
 \title{Integrate Exogenous ICT Demand Projections}
 \usage{
-integrateICT(ict, fe, config, expandProjections = FALSE)
+integrateICT(ict, fe, config, pop, postprocess = FALSE)
 }
 \arguments{
 \item{ict}{\code{data.frame} Exogenous ICT electricity demand data containing
@@ -12,16 +12,22 @@ historical and scenario projections.}
 
 \item{fe}{\code{data.frame} Historical final energy data}
 
-\item{config}{\code{data.frame} Configuration dataframe specifying scenario settings}
+\item{config}{\code{data.frame} Configuration dataframe specifying scenario settings.
+If \code{techScen} ends with \code{"_raw"}, source projections are used without convergence.}
 
-\item{expandProjections}{\code{logical} If \code{FALSE} (default), integrates historical
-ICT data by subtracting it from A&L electricity demand. If \code{TRUE}, extrapolates
-ICT demand projections with constant values for missing future periods.}
+\item{pop}{\code{data.frame} Population data for per-capita calculations and regional
+convergence. Required when postprocessing with convergence.}
+
+\item{postprocess}{\code{logical} If \code{FALSE} (default), integrates historical
+ICT data by subtracting it from A&L electricity demand. If \code{TRUE}, applies
+regional convergence (unless \code{"_raw"} suffix present) and returns combined
+FE and UE data.}
 }
 \value{
-\code{list} A list with two elements:
-\item{fe}{Updated final energy data}
-\item{feICT}{Complete ICT electricity demand data}
+When \code{postprocess = FALSE}: \code{list} with elements \code{fe} (updated
+final energy data) and \code{feICT} (complete ICT electricity demand).
+When \code{postprocess = TRUE}: \code{data.frame} combining original FE data with
+ICT FE and UE demand (assuming FE = UE for ICT).
 }
 \description{
 This function integrates exogenous ICT (Information and Communication Technology)
@@ -31,7 +37,20 @@ historical ICT shares relative to total A&L electricity demand, then continues t
 shares with constant values where data is missing. The resulting ICT demand is then
 subtracted from A&L electricity to create a separate ICT demand category, while future
 projections are taken directly from the exogenous ICT data according to the specified
-scenario.
+scenario. Assumes equality between final and useful energy for ICT sector.
+}
+\details{
+Regional convergence can be bypassed by appending \code{"_raw"} to the \code{techScen}
+value in the config. When applying regional convergence, the function uses
+a three-phase approach:
+\itemize{
+\item \strong{Pre-2030:} No convergence applied (original values preserved)
+\item \strong{2030-2050:} Regional per-capita demands converge toward global average
+using formula: newRatio = offset + oldRatio^(1/exponent), with linear
+interpolation of parameters from (0,1) to (0.31,1.5)
+\item \strong{Post-2050:} USA per-capita demand fixed at 2050 converged level;
+other regions converge linearly toward 85\\% of USA per-capita by 2150
+}
 }
 \author{
 Hagen Tockhorn

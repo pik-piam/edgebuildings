@@ -177,7 +177,7 @@ buildingsProjections <- function(config,
   # PROCESS DATA----------------------------------------------------------------
 
   # Integrate ICT electricity demand into historical demands
-  feDemand <- integrateICT(feICT, fe, config)
+  feDemand <- integrateICT(feICT, fe, config, pop)
 
 
   #--- Convert Final to Useful Energy ------------------------------------------
@@ -341,7 +341,7 @@ buildingsProjections <- function(config,
 
 
   # Integrate and extrapolate FE ICT electricity demands
-  df <- integrateICT(ict = feDemand$feICT, fe = df, config, expandProjections = TRUE)
+  df <- integrateICT(ict = feDemand$feICT, fe = df, config, pop, postprocess = TRUE)
 
 
   # global values
