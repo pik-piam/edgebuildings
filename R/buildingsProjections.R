@@ -90,7 +90,8 @@ buildingsProjections <- function(config,
                "appliances_light",
                "water_heating",
                "cooking",
-               "space_cooling")
+               "space_cooling",
+               "ict")
 
   # european countries
   eurCountries <- c("FIN", "AUT", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK", "ESP",
