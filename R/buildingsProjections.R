@@ -15,6 +15,7 @@
 #' @param gdppop historical and future gdp per capita
 #' @param uvalue historical and future building insulation values
 #' @param fe historical final and useful energy data
+#' @param feICT historical and (exogenous) scenario final energy data for ICT electricity demand
 #' @param feueEff historical and future FE->UE conversion efficiencies
 #' @param feSharesEC historical and future final energy carrier shares
 #' @param regionmap regional mapping
@@ -45,6 +46,7 @@ buildingsProjections <- function(config,
                                  gdppop,
                                  uvalue,
                                  fe,
+                                 feICT,
                                  feueEff,
                                  feSharesEC,
                                  regionmap,
@@ -88,7 +90,8 @@ buildingsProjections <- function(config,
                "appliances_light",
                "water_heating",
                "cooking",
-               "space_cooling")
+               "space_cooling",
+               "ict")
 
   # european countries
   eurCountries <- c("FIN", "AUT", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK", "ESP",
@@ -172,12 +175,15 @@ buildingsProjections <- function(config,
                                 sharpnessExp = sharpnessExp)
 
 
-
   # PROCESS DATA----------------------------------------------------------------
+
+  # Integrate ICT electricity demand into historical demands
+  feDemand <- integrateICT(feICT, fe, config, pop)
+
 
   #--- Convert Final to Useful Energy ------------------------------------------
 
-  ue <- fe %>%
+  ue <- feDemand$fe %>%
     # join efficiencies and convert final to useful energy
     left_join(feueEff, by = c("region", "period", "enduse", "carrier", "scenario")) %>%
     mutate(value = .data[["value"]] * .data[["efficiency"]]) %>%
@@ -332,6 +338,11 @@ buildingsProjections <- function(config,
                            eff     = feueEff,
                            shares  = feSharesEC,
                            enduses = enduses)
+
+
+
+  # Integrate and extrapolate FE ICT electricity demands
+  df <- integrateICT(ict = feDemand$feICT, fe = df, config, pop, postprocess = TRUE)
 
 
   # global values
