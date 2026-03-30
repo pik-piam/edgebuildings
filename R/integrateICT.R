@@ -242,6 +242,11 @@ integrateICT <- function(ict, fe, config, pop, postprocess = FALSE) {
                -"convergenceTarget", -"interpolFactor", -"targetPerCap", -"valueConverged")
     }
 
+    # add total ICT demand (ict.elec|fe = ict|fe)
+    ict <- rbind(ict,
+                 ict %>%
+                   mutate(variable = sub("\\.elec", "", .data$variable)))
+
     # assume equality between final and useful energy for the ICT sector
     rbind(fe,
           ict,
