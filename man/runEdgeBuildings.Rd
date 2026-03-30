@@ -30,7 +30,10 @@ name of an internal config file.}
 
 \item{scenario}{character vector, subset of scenarios to run. If NULL (default),
 all scenarios in the config file will be run. Scenario names correspond to
-column names in the config file (e.g., c("SSP2", "SSP5")).}
+column names in the config file (e.g., c("SSP2", "SSP5")). Note: SSP2 is
+always required and will be automatically included if not specified, as it
+provides reference values and is used for carrier share extension between
+historic data and scenario start.}
 }
 \description{
 Run EDGE-Buildings
