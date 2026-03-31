@@ -22,11 +22,11 @@
 #' @importFrom utils read.csv2 write.csv2
 #' @export
 
-runEdgeBuildings <- function(config = "configEDGEscens.csv",
+runEdgeBuildings <- function(config = "config_remind.csv",
                              outputDir = "./output",
                              reporting = NULL,
                              madratDir = NULL,
-                             inputdataRevision = "0.5.9",
+                             inputdataRevision = "0.5.11",
                              forceDownload = FALSE,
                              scenario = NULL) {
 

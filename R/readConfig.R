@@ -179,8 +179,9 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
   # check parameters
   if (length(setdiff(userConfig[["parameter"]],
                      defaultConfig[["parameter"]]) > 0)) {
-    stop("One or more parameters in the scenario configuration are not ",
-         "defined in default.csv.")
+    stop("The following parameters in the scenario configuration are not ",
+         "defined in default.csv:\n",
+         setdiff(userConfig[["parameter"]], defaultConfig[["parameter"]]))
   }
   if (any(duplicated(defaultConfig[["parameter"]]))) {
     stop("No duplicated parameterisation allowed in defaults.csv.")
