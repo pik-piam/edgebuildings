@@ -5,11 +5,11 @@
 \title{Run EDGE-Buildings}
 \usage{
 runEdgeBuildings(
-  config = "configEDGEscens.csv",
+  config = "config_remind.csv",
   outputDir = "./output",
   reporting = NULL,
   madratDir = NULL,
-  inputdataRevision = "0.5.9",
+  inputdataRevision = "0.5.11",
   forceDownload = FALSE,
   scenario = NULL
 )

@@ -49,8 +49,7 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
                }
                return(xNumericIter)
              })
-           }
-    )
+           })
     return(xNumeric)
   }
 
@@ -179,8 +178,9 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
   # check parameters
   if (length(setdiff(userConfig[["parameter"]],
                      defaultConfig[["parameter"]]) > 0)) {
-    stop("One or more parameters in the scenario configuration are not ",
-         "defined in default.csv.")
+    stop("The following parameters in the scenario configuration are not ",
+         "defined in default.csv:\n",
+         setdiff(userConfig[["parameter"]], defaultConfig[["parameter"]]))
   }
   if (any(duplicated(defaultConfig[["parameter"]]))) {
     stop("No duplicated parameterisation allowed in defaults.csv.")
@@ -242,7 +242,7 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
   # check whether gdp scenario names were adjusted if gdpBoost is active
   lapply(scenNames, function(scen) {
     if (!grepl("SDP", scen)
-        &&(is.data.frame(fullConfig[[scen, "gdpBoost"]]) || any(fullConfig[[scen, "gdpBoost"]] != 0))
+        && (is.data.frame(fullConfig[[scen, "gdpBoost"]]) || any(fullConfig[[scen, "gdpBoost"]] != 0))
         && (!grepl("_boost", fullConfig[[scen, "gdpScen"]]) || !grepl("_boost", fullConfig[[scen, "gdppopScen"]]))) {
       stop("If the gdp-boost option is set, the gdp and gdppop scenarios need to include the suffix '_boost'.")
     }
