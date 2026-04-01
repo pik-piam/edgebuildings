@@ -85,7 +85,7 @@ runEdgeBuildings <- function(config = "config_remind.csv",
 
     # Write filtered config directly to start folder
     filteredConfigPath <- file.path(getSystemFile("start", package = "edgebuildings"),
-                                     "config.csv")
+                                    "config.csv")
     write.csv2(filteredConfig,
                filteredConfigPath,
                row.names = FALSE,
