@@ -228,10 +228,13 @@ readConfig <- function(config = getSystemFile("config", "configTest.csv", packag
 
   # parameters with regional values are filled with data frames that contain
   # the value for each region
-  for (scen in scenNames) {
-    fullConfig[scen, ] <- Map(regionalValues,
-                              fullConfig[scen, ],
-                              defaultValues)
+  for (scen in scenNames) { 
+    # loop over each scenario
+    scenarioValues <- Map(regionalValues, fullConfig[scen, ], defaultValues)
+    for (col in seq_along(scenarioValues)) { 
+      # assign each column with list() to preserve data.frame structure for regional values
+      fullConfig[scen, col] <- list(scenarioValues[[col]])
+    }
   }
 
 
