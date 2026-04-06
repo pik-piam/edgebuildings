@@ -41,6 +41,10 @@ getUValues <- function(config,
   # scenario
   scen <- row.names(config) %>% unique()
 
+  # FE share convergence target year
+  uvalueSpeed <- config[scen, "speed_uvalue"] %>%
+    as.numeric()
+
   # lower temporal boundary
   periodBegin <- config[scen, "periodBegin"] %>%
     unlist()
@@ -70,7 +74,8 @@ getUValues <- function(config,
 
   # scenario-specific temporal convergence assumptions
   scenAssumpSpeed <- scenAssumpSpeed %>%
-    filter(.data[["scenario"]] == scen)
+    filter(.data[["scenario"]] == scen) %>%
+    mutate(fullconv = if (!is.null(uvalueSpeed) && is.finite(uvalueSpeed)) uvalueSpeed else .data$fullconv)
 
 
   # scenario assumptions on percentage of future u-values rel. to hist. projections
