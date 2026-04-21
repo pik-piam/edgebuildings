@@ -243,10 +243,17 @@ integrateICT <- function(ict, fe, config, pop, postprocess = FALSE) {
                                           .data$interpolFactor),
 
           # Convert back to absolute demand
-          valueConverged = .data$ictPerCapConverged * .data$pop,
+          valueConverged = .data$ictPerCapConverged * .data$pop
+        )
 
-          # Fill missing historical data
-          value = ifelse(is.na(.data$valueConverged), .data$value, .data$valueConverged)
+      # Rescale to preserve shorttermTargetYear global demand
+      rescaleFactor <- sum(ict$value[ict$period == shorttermTargetYear]) /
+        sum(ict$valueConverged[ict$period == shorttermTargetYear])
+
+      ict <- ict %>%
+        mutate(
+          # Fill missing historical data with rescaled converged values
+          value = ifelse(is.na(.data$valueConverged), .data$value, .data$valueConverged * rescaleFactor)
         ) %>%
 
         # Clean up intermediate columns
