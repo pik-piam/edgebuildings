@@ -6,6 +6,7 @@ urbanisationScen;urbanisation scenario;NA;SSP2
 densityScen;density scenario;NA;SSP2
 floorScen;floorspace scenario;NA;SSP2
 uvalueScen;uvalue scenario;NA;picontrol
+techScen;"digital technology scenario (<SSP>_<low/mean/medium/high>; add ""_raw"" to use source projections)";NA;SSP2_medium
 hddcddScen;;NA;SSP2
 rcpScen;RCP scenario;NA;4.5
 tlimHist_HDD;historical set point temperature for space heating in degC;14;14
@@ -66,7 +67,6 @@ UvalHCDfix;fix the heating and cooling degree day assumptions in the calculation
 interpolate;?;TRUE;TRUE
 speed_feShare;year in which long-term target values are reached;NA;2150
 speed_feShare_ariadneFix;year in which long-term target values are reached;NA;2100
-speed_uvalue;year in which long-term uvalue target values are reached;;NULL
 ariadneFix;?;NA;FALSE
 periodBegin;lower temporal boundary;NA;1990
 endOfHistory;lower temporal boundary of scenario data;NA;2025

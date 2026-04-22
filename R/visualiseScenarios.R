@@ -37,7 +37,8 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
       `appliances_light` = "#E0CB09",
       `water_heating`    = "#1452F5",
       `cooking`          = "#E00962",
-      `space_cooling`    = "#09BCE0"
+      `space_cooling`    = "#09BCE0",
+      `ict`              = "#4f772d"
     ),
     Carrier = c(
       `biomod`  = "#005900",
