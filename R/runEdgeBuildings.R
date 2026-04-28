@@ -26,7 +26,7 @@ runEdgeBuildings <- function(config = "config_remind.csv",
                              outputDir = "./output",
                              reporting = NULL,
                              madratDir = NULL,
-                             inputdataRevision = "0.5.11",
+                             inputdataRevision = "0.5.12",
                              forceDownload = FALSE,
                              scenario = NULL) {
 
