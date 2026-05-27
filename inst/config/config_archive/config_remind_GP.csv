@@ -19,16 +19,16 @@ econCoef_appliances_light_elas_FACTOR;RC people are happy with less light, MC st
 econCoef_cooking_pop_X_(Intercept);not sure what the does but same logic as above;1;1
 econCoef_water_heating_pop_X_Asym;not sure what the does but same logic as above;0.6;0.6
 econCoef_space_cooling_m2_CDD_Uval_X_Asym;;1;1
-econCoef_uvalues_X_min;RC less good insulation, MC strong regulation leading to higher insulation;0.7;0.7,highIncome:0.5
+econCoef_uvalues_X_min;RC less good insulation, MC strong regulation leading to higher insulation;0.7;0.7
 econCoef_biotrad;;1;1
 econCoef_space_heating.elecHP_eff_X_Asym;RC a little less efficient, MC more efficient;5;6
-econCoef_space_heating.elecHP_share_X_Asym;RC a little less efficient, MC more efficient;0.5,Europe:0.75;0.5,highIncome:0.8
+econCoef_space_heating.elecHP_share_X_Asym;RC a little less efficient, MC more efficient;0.5,Europe:0.75;0.5,highIncome:0.95
 econCoef_space_heating.elec_X_lrc;RC a little less efficient, MC more efficient;-10.33475,Europe:-10.20812;-10.33475,Europe:-10.20812
-econCoef_space_cooling.elec_X_max;;7;8
+econCoef_space_cooling.elec_X_max;;7;7
 econCoef_water_heating.elecHP_eff_X_Asym;;5;5
 econCoef_water_heating.elecHP_share_X_Asym;;0.5;0.5
 econCoef_water_heating.elec_X_lrc;;-10.51707;-10.51707
-econCoef_appliances_light.elec_X_Asym;;0.9;0.9,highIncome:0.95
+econCoef_appliances_light.elec_X_Asym;;0.9;0.9
 feShare_space_heating_natgas;;35,Europe:32;35,highIncome:15
 feShare_space_heating_elec;EI and RC high, MC close to technical potential;40,Europe:37;40,highIncome:75
 feShare_space_heating_heat;;15,Europe:25;15,highIncome:6.25
