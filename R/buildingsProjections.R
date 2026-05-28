@@ -477,6 +477,9 @@ buildingsProjections <- function(config,
     !(grepl("^SSP.*", .data[["scenario"]]) & .data[["period"]] <= endOfHistory)
   )
 
+  # Add efficiency and energy carrier shares to output data frame
+  df <- rbind(df, prepareForOutput(feueEff, "efficiency"), prepareForOutput(feSharesEC, "share"))
+
 
   #--- Split electric space_heating
 
@@ -486,7 +489,6 @@ buildingsProjections <- function(config,
       c("space_heating", "water_heating"),
       splitElec,
       df = df,
-      feueEff = feueEff,
       scenAssump = scenAssump,
       endOfHistory = endOfHistory
     ))
@@ -504,9 +506,6 @@ buildingsProjections <- function(config,
       "elecRH|ue" = grep("elecRH\\|ue", getVars(df), value = TRUE)
     ))
   }
-
-  # Add efficiency and energy carrier shares to output data frame
-  df <- rbind(df, prepareForOutput(feueEff, "efficiency"), prepareForOutput(feSharesEC, "share"))
 
 
   #--- Add RCP scenario to scenario name if existent
@@ -647,7 +646,6 @@ addEURagg <- function(df, extVars, intVars, floorVars, regionmap) {
 #' Split heat pump and resistive electric fe and ue
 #'
 #' @param df data frame containing share and efficiency data
-#' @param feueEff historical and future FE->UE conversion efficiencies
 #' @param enduseChar character, enduse for which electric FE demand should be split
 #' @param scenAssump carrier/enduse-specific scenario assumptions
 #' @param endOfHistory Last historic time period
@@ -659,7 +657,7 @@ addEURagg <- function(df, extVars, intVars, floorVars, regionmap) {
 #' @importFrom quitte calc_addVariable_
 #' @importFrom tidyr gather spread
 #'
-splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
+splitElec <- function(df, enduseChar, scenAssump, endOfHistory) {
   effRHasym  <- 1.0 # assumed by AL but IDEES finds rather 0.8 - 0.9
 
   hpEffHist <- 3
@@ -668,10 +666,6 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
   expAsym <- function(valStart, valAsym, t, tStart, tau = 50) {
     valStart + (valAsym - valStart) * (1 - exp(-pmax(0, t - tStart) / tau))
   }
-
-  effElec <- feueEff %>%
-    filter(.data[["enduse"]] == enduseChar, .data[["carrier"]] == "elec") %>%
-    select(-"enduse", -"carrier")
 
   scenAssumpHP <- expand.grid(region = unique(df[["region"]])) %>%
     mutate(scenario = "history") %>%
@@ -682,12 +676,13 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
               by = c("region", "scenario", paste0(enduseChar, ".elecHP_eff_X_Asym")))
 
   hp <- df %>%
-    filter(grepl(paste0(enduseChar, "\\.elec\\|(ue|fe)"), .data[["variable"]]),
-           .data[["region"]] != "GLO") %>%
+    filter(grepl(paste0(enduseChar, "\\.elec\\|(ue|fe|share|efficiency)"), .data[["variable"]]),
+           .data[["region"]] != "GLO",
+           .data$period >= 1990) %>%
+    mutate(variable = sub(paste0("^", enduseChar, "\\."), "", .data$variable)) %>%
     spread("variable", "value") %>%
-    left_join(effElec, by = c("scenario", "region", "period")) %>%
     group_by(across("region")) %>%
-    mutate(effRHstart = min(min(.data[["efficiency"]]), effRHasym)) %>%
+    mutate(effRHstart = min(min(.data[["elec|efficiency"]]), effRHasym)) %>%
     ungroup() %>%
     left_join(scenAssumpHP, by = c("scenario", "region")) %>%
     mutate(
@@ -696,12 +691,12 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
                            .data[["period"]],
                            endOfHistory,
                            tau = 25),
-                   .data[["efficiency"]]),
+                   .data[["elec|efficiency"]]),
       effHP = expAsym(hpEffHist,
                       .data[[paste0(enduseChar, ".elecHP_eff_X_Asym")]],
                       .data[["period"]],
                       endOfHistory),
-      shareHP = (.data[["efficiency"]] - .data[["effRH"]]) /
+      shareHP = (.data[["elec|efficiency"]] - .data[["effRH"]]) /
         (.data[["effHP"]] - .data[["effRH"]])
     ) %>%
     group_by(across("region")) %>%
@@ -717,7 +712,7 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
                        .data[["shareHP"]]),
       factor = ifelse(
         .data[["shareHP"]] != 0,
-        (.data[["efficiency"]] - .data[["effRH"]]) /
+        (.data[["elec|efficiency"]] - .data[["effRH"]]) /
           ((.data[["effHP"]] - .data[["effRH"]]) * .data[["shareHP"]]),
         1
       ),
@@ -726,20 +721,29 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
       shareHP = sqrt(.data[["factor"]]) * .data[["shareHP"]]
     ) %>%
     gather("variable", "value", -"model", -"scenario", -"period", -"region", -"unit")
+
   hp <- hp %>%
     calc_addVariable_(
       stats::setNames(
         list(
-          paste0("`", enduseChar, ".elec|fe` * shareHP"),
-          paste0("`", enduseChar, ".elec|fe` * (1 - shareHP)"),
+          "`elec|fe` * shareHP",
+          "`elec|fe` * (1 - shareHP)",
           paste0("`", enduseChar, ".elecHP|fe` * effHP"),
-          paste0("`", enduseChar, ".elecRH|fe` * effRH")
+          paste0("`", enduseChar, ".elecRH|fe` * effRH"),
+          "`elec|share` * shareHP",
+          "`elec|share` * (1 - shareHP)",
+          "effHP",
+          "effRH"
         ),
         c(
           paste0("`", enduseChar, ".elecHP|fe`"),
           paste0("`", enduseChar, ".elecRH|fe`"),
           paste0("`", enduseChar, ".elecHP|ue`"),
-          paste0("`", enduseChar, ".elecRH|ue`")
+          paste0("`", enduseChar, ".elecRH|ue`"),
+          paste0("`", enduseChar, ".elecHP|share`"),
+          paste0("`", enduseChar, ".elecRH|share`"),
+          paste0("`", enduseChar, ".elecHP|efficiency`"),
+          paste0("`", enduseChar, ".elecRH|efficiency`")
         )
       ),
       only.new = TRUE
@@ -748,8 +752,9 @@ splitElec <- function(df, feueEff, enduseChar, scenAssump, endOfHistory) {
   # compute global sum
   hp %>%
     group_by(across(c("model", "scenario", "period", "variable", "unit"))) %>%
-    reframe(
-      value = sum(.data[["value"]]),
+    summarise(
+      value = ifelse(grepl("\\|(ue|fe)$", unique(.data$variable)), sum(.data[["value"]]), mean(.data$value)),
+      # value = sum(.data[["value"]]),
       region = "GLO"
     ) %>%
     rbind(hp)

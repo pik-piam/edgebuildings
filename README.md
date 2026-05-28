@@ -1,6 +1,6 @@
 # Model for the projection of global energy demand in the buildings sector
 
-R package **edgebuildings**, version **0.7.2**
+R package **edgebuildings**, version **0.7.3**
 
    [![R build status](https://github.com/ricardarosemann/edgebuildings/workflows/check/badge.svg)](https://github.com/ricardarosemann/edgebuildings/actions) [![codecov](https://codecov.io/gh/ricardarosemann/edgebuildings/branch/master/graph/badge.svg)](https://app.codecov.io/gh/ricardarosemann/edgebuildings) [![r-universe](https://pik-piam.r-universe.dev/badges/edgebuildings)](https://pik-piam.r-universe.dev/builds)
 
@@ -55,15 +55,15 @@ In case of questions / problems please contact Robin Hasse <robin.hasse@pik-pots
 
 To cite package **edgebuildings** in publications use:
 
-Levesque A, Hasse R, Tockhorn H, Rosemann R, Führlich P (2026). "edgebuildings: Model for the projection of global energy demand in the buildings sector - Version 0.7.2."
+Levesque A, Hasse R, Tockhorn H, Rosemann R, Führlich P (2026). "edgebuildings: Model for the projection of global energy demand in the buildings sector - Version 0.7.3."
 
 A BibTeX entry for LaTeX users is
 
  ```latex
 @Misc{,
-  title = {edgebuildings: Model for the projection of global energy demand in the buildings sector - Version 0.7.2},
+  title = {edgebuildings: Model for the projection of global energy demand in the buildings sector - Version 0.7.3},
   author = {Antoine Levesque and Robin Hasse and Hagen Tockhorn and Ricarda Rosemann and Pascal Führlich},
-  date = {2026-05-27},
+  date = {2026-05-28},
   year = {2026},
 }
 ```

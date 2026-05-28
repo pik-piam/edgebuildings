@@ -4,12 +4,10 @@
 \alias{splitElec}
 \title{Split heat pump and resistive electric fe and ue}
 \usage{
-splitElec(df, feueEff, enduseChar, scenAssump, endOfHistory)
+splitElec(df, enduseChar, scenAssump, endOfHistory)
 }
 \arguments{
 \item{df}{data frame containing share and efficiency data}
-
-\item{feueEff}{historical and future FE->UE conversion efficiencies}
 
 \item{enduseChar}{character, enduse for which electric FE demand should be split}
 
