@@ -57,7 +57,7 @@ runEdgeBuildings <- function(config = "config_remind.csv",
 
   if (!is.null(scenario)) {
     # Read config to get column names
-    configData <- read.csv2(config, stringsAsFactors = FALSE)
+    configData <- read.csv2(config, stringsAsFactors = FALSE, check.names = FALSE)
     configCols <- names(configData)
 
     # Available scenarios are all columns except 'parameter' and 'valueComment'
