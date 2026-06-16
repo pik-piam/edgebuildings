@@ -13,6 +13,11 @@
 #'   always required and will be automatically included if not specified, as it
 #'   provides reference values and is used for carrier share extension between
 #'   historic data and scenario start.
+#' @param includeClimate logical, if TRUE, each scenario will be expanded with
+#'   climate variants by creating additional columns with RCP suffixes (1.9, 2.6,
+#'   4.5, 6.0, 7.0). The original scenario column is kept as the noCC case. For
+#'   example, "SSP2" will be expanded to "SSP2", "SSP2-1.9", "SSP2-2.6", "SSP2-4.5",
+#'   "SSP2-6.0", and "SSP2-7.0". Default is FALSE.
 #'
 #' @author Falk Benke, Robin Hasse
 #'
@@ -28,7 +33,8 @@ runEdgeBuildings <- function(config = "config_remind.csv",
                              madratDir = NULL,
                              inputdataRevision = "0.5.12",
                              forceDownload = FALSE,
-                             scenario = NULL) {
+                             scenario = NULL,
+                             includeClimate = FALSE) {
 
   # TODO: relocate data_internal
   # TODO: fix all warnings and errors (lucode2::buildLibrary)
@@ -83,7 +89,13 @@ runEdgeBuildings <- function(config = "config_remind.csv",
     columnsToKeep <- c("parameter", "valueComment", scenario)
     filteredConfig <- configData[, columnsToKeep, drop = FALSE]
 
-    # Write filtered config directly to start folder
+    # Expand with climate scenarios if requested
+    if (includeClimate) {
+      message("Expanding scenarios with climate variants (RCP: 1.9, 2.6, 4.5, 6.0, 7.0)")
+      filteredConfig <- .expandClimateScenarios(filteredConfig)
+    }
+
+    # Write filtered/expanded config directly to start folder
     filteredConfigPath <- file.path(getSystemFile("start", package = "edgebuildings"),
                                     "config.csv")
     write.csv2(filteredConfig,
@@ -96,11 +108,25 @@ runEdgeBuildings <- function(config = "config_remind.csv",
 
     message("Filtering to scenario(s): ", paste(scenario, collapse = ", "))
   } else {
-    # Copy config to internal start folder without filtering
-    file.copy(config,
-              file.path(getSystemFile("start", package = "edgebuildings"),
-                        "config.csv"),
-              overwrite = TRUE)
+    # Read config
+    configData <- read.csv2(config, stringsAsFactors = FALSE, check.names = FALSE)
+
+    # Expand with climate scenarios if requested
+    if (includeClimate) {
+      message("Expanding scenarios with climate variants (RCP: 1.9, 2.6, 4.5, 6.0, 7.0)")
+      configData <- .expandClimateScenarios(configData)
+    }
+
+    # Write config to internal start folder
+    filteredConfigPath <- file.path(getSystemFile("start", package = "edgebuildings"),
+                                    "config.csv")
+    write.csv2(configData,
+               filteredConfigPath,
+               row.names = FALSE,
+               quote = FALSE)
+
+    # Update config to point to version in start folder for later use
+    config <- filteredConfigPath
   }
 
 
@@ -173,4 +199,44 @@ runEdgeBuildings <- function(config = "config_remind.csv",
   if (!is.null(reporting)) {
     reportResults(runFolderDir, reporting, cfgText)
   }
+}
+
+
+
+#' Expand config with climate scenarios
+#'
+#' Internal helper function to expand scenario columns with climate variants.
+#' For each scenario column, creates 5 additional columns with RCP suffixes
+#' (1.9, 2.6, 4.5, 6.0, 7.0) while keeping the original column as the noCC case.
+#'
+#' @param configData data frame, the config data to expand
+#' @return data frame with expanded scenario columns
+#' @keywords internal
+.expandClimateScenarios <- function(configData) {
+
+  # Get scenario column names (exclude 'parameter' and 'valueComment')
+  scenarioCols <- setdiff(names(configData), c("parameter", "valueComment"))
+
+  # Climate RCP scenarios to add
+  rcpScenarios <- c("1.9", "2.6", "4.5", "6.0", "7.0")
+
+  # Create expanded config starting with base columns
+  expandedConfig <- configData[, c("parameter", "valueComment"), drop = FALSE]
+
+  # For each scenario, create climate variants
+  for (scen in scenarioCols) {
+    # Add original scenario (noCC case) first
+    expandedConfig[[scen]] <- configData[[scen]]
+
+    # Add climate variants
+    for (rcp in rcpScenarios) {
+      newScenName <- paste0(scen, "-", rcp)
+      # Copy all values from original scenario
+      expandedConfig[[newScenName]] <- configData[[scen]]
+      # Update rcpScen parameter for this scenario
+      expandedConfig["rcpScen", newScenName] <- rcp
+    }
+  }
+
+  return(expandedConfig)
 }
