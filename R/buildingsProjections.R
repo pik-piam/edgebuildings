@@ -512,9 +512,11 @@ buildingsProjections <- function(config,
   #--- Add RCP scenario to scenario name if existent
 
   if (!identical(config[[scen, "rcpScen"]], "noCC")) {
-    df <- mutate(df, scenario = ifelse(.data[["scenario"]] != "history",
-                                       paste0(.data[["scenario"]], "_rcp", config[[scen, "rcpScen"]]),
-                                       .data[["scenario"]]))
+    df <- mutate(df,
+                 scenario = sub("-.*", "", .data$scenario),
+                 scenario = ifelse(.data[["scenario"]] != "history",
+                                   paste0(.data[["scenario"]], "_rcp", sub("\\.", "_", config[[scen, "rcpScen"]])),
+                                   .data[["scenario"]]))
   }
 
 

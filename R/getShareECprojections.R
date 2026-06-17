@@ -161,7 +161,7 @@ getShareECprojections <- function(config,
 
   # hdd
   hdd <- hddcdd %>%
-    filter(.data[["variable"]] == "HDD", .data[["scenario"]] == config[, "hddcddScen"],
+    filter(.data[["variable"]] == "HDD", .data[["scenario"]] == scen,
            .data[["period"]] == endOfHistory) %>%
     select(-"variable", -"period", -"scenario") %>%
     rename(hdd = "value")

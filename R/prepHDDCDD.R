@@ -39,6 +39,7 @@ prepHDDCDD <- function(hddcdd, config, regionmap) {
   # scenarios
   socioScen <- config[["hddcddScen"]] %>% unlist()
   climScen  <- config[["rcpScen"]] %>% unlist()
+  climScen <- sub("\\.", "_", climScen)
 
   socioClimScen <- paste(socioScen, climScen, sep = "_")
 
@@ -65,13 +66,13 @@ prepHDDCDD <- function(hddcdd, config, regionmap) {
     buildScenInput(subtype = "mapping",
                    regionmap = regionmap) %>%
     rename("fullconv" = "value") %>%
-    mutate(scenario = socioClimScen)
+    mutate(scenario = scenConfig)
 
   yearTargetCDD <- config[["speed_CDD"]] %>%
     buildScenInput(subtype = "mapping",
                    regionmap = regionmap) %>%
     rename("fullconv" = "value") %>%
-    mutate(scenario = socioClimScen)
+    mutate(scenario = scenConfig)
 
 
   # PROCESS DATA ---------------------------------------------------------------
@@ -106,7 +107,7 @@ prepHDDCDD <- function(hddcdd, config, regionmap) {
       colHist   <- paste(typeDD, tlimHist[[typeDD]], sep = "_")
       colTarget <- paste(typeDD, tlimTargetReg,      sep = "_")
 
-
+      # Process standard CDD/HDD with climScen
       hddcdd %>%
         # filter relevant subset
         filter(.data$region   ==   reg,
@@ -117,10 +118,10 @@ prepHDDCDD <- function(hddcdd, config, regionmap) {
                !is.na(.data$value)) %>%
 
         # unite "historical" and ...
-        mutate(rcp = climScen) %>%
+        mutate(scenario = scenConfig) %>%
+        select(-"ssp", -"rcp") %>%
 
-        # unite scenario and variable cols
-        unite(col = "scenario", c("ssp", "rcp"), sep = "_") %>%
+        # unite variable cols
         unite(col = "variable", c("variable", "tlim"), sep = "_") %>%
         pivot_wider(names_from = "variable", values_from = "value") %>%
 
@@ -137,8 +138,7 @@ prepHDDCDD <- function(hddcdd, config, regionmap) {
         filter(!is.na(.data[["value"]])) %>%
 
         # prepare for output
-        mutate(variable = typeDD,
-               scenario = scenConfig) %>%
+        mutate(variable = typeDD) %>%
         select("region", "period", "variable", "scenario", "value")
     }))
   }))
