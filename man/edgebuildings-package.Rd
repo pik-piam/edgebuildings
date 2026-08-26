@@ -13,6 +13,7 @@ The Energy Demand GEnerator projects energy demand for buildings both at the use
 
 Authors:
 \itemize{
+  \item Robin Hasse \email{robin.hasse@pik-potsdam.de} (\href{https://orcid.org/0000-0003-1818-3186}{ORCID})
   \item Antoine Levesque
   \item Hagen Tockhorn \email{hagento@pik-potsdam.de}
   \item Ricarda Rosemann \email{ricarda.rosemann@pik-potsdam.de} (\href{https://orcid.org/0009-0006-5939-3197}{ORCID})

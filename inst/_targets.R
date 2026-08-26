@@ -146,13 +146,6 @@ list(
     format = "file"
   ),
 
-  # urban share
-  tar_target(
-    urbanshare.cs4r,
-    file.path(mrData, "f_urban.cs4r"),
-    format = "file"
-  ),
-
   tar_target(
     floor0.cs4r,
     file.path(mrData, "f_floorspace_tcep.cs4r"),
@@ -423,18 +416,6 @@ list(
     },
     pattern = map(config),
     iteration = "vector"
-  ),
-
-  # urban share
-  tar_target(
-    urbanshare,
-    {
-      cols <- c("period", "region", "variable", "value")
-      file <- urbanshare.cs4r
-
-      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols) %>%
-        mutate(value = as.numeric(.data[["value"]]))
-    }
   ),
 
   # EDGE-B--------------------------------
