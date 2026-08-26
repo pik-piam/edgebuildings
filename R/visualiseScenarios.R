@@ -141,7 +141,9 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
 
   ## linetype ====
 
-  linetypeScale <- setNames(seq_along(path), names(path))
+  # ggplot2 >= 4.0 rejects numeric linetype values, so use linetype names
+  linetypeNames <- c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
+  linetypeScale <- setNames(linetypeNames[seq_along(path)], names(path))
 
 
   ## plot theme ====
@@ -450,7 +452,7 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
 
     if (length(linetypeScale) == 1) {
       linetypeCarrier <- "scenario"
-      linetypeScaleCarrier <- setNames(seq_along(unique(pData$scenario)), unique(pData$scenario))
+      linetypeScaleCarrier <- setNames(linetypeNames[seq_along(unique(pData$scenario))], unique(pData$scenario))
     } else {
       linetypeCarrier <- "version"
       linetypeScaleCarrier <- linetypeScale

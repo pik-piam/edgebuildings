@@ -75,6 +75,13 @@ list(
     format = "file"
   ),
 
+  # floor regression coefficients (global)
+  tar_target(
+    floorspaceCoefs.cs4r,
+    file.path(mrData, "f_floorspace_coefs.cs4r"),
+    format = "file"
+  ),
+
   # final energy
   tar_target(
     fe.cs4r,
@@ -150,12 +157,6 @@ list(
   tar_target(
     urbanshare.cs4r,
     file.path(mrData, "f_urban.cs4r"),
-    format = "file"
-  ),
-
-  tar_target(
-    floor0.cs4r,
-    file.path(mrData, "f_floorspace_tcep.cs4r"),
     format = "file"
   ),
 
@@ -266,13 +267,25 @@ list(
   tar_target(
     floorspacePast,
     {
-      cols <- c("period", "region", "value")
+      cols <- c("period", "region", "variable", "value")
       file <- floorspacePast.cs4r
 
       read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
         mutate(value = as.numeric(.data[["value"]]),
-               variable = "m2cap",
+               unit = "m2cap",
                scenario = "history")
+    }
+  ),
+
+  # floor regression coefficients (global)
+  tar_target(
+    floorspaceCoefs,
+    {
+      cols <- c("variable", "value")
+      file <- floorspaceCoefs.cs4r
+
+      read.csv2(file, skip = skiprow(file), sep = ",", col.names = cols, header = FALSE) %>%
+        mutate(value = as.numeric(.data[["value"]]))
     }
   ),
 
@@ -362,13 +375,6 @@ list(
       read.csv2(file, skip = skiprow(file), sep = ",", header = FALSE, col.names = cols) %>%
         mutate(value = as.numeric(.data[["value"]]))
     }
-  ),
-
-  # floor0
-  tar_target(
-    floor0,
-    read.csv(floor0.cs4r, header = FALSE, comment.char = "*",
-             col.names = c("period", "region", "variable", "unit", "value"))
   ),
 
   # ICT electricity demand
@@ -469,67 +475,19 @@ list(
 
   # Floorspace------------------------------
 
-  # share of commercial buildings (EDGE)
+  # residential, commercial and total floorspace, absolute (m2) and per capita
   tar_target(
-    shareFloorCommercialEDGE,
+    floorspace,
     {
-      getShareFloorCommercial(config = config,
-                              subtype = "EDGE",
-                              gdppop = gdppop,
-                              pop = pop,
-                              floor0 = floor0,
-                              regionalmap = regionmap)
-    },
-    pattern = map(config),
-    iteration = "vector"
-  ),
-
-
-  # share of commercial buildings (IEA)
-  tar_target(
-    shareFloorCommercialIEA,
-    {
-      getShareFloorCommercial(config = config,
-                              subtype = "IEA",
-                              gdppop = gdppop,
-                              pop = pop,
-                              floor0 = floor0,
-                              regionalmap = regionmap)
-    },
-    pattern = map(config),
-    iteration = "vector"
-  ),
-
-
-  # absolute and per capita floorspace of residential buildings
-  tar_target(
-    floorspaceResidential,
-    {
-      getFloorspaceResidential(config = config,
-                               floorspacePast = floorspacePast,
-                               gdppop = gdppop,
-                               density = density,
-                               pop = pop,
-                               surface = surface,
-                               regionmap = regionmap,
-                               scenAssump = scenAssump,
-                               scenAssumpSpeed = scenAssumpSpeed)
-    },
-    pattern = map(config),
-    iteration = "vector"
-  ),
-
-  # absolute and per capita floorspace
-  tar_target(
-    floorspaceBuild,
-    {
-      getFloorspaceBuild(config = config,
-                         resid = floorspaceResidential,
-                         comShares = shareFloorCommercialEDGE,
-                         comSharesIEA = shareFloorCommercialIEA,
-                         regionmappingIEA = regionmapIEA,
-                         regionmapping = regionmap,
-                         scenAssumpSpeed = scenAssumpSpeed)
+      getFloorspace(config = config,
+                    floorspacePast = floorspacePast,
+                    floorspaceCoefs = floorspaceCoefs,
+                    gdppop = gdppop,
+                    density = density,
+                    pop = pop,
+                    regionmap = regionmap,
+                    scenAssump = scenAssump,
+                    scenAssumpSpeed = scenAssumpSpeed)
     },
     pattern = map(config),
     iteration = "vector"
@@ -596,7 +554,7 @@ list(
     projections,
     {
       buildingsProjections(config = config,
-                           floor = floorspaceBuild,
+                           floor = floorspace,
                            hddcdd = hddcdd,
                            pop = pop,
                            gdppop = gdppop,

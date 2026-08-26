@@ -7,21 +7,17 @@
 #' @param colVal name of value column, default is "value"
 #' @param ignoreColumns name of columns to ignore
 #'
-#' @importFrom lazyeval interp
-#' @importFrom dplyr mutate_ ungroup group_by ungroup across all_of %>%
-#' @importFrom stats setNames
+#' @importFrom dplyr mutate ungroup group_by ungroup across all_of %>%
 #'
 #' @author Antoine Levesque
 
 calcShares <- function(data, colShare, colVal = "value", ignoreColumns = NULL) {
 
   cols <- setdiff(colnames(data), c(colShare, colVal, ignoreColumns))
-  form <- interp(~ x / sum(x, na.rm = TRUE), x = as.name(colVal))
 
-  # TODO: find a way to replace mutate_ by mutate #nolint
   res <- data %>%
     group_by(across(all_of(cols))) %>%
-    mutate_(.dots = setNames(list(form), colVal)) %>%
+    mutate(across(all_of(colVal), ~ .x / sum(.x, na.rm = TRUE))) %>%
     ungroup()
 
   return(res)

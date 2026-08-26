@@ -226,13 +226,14 @@ calc_addSumProd <- function(data, newNames, vars2sumprod, collapse_sign,
 #' @param valueCol column of values
 #'
 #' @importFrom quitte getColValues
-#' @importFrom tidyr spread_ gather
+#' @importFrom tidyr spread gather
+#' @importFrom rlang sym !!
 
 spreadSomeVariables <- function(df, vars2spread, colVar = "variable", valueCol = "value") {
   all_vars <- getColValues(df, colVar = colVar)
   keepVars <- setdiff(all_vars, vars2spread)
 
-  df <- df %>% spread_(colVar, valueCol) %>%
+  df <- df %>% spread(!!sym(colVar), !!sym(valueCol)) %>%
     gather(colVar, valueCol, keepVars)
 
   return(df)
