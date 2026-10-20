@@ -287,18 +287,26 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
 
   ## floor space ====
 
+  floorVars <- c(Total = "buildings", Residential = "residential", Commercial = "commercial")
+
   bookmarks <- .addBookmark(bookmarks, "Floor space", i, 1)
-  pData <- data %>%
-    filter(.data[["variable"]] == "buildings") %>%
-    mutate(value = .data[["value"]] / 1000) %>%  # million m2 -> billion m2
-    .aggREMIND(recover = c(recoverRegions, "GLO"))
 
-  linePlots(pData,
-            title = "Floor space",
-            yAxisLabel = "billion m2",
-            linetypeScale = linetypeScale)
+  for (floorType in names(floorVars)) {
 
-  i <- i + length(.regions(pData))
+    bookmarks <- .addBookmark(bookmarks, floorType, i, 2)
+
+    pData <- data %>%
+      filter(.data[["variable"]] == floorVars[[floorType]]) %>%
+      mutate(value = .data[["value"]] / 1000) %>%  # million m2 -> billion m2
+      .aggREMIND(recover = c(recoverRegions, "GLO"))
+
+    linePlots(pData,
+              title = paste(floorType, "floor space"),
+              yAxisLabel = "billion m2",
+              linetypeScale = linetypeScale)
+
+    i <- i + length(.regions(pData))
+  }
 
 
   ## per capita Floorspace ====
@@ -307,55 +315,65 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
 
 
   pData <- data %>%
-    filter(.data[["variable"]] %in% c("buildings", "pop", "gdp")) %>%
+    filter(.data[["variable"]] %in% c(floorVars, "pop", "gdp")) %>%
     .aggREMIND(recover = recoverRegions) %>%
     select(-"unit") %>%
     pivot_wider(names_from = "variable") %>%
     mutate(gdppop = .data[["gdp"]] / .data[["pop"]],
-           buildings_pop = .data[["buildings"]] / .data[["pop"]]) # million m2/millioncap = m2/cap
+           across(all_of(unname(floorVars)),
+                  .fns = ~ .x / .data[["pop"]],  # million m2/millioncap = m2/cap
+                  .names = "{.col}_pop"))
+
+  for (floorType in names(floorVars)) {
+
+    bookmarks <- .addBookmark(bookmarks, floorType, i, 2)
+
+    yVar <- paste0(floorVars[[floorType]], "_pop")
+    title <- paste(floorType, "floor space per capita")
 
 
-  ### all regions ####
+    ### all regions ####
 
-  for (x in list("period", "gdppop")) {
-    print(linePlot(
-      pData,
-      title = paste("Total floor space per capita"),
-      xAxisLabel = x,
-      yAxisLabel = "m2/cap",
-      linetypeScale = linetypeScale,
-      facet = "scenario",
-      color = "region",
-      x = x,
-      y = "buildings_pop"
-    ))
-  }
-
-  i <- i + 2
-
-
-  ### regional ####
-
-  for (r in .regions(pData)) {
-    p <- lapply(list("period", "gdppop"), function(x) {
-      linePlot(
-        filter(pData, .data[["region"]] %in% r),
-        title = switch(x, period = paste("Total floor space per capita")),
-        subtitle = switch(x, period = r),
+    for (x in list("period", "gdppop")) {
+      print(linePlot(
+        pData,
+        title = title,
         xAxisLabel = x,
-        yAxisLabel = switch(x, period = "m2/cap"),
+        yAxisLabel = "m2/cap",
         linetypeScale = linetypeScale,
-        color = "scenario",
+        facet = "scenario",
+        color = "region",
         x = x,
-        y = "buildings_pop"
-      ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
-                                   axis.ticks.y = element_blank()))
-    })
-    print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
-                    widths = c(1.2, 1), align = "hv"))
-  }
+        y = yVar
+      ))
+    }
 
-  i <- i + length(.regions(pData))
+    i <- i + 2
+
+
+    ### regional ####
+
+    for (r in .regions(pData)) {
+      p <- lapply(list("period", "gdppop"), function(x) {
+        linePlot(
+          filter(pData, .data[["region"]] %in% r),
+          title = switch(x, period = title),
+          subtitle = switch(x, period = r),
+          xAxisLabel = x,
+          yAxisLabel = switch(x, period = "m2/cap"),
+          linetypeScale = linetypeScale,
+          color = "scenario",
+          x = x,
+          y = yVar
+        ) + switch(x, gdppop = theme(axis.text.y = element_blank(),
+                                     axis.ticks.y = element_blank()))
+      })
+      print(ggarrange(plotlist = p, ncol = 2, common.legend = TRUE, legend = "right",
+                      widths = c(1.2, 1), align = "hv"))
+    }
+
+    i <- i + length(.regions(pData))
+  }
 
 
   ## U-value ====

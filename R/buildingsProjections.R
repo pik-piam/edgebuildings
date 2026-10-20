@@ -348,7 +348,7 @@ buildingsProjections <- function(config,
   # global values
   dfGLO <- df %>%
     calcGlob(c(unique(grep("^(?!.*pop).*\\|.e$", df$variable, value = TRUE, perl = TRUE)),
-               "pop", "gdp", "buildings"),
+               "pop", "gdp", "buildings", "residential", "commercial"),
              nameGLO = "GLO") %>%
     rbind(calcGlob(df, c("HDD", "CDD", "gdppop"), weights = "pop")) %>%
     rbind(calcGlob(df, c("rvalue"), weights = "buildings"))
