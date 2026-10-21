@@ -99,8 +99,6 @@ buildingsProjections <- function(config,
                     "LUX", "LVA", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN",
                     "SWE")
 
-  print(paste0("Initialize projection preparation for scenario: ", scen))
-
 
 
   # PRE-PROCESS DATA--------------------------------------------------------------
@@ -248,7 +246,6 @@ buildingsProjections <- function(config,
 
 
   #--- Make Projections
-  print("Start projections")
 
   df <- makeProjections(df,
                         formul = as.formula("space_heating_m2_Uval ~ 0 + HDD"),
@@ -331,8 +328,6 @@ buildingsProjections <- function(config,
   # Compute the Useful and Final energy levels at the (end-use, energy carrier) level,
   # and compute the FE level for (end-use).
   # Add the energy type in the variable name
-
-  print("Computing UE and FE at carrier level.")
 
   df <- disaggregateEnergy(data    = df,
                            eff     = feueEff,
@@ -470,7 +465,6 @@ buildingsProjections <- function(config,
   # this is because appliances_light.biotrad,.biomod .etc does only exist in history
   # in combination with completeMissing option from calc_addVariable (and add_Sum),
   # it creates rows with history after 2010
-  print("Correcting projections.")
 
   df <- df %>% filter(
     !(.data[["scenario"]] == "history" & .data[["period"]] > endOfHistory),
@@ -520,8 +514,6 @@ buildingsProjections <- function(config,
 
 
   # OUTPUT------------------------------------------------------------------------
-
-  print("Projections finished - saving data.")
 
   fileName <- paste0("projections_", scen)
 
