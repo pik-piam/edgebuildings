@@ -346,9 +346,8 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
         x = x,
         y = yVar
       ))
+      i <- i + 1
     }
-
-    i <- i + 2
 
 
     ### regional ####
@@ -652,11 +651,10 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
           x = x,
           y = paste0(eu, "|", enType, "_pop")
         ))
+        i <- i + 1
       }
 
     }
-
-    i <- i + 2 * length(uses)
 
 
     ### by carrier ###
