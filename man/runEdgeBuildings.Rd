@@ -11,7 +11,8 @@ runEdgeBuildings(
   madratDir = NULL,
   inputdataRevision = "0.5.12",
   forceDownload = FALSE,
-  scenario = NULL
+  scenario = NULL,
+  includeClimate = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,12 @@ column names in the config file (e.g., c("SSP2", "SSP5")). Note: SSP2 is
 always required and will be automatically included if not specified, as it
 provides reference values and is used for carrier share extension between
 historic data and scenario start.}
+
+\item{includeClimate}{logical, if TRUE, each scenario will be expanded with
+climate variants by creating additional columns with RCP suffixes (1.9, 2.6,
+4.5, 6.0, 7.0). The original scenario column is kept as the noCC case. For
+example, "SSP2" will be expanded to "SSP2", "SSP2_rcp19", "SSP2_rcp26",
+"SSP2_rcp45", "SSP2_rcp60", and "SSP2_rcp70". Default is FALSE.}
 }
 \description{
 Run EDGE-Buildings
