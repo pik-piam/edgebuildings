@@ -2,7 +2,6 @@
 
 export(getGDP)
 export(getGDPpop)
-export(getShareFloorCommercial)
 export(loadMadratData)
 export(readConfig)
 export(readProjections)
@@ -90,7 +89,6 @@ importFrom(quitte,
   calc_addVariable,
   calc_addVariable_,
   character.data.frame,
-  factor.data.frame,
   getColValues,
   getPeriods,
   getRegs,
@@ -99,8 +97,7 @@ importFrom(quitte,
   interpolate_missing_periods,
   mutate_text,
   removeColNa,
-  replace_column,
-  revalue.levels
+  replace_column
 )
 importFrom(rlang,
   "!!",
@@ -109,11 +106,9 @@ importFrom(rlang,
   sym
 )
 importFrom(stats,
-  SSgompertz,
   approx,
   as.formula,
   coef,
-  complete.cases,
   formula,
   lm,
   na.omit,
