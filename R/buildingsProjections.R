@@ -503,18 +503,6 @@ buildingsProjections <- function(config,
   df <- rbind(df, prepareForOutput(feueEff, "efficiency"), prepareForOutput(feSharesEC, "share"))
 
 
-  #--- Add RCP scenario to scenario name if existent
-
-  if (!identical(config[[scen, "rcpScen"]], "noCC")) {
-    df <- mutate(df,
-                 scenario = sub("-.*", "", .data$scenario),
-                 scenario = ifelse(.data[["scenario"]] != "history",
-                                   paste0(.data[["scenario"]], "_rcp", sub("\\.", "_", config[[scen, "rcpScen"]])),
-                                   .data[["scenario"]]))
-  }
-
-
-
   # OUTPUT------------------------------------------------------------------------
 
   fileName <- paste0("projections_", scen)

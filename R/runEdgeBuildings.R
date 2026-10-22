@@ -16,8 +16,8 @@
 #' @param includeClimate logical, if TRUE, each scenario will be expanded with
 #'   climate variants by creating additional columns with RCP suffixes (1.9, 2.6,
 #'   4.5, 6.0, 7.0). The original scenario column is kept as the noCC case. For
-#'   example, "SSP2" will be expanded to "SSP2", "SSP2-1.9", "SSP2-2.6", "SSP2-4.5",
-#'   "SSP2-6.0", and "SSP2-7.0". Default is FALSE.
+#'   example, "SSP2" will be expanded to "SSP2", "SSP2_rcp19", "SSP2_rcp26",
+#'   "SSP2_rcp45", "SSP2_rcp60", and "SSP2_rcp70". Default is FALSE.
 #'
 #' @author Falk Benke, Robin Hasse
 #'
@@ -196,7 +196,7 @@ runEdgeBuildings <- function(config = "config_remind.csv",
   scenarioCols <- setdiff(names(configData), c("parameter", "valueComment"))
 
   # Climate RCP scenarios to add
-  rcpScenarios <- c("1.9", "2.6", "4.5", "6.0", "7.0")
+  rcpScenarios <- c("19", "26", "45", "60", "70")
 
   # Create expanded config starting with base columns
   expandedConfig <- configData[, c("parameter", "valueComment"), drop = FALSE]
@@ -208,7 +208,7 @@ runEdgeBuildings <- function(config = "config_remind.csv",
 
     # Add climate variants
     for (rcp in rcpScenarios) {
-      newScenName <- paste0(scen, "-", rcp)
+      newScenName <- paste0(scen, "_rcp", rcp)
       # Copy all values from original scenario
       expandedConfig[[newScenName]] <- configData[[scen]]
       # Update rcpScen parameter for this scenario
