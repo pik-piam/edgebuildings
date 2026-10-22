@@ -61,13 +61,11 @@ runEdgeBuildings <- function(config = "config_remind.csv",
 
   # filter scenarios if specified and copy config to internal start folder ====
 
-  if (!is.null(scenario)) {
-    # Read config to get column names
-    configData <- read.csv2(config, stringsAsFactors = FALSE, check.names = FALSE)
-    configCols <- names(configData)
+  configData <- read.csv2(config, stringsAsFactors = FALSE, check.names = FALSE)
 
+  if (!is.null(scenario)) {
     # Available scenarios are all columns except 'parameter' and 'valueComment'
-    availableScenarios <- setdiff(configCols, c("parameter", "valueComment"))
+    availableScenarios <- setdiff(names(configData), c("parameter", "valueComment"))
 
     # Validate requested scenarios
     invalidScenarios <- setdiff(scenario, availableScenarios)
@@ -87,47 +85,27 @@ runEdgeBuildings <- function(config = "config_remind.csv",
 
     # Filter to requested scenarios
     columnsToKeep <- c("parameter", "valueComment", scenario)
-    filteredConfig <- configData[, columnsToKeep, drop = FALSE]
-
-    # Expand with climate scenarios if requested
-    if (includeClimate) {
-      message("Expanding scenarios with climate variants (RCP: 1.9, 2.6, 4.5, 6.0, 7.0)")
-      filteredConfig <- .expandClimateScenarios(filteredConfig)
-    }
-
-    # Write filtered/expanded config directly to start folder
-    filteredConfigPath <- file.path(getSystemFile("start", package = "edgebuildings"),
-                                    "config.csv")
-    write.csv2(filteredConfig,
-               filteredConfigPath,
-               row.names = FALSE,
-               quote = FALSE)
-
-    # Update config to point to filtered version for later use
-    config <- filteredConfigPath
+    configData <- configData[, columnsToKeep, drop = FALSE]
 
     message("Filtering to scenario(s): ", paste(scenario, collapse = ", "))
-  } else {
-    # Read config
-    configData <- read.csv2(config, stringsAsFactors = FALSE, check.names = FALSE)
-
-    # Expand with climate scenarios if requested
-    if (includeClimate) {
-      message("Expanding scenarios with climate variants (RCP: 1.9, 2.6, 4.5, 6.0, 7.0)")
-      configData <- .expandClimateScenarios(configData)
-    }
-
-    # Write config to internal start folder
-    filteredConfigPath <- file.path(getSystemFile("start", package = "edgebuildings"),
-                                    "config.csv")
-    write.csv2(configData,
-               filteredConfigPath,
-               row.names = FALSE,
-               quote = FALSE)
-
-    # Update config to point to version in start folder for later use
-    config <- filteredConfigPath
   }
+
+  # Expand with climate scenarios if requested
+  if (includeClimate) {
+    message("Expanding scenarios with climate variants (RCP: 1.9, 2.6, 4.5, 6.0, 7.0)")
+    configData <- .expandClimateScenarios(configData)
+  }
+
+  # Write config to internal start folder
+  filteredConfigPath <- file.path(getSystemFile("start", package = "edgebuildings"),
+                                  "config.csv")
+  write.csv2(configData,
+             filteredConfigPath,
+             row.names = FALSE,
+             quote = FALSE)
+
+  # Update config to point to version in start folder for later use
+  config <- filteredConfigPath
 
 
 
