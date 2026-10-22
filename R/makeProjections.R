@@ -26,7 +26,7 @@
 #' @author Antoine Levesque, Hagen Tockhorn
 #'
 #' @importFrom dplyr group_by filter ungroup mutate select left_join rename
-#'             mutate_ case_when across slice_max
+#'             case_when across slice_max
 #' @importFrom tidyr fill spread gather pivot_longer
 #' @importFrom stats nls lm predict coef
 #' @importFrom rlang parse_expr sym .data
@@ -368,12 +368,13 @@ makeProjections <- function(df,
 #'
 #' @return \code{data.frame} A data frame with the transformed variable.
 #'
-#' @importFrom dplyr mutate_
-#' @importFrom lazyeval interp
+#' @importFrom dplyr mutate
+#' @importFrom rlang parse_expr !!
+#' @importFrom data.table :=
 
 .transVar <- function(dfTrans, form, var) {
   form <- gsub("VAR", var, form)
-  return(dfTrans %>% mutate_(.dots = setNames(list(interp((form))), var)))
+  return(dfTrans %>% mutate(!!var := !!parse_expr(form)))
 }
 
 
@@ -564,7 +565,6 @@ makeProjections <- function(df,
 #' @importFrom rlang .data
 #' @importFrom quitte getRegs getScenarios
 #' @importFrom stats predict
-#' @importFrom lazyeval interp
 
 .makeScenarioProjections <- function(data,
                                      fitModel,
