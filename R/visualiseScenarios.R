@@ -157,6 +157,7 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
                        linetypeScale = NULL,
                        facet = NULL,
                        facetNcol = NULL,
+                       facetScale = "free_y",
                        color = "scenario",
                        colorScale = NULL,
                        x = "period",
@@ -189,7 +190,7 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
 
     if (!is.null(facet)) {
       p <- p +
-        facet_wrap(facet, scales = "free_y", ncol = facetNcol)
+        facet_wrap(facet, scales = facetScale, ncol = facetNcol)
     }
 
     return(p)
@@ -243,6 +244,10 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
   } else {
     outputFile
   }
+
+  # add a timestamp to the file name
+  timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M")
+  pdfPath <- sub("\\.pdf$", paste0("_", timestamp, ".pdf"), pdfPath)
 
   message("writing PDF: ", pdfPath)
   pdf(pdfPath,
@@ -342,6 +347,7 @@ visualiseScenarios <- function(path, outputFile = NULL, recoverRegions = "DEU") 
         yAxisLabel = "m2/cap",
         linetypeScale = linetypeScale,
         facet = "scenario",
+        facetScale = "fixed",
         color = "region",
         x = x,
         y = yVar
